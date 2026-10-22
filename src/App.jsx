@@ -77,6 +77,15 @@ export default function App() {
     return <LoadingScreen message="Memverifikasi Otentikasi & Akses Security..." />;
   }
 
+  // Helper untuk menentukan halaman tujuan berdasarkan role
+  const getHomeRouteForRole = (profile) => {
+    if (!profile) return '/login';
+    if (profile.role === 'superadmin') return '/saas-admin';
+    if (profile.role === 'pelatih') return '/akademi';
+    if (profile.role === 'owner' && !profile.tenant) return '/onboarding';
+    return '/dashboard'; // default for owner & admin
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -86,13 +95,7 @@ export default function App() {
             path="/login"
             element={
               userProfile ? (
-                userProfile.role === 'superadmin' ? (
-                  <Navigate to="/saas-admin" replace />
-                ) : userProfile.role === 'owner' && !userProfile.tenant ? (
-                  <Navigate to="/onboarding" replace />
-                ) : (
-                  <Navigate to="/dashboard" replace />
-                )
+                <Navigate to={getHomeRouteForRole(userProfile)} replace />
               ) : (
                 <LoginPage onLoginSuccess={(profile) => setUserProfile(profile)} />
               )
@@ -122,29 +125,87 @@ export default function App() {
             }
           />
 
-          {/* Tenant Owner Protected Main App Layout */}
+          {/* Protected Main App Layout (Owner, Admin, Pelatih) */}
           <Route
             element={
-              <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin']}>
+              <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin', 'pelatih']}>
                 <Layout userProfile={userProfile} />
               </ProtectedRoute>
             }
           >
-            <Route path="/dashboard" element={<DashboardPage userProfile={userProfile} />} />
-            <Route path="/booking" element={<BookingPage userProfile={userProfile} />} />
-            <Route path="/kasir" element={<KasirPage userProfile={userProfile} />} />
-            <Route path="/akademi" element={<AkademiPage userProfile={userProfile} />} />
-            <Route path="/events" element={<EventManagementPage userProfile={userProfile} />} />
-            <Route path="/events/:eventId" element={<EventDetailWrapper userProfile={userProfile} />} />
-            <Route path="/keuangan" element={<FinancePage userProfile={userProfile} />} />
-            <Route path="/intelligence" element={<IntelligencePage userProfile={userProfile} />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <DashboardPage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/booking"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <BookingPage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kasir"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <KasirPage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/akademi"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin', 'pelatih']}>
+                  <AkademiPage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <EventManagementPage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events/:eventId"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <EventDetailWrapper userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/keuangan"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <FinancePage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intelligence"
+              element={
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <IntelligencePage userProfile={userProfile} />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/pengaturan"
               element={
-                <PengaturanPage
-                  userProfile={userProfile}
-                  onTenantUpdated={handleTenantUpdated}
-                />
+                <ProtectedRoute userProfile={userProfile} allowedRoles={['owner', 'superadmin', 'admin']}>
+                  <PengaturanPage
+                    userProfile={userProfile}
+                    onTenantUpdated={handleTenantUpdated}
+                  />
+                </ProtectedRoute>
               }
             />
           </Route>
@@ -154,13 +215,7 @@ export default function App() {
             path="*"
             element={
               userProfile ? (
-                userProfile.role === 'superadmin' ? (
-                  <Navigate to="/saas-admin" replace />
-                ) : userProfile.role === 'owner' && !userProfile.tenant ? (
-                  <Navigate to="/onboarding" replace />
-                ) : (
-                  <Navigate to="/dashboard" replace />
-                )
+                <Navigate to={getHomeRouteForRole(userProfile)} replace />
               ) : (
                 <Navigate to="/login" replace />
               )

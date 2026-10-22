@@ -9,6 +9,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
+export { firebaseConfig };
 
 // Custom error handler helper for Firestore operations
 export const handleFirestoreError = (error, operationType, path) => {

@@ -103,9 +103,26 @@
         "status": { "type": "string" }
       },
       "required": ["tenantId", "studentName"]
+    },
+    "StaffUser": {
+      "title": "Staff User",
+      "description": "Staff profile record with client-side RBAC role (admin or pelatih)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "pelatih"] },
+        "tenantId": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role", "tenantId"]
     }
   },
   "firestore": {
+    "/users_staff/{uid}": {
+      "schema": { "$ref": "#/entities/StaffUser" },
+      "description": "Staff user profile documents containing RBAC role"
+    },
     "/invitations/{invitationId}": {
       "schema": { "$ref": "#/entities/Invitation" },
       "description": "Access invitation records"

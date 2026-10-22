@@ -561,9 +561,6 @@ export default function POSPage({ userProfile }) {
           <div>
             <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
               <span>Kasir (POS Global)</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200">
-                Enterprise Fase 11
-              </span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Penjualan retail F&amp;B, sewa peralatan, serta pembayaran tagihan SPP Akademi dalam satu struk

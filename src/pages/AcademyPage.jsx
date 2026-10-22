@@ -54,7 +54,8 @@ import {
   Edit3,
   ChevronDown,
   ChevronUp,
-  Building2
+  Building2,
+  Clock
 } from 'lucide-react';
 import { Dashboard3DIcon, Akademi3DIcon, Booking3DIcon, Kasir3DIcon, Event3DIcon, Keuangan3DIcon, AIInsight3DIcon, Pengaturan3DIcon } from '../components/icons/App3DIcons';
 
@@ -1541,7 +1542,7 @@ export default function AcademyPage({ userProfile }) {
                   <option value="">-- Pilih Kelas Latihan --</option>
                   {filteredClasses.map((cls) => (
                     <option key={cls.id} value={cls.id}>
-                      {cls.className} ({cls.sport || 'Umum'}) - Pelatih: {cls.coachName || '-'}
+                      {cls.className} - {cls.sport || 'Umum'}
                     </option>
                   ))}
                 </select>
@@ -1572,50 +1573,69 @@ export default function AcademyPage({ userProfile }) {
                 )}
               </div>
             ) : (
-              /* JIKA KELAS DIPILIH: RINCIAN KELAS & TOGGLE SUB-MENU */
-              <div className="space-y-5">
+              /* JIKA KELAS DIPILIH: RINCIAN KELAS RINGKAS & TOGGLE SUB-MENU */
+              <div className="space-y-4">
                 {(() => {
                   const currentClass = filteredClasses.find((c) => c.id === selectedClassId);
                   if (!currentClass) return null;
 
                   return (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold text-[9px] rounded-md uppercase">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 sm:p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
+                      {/* LAYOUT FLEXBOX PADAT KARTU KELAS */}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="font-bold text-sm sm:text-base text-slate-800 tracking-tight">
+                          {currentClass.className}
+                        </h3>
+
+                        {/* CHIP / BADGES BERWARNA LEMBUT */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-medium text-xs rounded-full border border-blue-100/80">
                             {currentClass.sport || 'Sports'}
                           </span>
-                          <h3 className="font-extrabold text-sm sm:text-base text-slate-800">
-                            {currentClass.className}
-                          </h3>
+                          {currentClass.ageGroup && (
+                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-medium text-xs rounded-full border border-emerald-100/80">
+                              {currentClass.ageGroup}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-600 mt-1">
-                          Pelatih Utama: <strong className="text-slate-800">{currentClass.coachName || 'Instruktur'}</strong> • Jadwal: <strong className="text-slate-800">{currentClass.schedule || '-'}</strong>
-                        </p>
+
+                        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+                        {/* INFORMASI DENGAN IKON (TANPA TEKS PANJANG) */}
+                        <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
+                          <span className="flex items-center gap-1.5" title="Pelatih">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="font-medium text-slate-700">{currentClass.coachName || 'Instruktur'}</span>
+                          </span>
+                          <span className="flex items-center gap-1.5" title="Jadwal Latihan">
+                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="font-medium text-slate-700">{currentClass.schedule || '-'}</span>
+                          </span>
+                        </div>
                       </div>
 
                       {/* SUB-MENU TOGGLE BUTTONS */}
-                      <div className="flex items-center space-x-2 bg-white p-1 rounded-xl border border-slate-200 shrink-0">
+                      <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 shrink-0 self-start lg:self-auto">
                         <button
                           type="button"
                           onClick={() => setAttendanceSubTab('presensi')}
-                          className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1.5 ${
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                             attendanceSubTab === 'presensi'
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
+                              ? 'bg-blue-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
                           }`}
                         >
                           <ClipboardCheck className="w-3.5 h-3.5" />
-                          <span>Catat Presensi</span>
+                          <span>Presensi</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setAttendanceSubTab('evaluasi')}
-                          className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1.5 ${
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                             attendanceSubTab === 'evaluasi'
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
+                              ? 'bg-blue-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
                           }`}
                         >
                           <Award className="w-3.5 h-3.5" />
@@ -1625,14 +1645,14 @@ export default function AcademyPage({ userProfile }) {
                         <button
                           type="button"
                           onClick={() => setAttendanceSubTab('antropometri')}
-                          className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1.5 ${
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                             attendanceSubTab === 'antropometri'
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
+                              ? 'bg-blue-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
                           }`}
                         >
                           <TrendingUp className="w-3.5 h-3.5" />
-                          <span>Growth & Gizi AI</span>
+                          <span>Growth &amp; Gizi</span>
                         </button>
                       </div>
                     </div>

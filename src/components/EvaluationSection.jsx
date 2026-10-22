@@ -522,34 +522,25 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
       {/* 1. HEADER INFO & BADGE RUMPUN OLAHRAGA */}
       {/* ================================================================= */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 border border-indigo-100 shadow-2xs">
-              <Award className="w-6 h-6 text-indigo-600" />
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 border border-indigo-100/80">
+              <Award className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Engine Evaluasi 4-Pilar & Mutasi Posisi</span>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
-                  Audit History
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-bold text-base text-slate-900 tracking-tight">
+                  Engine Evaluasi 4-Pilar & Mutasi Posisi
+                </h3>
+                {/* BADGE RUMPUN SEJAJAR JUDUL */}
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${theme.badge}`}>
+                  <Layers className="w-3 h-3 shrink-0" />
+                  <span>{categoryConfig.label}</span>
                 </span>
-              </h3>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Kelas: <strong className="text-slate-800 font-bold">{selectedClass?.className}</strong> &bull; Cabang: <span className="text-indigo-600 font-bold">{sportName}</span>
+                Kelas: <strong className="text-slate-700 font-medium">{selectedClass?.className}</strong> &bull; Cabang: <span className="text-indigo-600 font-medium">{sportName}</span>
               </p>
-            </div>
-          </div>
-
-          {/* BADGE SEKAT PEMBATAS RUMPUN OLAHRAGA */}
-          <div className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border text-xs font-bold ${theme.badge} shadow-2xs`}>
-            <Layers className="w-4 h-4 shrink-0" />
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider block opacity-75">
-                Mode Penilaian Rumpun:
-              </span>
-              <span className="font-extrabold">
-                {categoryConfig.label}
-              </span>
             </div>
           </div>
         </div>
@@ -569,12 +560,12 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         )}
 
         {/* ================================================================= */}
-        {/* 2. MASTER-DETAIL INTERFACE */}
+        {/* 2. MASTER-DETAIL INTERFACE (CLEAN INTEGRATED GRID) */}
         {/* ================================================================= */}
         {classStudents.length === 0 ? (
-          <div className="py-12 border-2 border-dashed border-slate-200 rounded-3xl text-center p-6 bg-slate-50/50">
+          <div className="py-12 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
             <User className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700">
+            <p className="text-sm font-semibold text-slate-700">
               Belum ada siswa terdaftar di kelas ini.
             </p>
             <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
@@ -582,19 +573,19 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
             
             {/* KOLOM KIRI: DAFTAR SISWA (MASTER - 4 COLS) */}
-            <div className="lg:col-span-4 space-y-3 bg-slate-50/80 p-3.5 sm:p-4 rounded-3xl border border-slate-200/90">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="lg:col-span-4 p-3.5 sm:p-4 bg-slate-50/50 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <UserCheck className="w-4 h-4 text-indigo-600" />
                   <span>Daftar Siswa ({classStudents.length})</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">Pilih atlet</span>
+                <span className="text-[11px] text-slate-400 font-medium">Pilih atlet</span>
               </div>
 
-              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
                 {classStudents.map((st) => {
                   const isSelected = selectedStudent?.id === st.id;
                   const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
@@ -605,30 +596,30 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       key={st.id}
                       type="button"
                       onClick={() => handleSelectStudent(st)}
-                      className={`w-full p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                      className={`w-full p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                         isSelected
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-101'
-                          : 'bg-white border-slate-200/90 text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-white border border-slate-200/70 text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/30'
                       }`}
                     >
                       <div className="overflow-hidden min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-extrabold text-xs truncate">{st.studentName}</p>
+                          <p className="font-semibold text-xs truncate">{st.studentName}</p>
                           {isEvaluatedToday && (
                             <span
                               title="Sudah dievaluasi pada tanggal ini"
-                              className={`px-1.5 py-0.5 rounded-full text-[9px] font-black shrink-0 ${
-                                isSelected ? 'bg-cyan-300 text-indigo-900' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-semibold shrink-0 ${
+                                isSelected ? 'bg-indigo-700 text-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                               }`}
                             >
                               ✓ Terisi
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1 truncate">
+                        <div className="flex items-center gap-1.5 mt-0.5 truncate">
                           {currentRole ? (
-                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase ${
-                              isSelected ? 'bg-indigo-700/80 text-indigo-100' : 'bg-slate-100 text-slate-600'
+                            <span className={`text-[10px] font-medium ${
+                              isSelected ? 'text-indigo-200' : 'text-slate-500'
                             }`}>
                               {currentRole}
                             </span>
@@ -639,7 +630,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                           )}
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? 'text-cyan-200 translate-x-0.5' : 'text-slate-300'}`} />
+                      <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? 'text-white translate-x-0.5' : 'text-slate-300'}`} />
                     </button>
                   );
                 })}
@@ -647,116 +638,108 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
             </div>
 
             {/* KOLOM KANAN: FORM EVALUASI KPI & RADAR (DETAIL - 8 COLS) */}
-            <div className="lg:col-span-8 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 space-y-5 shadow-2xs">
+            <div className="lg:col-span-8 p-4 sm:p-5 space-y-4">
               {selectedStudent ? (
-                <form onSubmit={handleSaveEvaluation} className="space-y-6">
+                <form onSubmit={handleSaveEvaluation} className="space-y-5">
                   
-                  {/* HEADER IDENTITAS SISWA AKTIF & LOCKED POSITION BADGE */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3.5">
+                  {/* IDENTITAS SISWA AKTIF & INLINE POSISI BERMAIN */}
+                  <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-100 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider block">
-                          Siswa Atlet Sedang Dinilai:
-                        </span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <h4 className="text-base font-black text-slate-900">{selectedStudent.studentName}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-bold text-slate-900">{selectedStudent.studentName}</h4>
                           {calculateAge(selectedStudent.birthDate) !== '-' && (
-                            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-md text-[10px] font-bold">
-                              Usia: {calculateAge(selectedStudent.birthDate)} Tahun
+                            <span className="px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[10px] font-medium">
+                              Usia: {calculateAge(selectedStudent.birthDate)} Thn
                             </span>
                           )}
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5">
-                          Wali: <strong className="text-slate-700">{selectedStudent.parentName || '-'}</strong> ({selectedStudent.parentPhone || '-'})
+                          Wali: <span className="text-slate-700 font-medium">{selectedStudent.parentName || '-'}</span> {selectedStudent.parentPhone ? `(${selectedStudent.parentPhone})` : ''}
                         </p>
                       </div>
 
                       {/* TANGGAL EVALUASI */}
-                      <div className="shrink-0">
-                        <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-0.5">
-                          Tgl Evaluasi
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <label className="text-xs text-slate-500 font-medium">
+                          Tgl:
                         </label>
                         <input
                           type="date"
                           value={evaluationDate}
                           onChange={(e) => setEvaluationDate(e.target.value)}
-                          className="px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 cursor-pointer shadow-2xs"
+                          className="px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800 cursor-pointer shadow-2xs"
                         />
                       </div>
                     </div>
 
-                    {/* LOCKED POSITION BADGE & MUTASI POSISI BUTTON */}
-                    <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex-1 space-y-1">
-                        <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                          <Target className="w-3.5 h-3.5 text-indigo-600" />
-                          <span>Posisi Resmi Atlet ({categoryConfig.label})</span>
-                        </label>
+                    {/* BARIS INLINE: POSISI BERMAIN, GANTI POSISI, SKOR RATA-RATA */}
+                    <div className="pt-2.5 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
+                          <Target className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          <span>Posisi Bermain:</span>
+                        </span>
 
-                        <div className="flex items-center gap-2">
-                          {playerRole ? (
-                            <div className="px-3 py-1.5 bg-slate-100 text-slate-800 border border-slate-200 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs">
-                              <Lock className="w-3.5 h-3.5 text-slate-500" />
-                              <span>{playerRole}</span>
-                            </div>
-                          ) : (
-                            <div className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs">
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                              <span>Belum Set Posisi</span>
-                            </div>
-                          )}
+                        {playerRole ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-slate-800 border border-slate-200 rounded-lg text-xs font-semibold shadow-2xs">
+                            <Lock className="w-3 h-3 text-slate-400" />
+                            <span>{playerRole}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-xs font-medium">
+                            <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                            <span>Belum Set</span>
+                          </span>
+                        )}
 
-                          <button
-                            type="button"
-                            onClick={handleOpenMutationModal}
-                            className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                            title="Mutasi Posisi Atlet"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>🔄 Ganti Posisi</span>
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={handleOpenMutationModal}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                          title="Ganti Posisi Atlet"
+                        >
+                          <RefreshCw className="w-3 h-3 text-indigo-600 shrink-0" />
+                          <span>Ganti Posisi</span>
+                        </button>
                       </div>
 
-                      {/* INDIKATOR OVERALL SCORE LIVE */}
-                      <div className="sm:text-right shrink-0">
-                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                          Predikat Rata-Rata
+                      {/* INDIKATOR OVERALL SCORE LIVE SEJAJAR */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-slate-500 font-medium">Skor Rata-Rata:</span>
+                        <span className="text-xl font-black text-slate-900">{overallScore}</span>
+                        <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${getScoreGrade(overallScore).badge}`}>
+                          {getScoreGrade(overallScore).grade}
                         </span>
-                        <div className="flex items-center sm:justify-end gap-2 mt-0.5">
-                          <span className="text-2xl font-black text-slate-900">{overallScore}</span>
-                          <span className={`px-2.5 py-1 text-[10px] font-black rounded-lg border ${getScoreGrade(overallScore).badge}`}>
-                            {getScoreGrade(overallScore).grade}
-                          </span>
-                        </div>
                       </div>
                     </div>
 
+                    {/* HELPER TEXT KECIL UNTUK PERINGATAN POSISI (MENGGANTIKAN ALERT BESAR) */}
                     {!playerRole && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>Posisi atlet belum ditentukan. Klik tombol "🔄 Ganti Posisi" di atas untuk menetapkan posisi resmi atlet sebelum mengisi evaluasi.</span>
-                      </div>
+                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 pt-0.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span>Posisi atlet belum ditentukan. Klik "Ganti Posisi" untuk menetapkan posisi resmi atlet.</span>
+                      </p>
                     )}
                   </div>
 
-                  {/* INDIKATOR VISUAL SMART PRE-FILL DARI HISTORI TERAKHIR */}
+                  {/* SMART PRE-FILL DARI HISTORI TERAKHIR */}
                   {lastStudentEvaluation ? (
-                    <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-2xl text-xs font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs animate-fadeIn">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 animate-pulse" />
-                        <span>
-                          <strong>Smart Pre-Fill Aktif:</strong> Nilai slider dimuat otomatis dari evaluasi terakhir atlet ({lastStudentEvaluation.date || 'Sesi Terakhir'}).
+                    <div className="px-3 py-2 bg-indigo-50/60 border border-indigo-100 text-indigo-900 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0 animate-pulse" />
+                        <span className="truncate">
+                          <strong>Smart Pre-Fill:</strong> Nilai slider dimuat otomatis dari sesi {lastStudentEvaluation.date || 'terakhir'}.
                         </span>
                       </div>
-                      <span className="px-2.5 py-0.5 bg-indigo-200 text-indigo-950 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 self-start sm:self-auto">
-                        Mode Lanjutan (Histori Terakhir)
+                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md shrink-0">
+                        Histori Terakhir
                       </span>
                     </div>
                   ) : (
-                    <div className="p-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl text-xs font-medium flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span>Evaluasi Pertama Atlet (Nilai slider diinisialisasi ke baseline default 75)</span>
+                    <div className="px-3 py-1.5 bg-slate-50 text-slate-500 rounded-xl text-xs flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>Evaluasi Pertama Atlet (Nilai awal baseline 75)</span>
                     </div>
                   )}
 

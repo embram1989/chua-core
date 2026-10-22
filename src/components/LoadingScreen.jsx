@@ -7,7 +7,7 @@ export default function LoadingScreen({ message = 'Memverifikasi Otentikasi & Ak
       <div className="flex flex-col items-center text-center space-y-3 max-w-sm w-full">
         {/* New Animated Pulse Logo */}
         <img 
-          src="/logo_2.jpg" 
+          src="/logo.png" 
           alt="Loading Logo" 
           className="w-36 sm:w-44 h-auto object-contain mb-4 animate-pulse drop-shadow-xs" 
         />

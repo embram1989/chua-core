@@ -7,7 +7,8 @@ import {
   Menu, 
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { logoutUser } from '../services/authService';
 import {
@@ -21,7 +22,7 @@ import {
   Pengaturan3DIcon
 } from './icons/App3DIcons';
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { path: '/dashboard', label: 'Dashboard', name: 'Dashboard', icon: Dashboard3DIcon },
   { path: '/booking', label: 'Booking', name: 'Booking', icon: Booking3DIcon },
   { path: '/kasir', label: 'Kasir', name: 'Kasir', icon: Kasir3DIcon },
@@ -46,8 +47,22 @@ export default function Layout({ userProfile }) {
     }
   };
 
-  const tenantName = userProfile?.tenant?.name || 'Arena & Akademi Core';
-  const roleDisplay = userProfile?.role === 'superadmin' ? 'Super Admin' : 'Tenant Owner';
+  const tenantName = userProfile?.tenant?.name || 'CHUA SPORT CORE';
+  
+  // Format Label Role untuk Badge Sidebar
+  const roleDisplay = 
+    userProfile?.role === 'superadmin' ? 'Super Admin' :
+    userProfile?.role === 'owner' ? 'Owner GOR' :
+    userProfile?.role === 'admin' ? 'Admin Staf' :
+    userProfile?.role === 'pelatih' ? 'Pelatih Akademi' : 'Staf';
+
+  // Filter Menu Berdasarkan Client-Side RBAC (Pelatih HANYA melihat Akademi)
+  const navItems = ALL_NAV_ITEMS.filter((item) => {
+    if (userProfile?.role === 'pelatih') {
+      return item.path === '/akademi';
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-800 text-sm overflow-x-hidden">
@@ -82,14 +97,17 @@ export default function Layout({ userProfile }) {
           {!isSidebarCollapsed && (
             <div className="overflow-hidden flex-1">
               <p className="text-xs font-bold text-slate-800 truncate">{tenantName}</p>
-              <p className="text-[10px] text-blue-600 font-semibold">{roleDisplay}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <ShieldCheck className="w-3 h-3 text-blue-600" />
+                <span className="text-[10px] text-blue-600 font-bold">{roleDisplay}</span>
+              </div>
             </div>
           )}
         </div>
 
         {/* Sidebar Navigation */}
         <nav className="flex-1 px-2.5 py-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -119,7 +137,7 @@ export default function Layout({ userProfile }) {
                 {userProfile?.photoURL ? (
                   <img src={userProfile.photoURL} alt="Avatar" className="w-7 h-7 rounded-full border border-slate-200 shrink-0" />
                 ) : (
-                  <div className="w-7 h-7 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">
+                  <div className="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">
                     {userProfile?.displayName?.charAt(0) || 'U'}
                   </div>
                 )}
@@ -141,7 +159,7 @@ export default function Layout({ userProfile }) {
               {userProfile?.photoURL ? (
                 <img src={userProfile.photoURL} alt="Avatar" title={userProfile?.displayName} className="w-8 h-8 rounded-full border border-slate-200 shrink-0" />
               ) : (
-                <div title={userProfile?.displayName} className="w-8 h-8 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                <div title={userProfile?.displayName} className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
                   {userProfile?.displayName?.charAt(0) || 'U'}
                 </div>
               )}
@@ -164,7 +182,7 @@ export default function Layout({ userProfile }) {
           <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="h-8 w-auto object-contain shrink-0" />
           <div className="overflow-hidden border-l border-slate-200 pl-2.5">
             <h1 className="font-bold text-xs text-slate-800 leading-tight truncate max-w-[170px]">{tenantName}</h1>
-            <span className="text-[9px] text-blue-600 font-semibold">{roleDisplay}</span>
+            <span className="text-[9px] text-blue-600 font-bold">{roleDisplay}</span>
           </div>
         </div>
 
@@ -177,7 +195,7 @@ export default function Layout({ userProfile }) {
         </button>
       </header>
 
-      {/* MOBILE SLIDE-OUT MENU OVERLAY (3-COLUMN GRID) */}
+      {/* MOBILE SLIDE-OUT MENU OVERLAY */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -208,11 +226,10 @@ export default function Layout({ userProfile }) {
                 </div>
 
                 <div className="py-2">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">Menu Utama Navigasi</p>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">Menu Navigasi ({roleDisplay})</p>
                   
-                  {/* GRID 3 KOLOM SESUAI INSTRUKSI */}
-                  <div className="grid grid-cols-3 gap-4 mt-8 px-4">
-                    {NAV_ITEMS.map((item) => {
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                    {navItems.map((item) => {
                       const Icon = item.icon;
                       return (
                         <NavLink
@@ -228,7 +245,7 @@ export default function Layout({ userProfile }) {
                           }
                         >
                           <Icon className="w-7 h-7 mb-2" />
-                          <span className="text-[10px] text-center font-medium leading-tight">
+                          <span className="text-[11px] text-center font-medium leading-tight">
                             {item.name}
                           </span>
                         </NavLink>
@@ -243,7 +260,7 @@ export default function Layout({ userProfile }) {
                   {userProfile?.photoURL ? (
                     <img src={userProfile.photoURL} alt="Avatar" className="w-9 h-9 rounded-full border border-slate-200" />
                   ) : (
-                    <div className="w-9 h-9 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center font-bold text-xs">
+                    <div className="w-9 h-9 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-xs">
                       {userProfile?.displayName?.charAt(0) || 'U'}
                     </div>
                   )}

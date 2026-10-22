@@ -653,9 +653,6 @@ export default function DashboardPage({ userProfile }) {
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 {tenantProfile?.name || 'GOR Arena Sports'}
               </h1>
-              <span className="px-2.5 py-0.5 bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-[10px] font-black uppercase tracking-wider rounded-full shrink-0">
-                Enterprise Fase 11
-              </span>
             </div>
             <p className="text-xs text-blue-100/80 mt-1">
               Buku Besar Global (Multi-Division Cash Flow &bull; Court, POS Retail &amp; Akademi SIMAK)

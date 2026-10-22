@@ -3,6 +3,11 @@ import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
 import { 
+  registerStaffByOwner, 
+  getStaffListByTenant, 
+  deleteStaffDoc 
+} from '../services/staffService';
+import { 
   Building2, 
   MapPin, 
   Phone, 
@@ -21,7 +26,10 @@ import {
   Trash2,
   Plus,
   GraduationCap,
-  Lock
+  Lock,
+  UserPlus,
+  Users,
+  ShieldCheck
 } from 'lucide-react';
 import { Pengaturan3DIcon, Keuangan3DIcon, Akademi3DIcon, RegulasiDokumen3DIcon } from '../components/icons/App3DIcons';
 
@@ -97,6 +105,86 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
   const [newSportName, setNewSportName] = useState('');
   const [newSportSpp, setNewSportSpp] = useState('');
   const [newSportReg, setNewSportReg] = useState('');
+
+  // Staff Management (Client-Side RBAC) States
+  const [staffList, setStaffList] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
+  const [staffSuccessMsg, setStaffSuccessMsg] = useState(null);
+  const [staffErrorMsg, setStaffErrorMsg] = useState(null);
+  const [registeringStaff, setRegisteringStaff] = useState(false);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffPassword, setNewStaffPassword] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState('admin');
+
+  useEffect(() => {
+    if (tenant?.id && activeTab === 'staf') {
+      fetchStaffList();
+    }
+  }, [tenant?.id, activeTab]);
+
+  const fetchStaffList = async () => {
+    if (!tenant?.id) return;
+    setLoadingStaff(true);
+    try {
+      const list = await getStaffListByTenant(tenant.id);
+      setStaffList(list);
+    } catch (err) {
+      console.error('Error fetching staff list:', err);
+    } finally {
+      setLoadingStaff(false);
+    }
+  };
+
+  const handleRegisterStaff = async (e) => {
+    e.preventDefault();
+    if (!tenant?.id) {
+      setStaffErrorMsg('ID Tenant belum dimuat. Pastikan profil GOR telah dibuat.');
+      return;
+    }
+
+    setRegisteringStaff(true);
+    setStaffSuccessMsg(null);
+    setStaffErrorMsg(null);
+
+    try {
+      await registerStaffByOwner({
+        name: newStaffName,
+        email: newStaffEmail,
+        password: newStaffPassword,
+        role: newStaffRole,
+        tenantId: tenant.id
+      });
+
+      setStaffSuccessMsg(`Berhasil mendaftarkan ${newStaffRole === 'admin' ? 'Admin Staf' : 'Pelatih Akademi'} (${newStaffEmail})!`);
+      setNewStaffName('');
+      setNewStaffEmail('');
+      setNewStaffPassword('');
+      setNewStaffRole('admin');
+
+      fetchStaffList();
+      setTimeout(() => setStaffSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Error registering staff:', err);
+      setStaffErrorMsg(err.message || 'Gagal mendaftarkan akun staf.');
+    } finally {
+      setRegisteringStaff(false);
+    }
+  };
+
+  const handleDeleteStaff = async (staffUid, staffEmail) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus akses staf (${staffEmail})?`)) return;
+
+    try {
+      await deleteStaffDoc(staffUid);
+      setStaffSuccessMsg(`Akun staf (${staffEmail}) berhasil dihapus.`);
+      fetchStaffList();
+      setTimeout(() => setStaffSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Error deleting staff doc:', err);
+      setStaffErrorMsg('Gagal menghapus dokumen staf.');
+    }
+  };
 
   // CRUD Handlers for Master Data Tarif Akademi
   const handleAcademyPricingChange = (sport, field, val) => {
@@ -371,6 +459,19 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
         >
           <GraduationCap className="w-4 h-4 shrink-0" />
           <span>Master Tarif Akademi</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('staf')}
+          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
+            activeTab === 'staf'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <Users className="w-4 h-4 shrink-0" />
+          <span>Kelola Staf &amp; Pelatih</span>
         </button>
       </div>
 
@@ -1063,6 +1164,188 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
             </button>
           </div>
         </form>
+      )}
+
+      {/* TAB 6: KELOLA STAF & PELATIH (CLIENT-SIDE RBAC) */}
+      {activeTab === 'staf' && (
+        <div className="space-y-6 text-left animate-fadeIn">
+          {/* CARD 1: FORM PENDAFTARAN STAF (SECONDARY FIREBASE APP) */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h2 className="font-bold text-base text-[#333333] flex items-center space-x-2">
+                  <UserPlus className="w-5 h-5 text-blue-600" />
+                  <span>Daftarkan Staf Baru (Owner Portal)</span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Registrasi staf/pelatih menggunakan metode Secondary Firebase App. Sesuai arsitektur, akun Owner Anda tidak akan ter-logout.
+                </p>
+              </div>
+              <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg border border-indigo-100 shrink-0">
+                Secondary Firebase App
+              </span>
+            </div>
+
+            {staffSuccessMsg && (
+              <div className="p-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded-xl font-semibold flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                <span>{staffSuccessMsg}</span>
+              </div>
+            )}
+
+            {staffErrorMsg && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-semibold">
+                {staffErrorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleRegisterStaff} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Nama Lengkap Staf / Pelatih
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Coach Agus or Budi Admin"
+                    value={newStaffName}
+                    onChange={(e) => setNewStaffName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-bold text-[#333333]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Email Akun Staf
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="staf@chuasport.com"
+                    value={newStaffEmail}
+                    onChange={(e) => setNewStaffEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-medium text-[#333333]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Kata Sandi (Password)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Minimal 6 Karakter"
+                    value={newStaffPassword}
+                    onChange={(e) => setNewStaffPassword(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-medium text-[#333333]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                    Role / Hak Akses RBAC
+                  </label>
+                  <select
+                    value={newStaffRole}
+                    onChange={(e) => setNewStaffRole(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-bold text-slate-800 cursor-pointer"
+                  >
+                    <option value="admin">1. admin (Booking, Akademi, Event &amp; Keuangan)</option>
+                    <option value="pelatih">2. pelatih (HANYA Modul Akademi)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-[11px] text-blue-800 leading-relaxed">
+                <strong>Ketentuan Hak Akses Role RBAC:</strong>
+                <ul className="list-disc list-inside mt-1 space-y-0.5">
+                  <li><strong>Admin Staf ("admin"):</strong> Memiliki akses ke modul Booking, Akademi, Event &amp; Turnamen, dan Keuangan.</li>
+                  <li><strong>Pelatih ("pelatih"):</strong> HANYA memiliki akses ke modul Akademi. Menu lainnya otomatis disembunyikan.</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={registeringStaff}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center space-x-2 disabled:opacity-60"
+                >
+                  {registeringStaff ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Mendaftarkan Staf...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Daftarkan Staf Baru</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* CARD 2: DAFTAR STAF TERDAFTAR IN USERS_STAFF */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span>Daftar Staf &amp; Pelatih Terdaftar (Koleksi users_staff)</span>
+              </h3>
+              <span className="text-xs font-bold text-gray-400">
+                Total: {staffList.length} Akun
+              </span>
+            </div>
+
+            {loadingStaff ? (
+              <p className="text-xs text-gray-500 py-4">Memuat daftar staf...</p>
+            ) : staffList.length === 0 ? (
+              <div className="py-8 border-2 border-dashed border-gray-200 rounded-xl text-center p-6 flex flex-col items-center">
+                <Users className="w-8 h-8 text-gray-300 mb-2" />
+                <p className="text-xs font-bold text-gray-600">Belum ada staf atau pelatih terdaftar.</p>
+                <p className="text-[11px] text-gray-400 mt-1">Gunakan formulir di atas untuk mendaftarkan staf baru.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden">
+                {staffList.map((staf) => (
+                  <div key={staf.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/60 transition-colors">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-sm text-slate-800">{staf.name}</span>
+                        <span className={`px-2 py-0.5 font-bold text-[10px] rounded-md uppercase ${
+                          staf.role === 'admin' 
+                            ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                            : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                        }`}>
+                          {staf.role === 'admin' ? 'Admin Staf' : 'Pelatih Akademi'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 font-mono">{staf.email}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">UID: {staf.uid || staf.id}</p>
+                    </div>
+
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteStaff(staf.id, staf.email)}
+                        className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus Akses</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
