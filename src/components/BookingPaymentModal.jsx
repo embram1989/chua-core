@@ -1,0 +1,255 @@
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, handleFirestoreError } from '../firebase';
+import useArenaData from '../hooks/useArenaData';
+import { X, Calendar, Clock, User, Phone, DollarSign, Calculator, QrCode, CreditCard, Banknote } from 'lucide-react';
+
+export default function BookingPaymentModal({
+  isOpen,
+  onClose,
+  userProfile,
+  pendingBookingData,
+  onPaymentSuccess
+}) {
+  const { tenantProfile } = useArenaData(userProfile);
+  const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
+
+  const [paymentMethod, setPaymentMethod] = useState('QRIS');
+  const [cashReceived, setCashReceived] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Reset cashReceived when modal opens or payment method changes
+  useEffect(() => {
+    setCashReceived('');
+  }, [isOpen, paymentMethod]);
+
+  if (!isOpen || !pendingBookingData) return null;
+
+  const totalBiaya = Number(pendingBookingData.price) || 0;
+  const cashNum = Number(cashReceived) || 0;
+  const kembalian = cashNum - totalBiaya;
+
+  // Validation: If paymentMethod is Cash, cashReceived must be >= totalBiaya
+  const isCashValid = paymentMethod !== 'Cash' || (paymentMethod === 'Cash' && cashNum >= totalBiaya);
+
+  const handleConfirmPayment = async () => {
+    if (!isCashValid) return;
+
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const bookingPayload = {
+        ...pendingBookingData,
+        tenantId,
+        paymentMethod,
+        status: 'Lunas',
+        totalPrice: totalBiaya,
+        cashReceived: paymentMethod === 'Cash' ? cashNum : totalBiaya,
+        changeAmount: paymentMethod === 'Cash' ? Math.max(0, kembalian) : 0,
+        createdAt: serverTimestamp(),
+      };
+      
+      await addDoc(collection(db, 'bookings'), bookingPayload);
+
+      if (onPaymentSuccess) {
+        onPaymentSuccess(bookingPayload);
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('Error processing booking payment:', err);
+      handleFirestoreError(err, 'create', 'bookings');
+      setErrorMsg('Gagal memproses pembayaran. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const tenantQris = tenantProfile?.qrisImageBase64 || tenantProfile?.qrisUrl || '';
+  const bankName = tenantProfile?.bankName || 'BCA';
+  const accountNumber = tenantProfile?.bankAccountNumber || '1234567890';
+  const accountHolder = tenantProfile?.bankAccountHolder || tenantProfile?.name || 'GOR Arena';
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-gray-100 space-y-5 text-[#333333]">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div>
+            <h2 className="font-black text-base text-gray-900">Pembayaran Sewa Lapangan</h2>
+            <p className="text-xs text-gray-500 font-medium">Selesaikan pembayaran untuk mengonfirmasi reservasi.</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-black rounded-full hover:bg-gray-100 cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {errorMsg && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Summary Details */}
+        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2.5">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-500 font-semibold">Lapangan</span>
+            <span className="font-bold text-gray-900">{pendingBookingData.courtName}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-500 font-semibold">Pemesan</span>
+            <span className="font-bold text-gray-900">{pendingBookingData.customerName} ({pendingBookingData.customerPhone || '-'})</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-500 font-semibold">Jadwal</span>
+            <span className="font-bold text-gray-900">{pendingBookingData.bookingDate} ({pendingBookingData.startTime} - {pendingBookingData.endTime})</span>
+          </div>
+          <div className="pt-2.5 border-t border-gray-200 flex justify-between items-center">
+            <span className="text-xs font-bold uppercase text-gray-700">Total Biaya</span>
+            <span className="text-lg font-black text-blue-600">
+              Rp {totalBiaya.toLocaleString('id-ID')}
+            </span>
+          </div>
+        </div>
+
+        {/* Payment Method Selector */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-gray-700 uppercase">
+            Metode Pembayaran *
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('QRIS')}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                paymentMethod === 'QRIS'
+                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <QrCode className="w-5 h-5 mb-1" />
+              <span>QRIS</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('Transfer Bank')}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                paymentMethod === 'Transfer Bank'
+                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <CreditCard className="w-5 h-5 mb-1" />
+              <span>Transfer</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('Cash')}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                paymentMethod === 'Cash'
+                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Banknote className="w-5 h-5 mb-1" />
+              <span>Cash</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Conditional Payment Display */}
+        {paymentMethod === 'QRIS' && (
+          <div className="p-4 bg-white border border-gray-200 rounded-2xl text-center space-y-2 shadow-2xs">
+            <p className="text-xs font-bold text-gray-800">Scan QRIS untuk Pembayaran Instan</p>
+            {tenantQris ? (
+              <div className="w-44 h-44 mx-auto border border-gray-200 rounded-xl overflow-hidden p-2 bg-white">
+                <img src={tenantQris} alt="QRIS Tenant" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-44 h-44 mx-auto bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs text-center p-4">
+                QRIS belum diatur di menu Pengaturan
+              </div>
+            )}
+            <p className="text-[10px] text-gray-500">Silakan scan menggunakan m-Banking atau E-Wallet Anda.</p>
+          </div>
+        )}
+
+        {paymentMethod === 'Transfer Bank' && (
+          <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-2 text-xs">
+            <p className="font-bold text-blue-900">Informasi Rekening Bank GOR:</p>
+            <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
+              <p className="text-gray-500 text-[11px]">Bank: <span className="font-bold text-gray-900">{bankName}</span></p>
+              <p className="text-gray-500 text-[11px]">No. Rekening: <span className="font-black text-blue-700 text-sm">{accountNumber}</span></p>
+              <p className="text-gray-500 text-[11px]">Atas Nama: <span className="font-bold text-gray-900">{accountHolder}</span></p>
+            </div>
+            <p className="text-[10px] text-blue-700 italic">Transfer sesuai total tagihan dan simpan bukti transfer.</p>
+          </div>
+        )}
+
+        {paymentMethod === 'Cash' && (
+          <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-3 text-xs">
+            <p className="font-bold text-emerald-900">Kalkulator Pembayaran Tunai (Cash)</p>
+            
+            <div>
+              <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                Jumlah Uang Diterima (Rp) *
+              </label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Contoh: 100000"
+                value={cashReceived}
+                onChange={(e) => setCashReceived(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-300 rounded-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            {/* Change Calculator Output */}
+            {cashReceived !== '' && (
+              <div className="pt-2 border-t border-emerald-100">
+                {kembalian < 0 ? (
+                  <p className="text-xs font-bold text-red-600">
+                    Uang kurang: Rp {Math.abs(kembalian).toLocaleString('id-ID')}
+                  </p>
+                ) : (
+                  <p className="text-sm font-black text-emerald-700">
+                    Kembalian: Rp {kembalian.toLocaleString('id-ID')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="pt-2 flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            disabled={isSubmitting || !isCashValid}
+            onClick={handleConfirmPayment}
+            className={`flex-1 py-3 text-white font-bold text-xs rounded-xl shadow-md transition-all ${
+              !isCashValid || isSubmitting
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 shadow-none'
+                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 cursor-pointer'
+            }`}
+          >
+            {isSubmitting ? 'Memproses...' : 'Konfirmasi & Bayar Lunas'}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
