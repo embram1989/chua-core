@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { GraduationCap, Phone, Hash, ArrowRight, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export default function PortalLogin() {
@@ -21,32 +23,72 @@ export default function PortalLogin() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/portal/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: studentId.trim(),
-          parentPhone: parentPhone.trim()
-        })
-      });
+      let isApiHandled = false;
 
-      const result = await response.json();
+      // 1. Panggil endpoint Cloudflare Pages Function (/api/portal/login)
+      try {
+        const response = await fetch('/api/portal/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: studentId.trim(),
+            parentPhone: parentPhone.trim()
+          })
+        });
 
-      if (response.ok && result.success) {
-        // Simpan sesi sementara portal (jika ada data siswa)
-        sessionStorage.setItem('portal_student_id', studentId.trim());
-        sessionStorage.setItem('portal_parent_phone', parentPhone.trim());
-        navigate('/portal/dashboard');
-      } else {
-        // Jika backend functions belum aktif atau data salah, berikan pesan informatif
-        setErrorMsg(result.error || result.message || 'Verifikasi gagal. Pastikan ID Siswa dan Nomor HP terdaftar.');
+        // Jika fungsi Cloudflare aktif (bukan 404 dari dev server)
+        if (response.status !== 404) {
+          isApiHandled = true;
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            sessionStorage.setItem('portal_student_id', studentId.trim());
+            sessionStorage.setItem('portal_parent_phone', parentPhone.trim());
+            if (result.student) {
+              sessionStorage.setItem('portal_student_data', JSON.stringify(result.student));
+            }
+            navigate('/portal/dashboard');
+            return;
+          } else {
+            setErrorMsg(result.message || 'Kredensial tidak ditemukan');
+            return;
+          }
+        }
+      } catch (apiErr) {
+        // Abaikan fetch error jika dev server belum menjalankan Pages functions
+        console.warn('Functions endpoint fetch error:', apiErr);
+      }
+
+      // 2. Dev-mode Fallback: Langsung verifikasi ke Firestore client SDK jika functions belum aktif
+      if (!isApiHandled) {
+        const cleanId = studentId.trim();
+        const inputDigits = parentPhone.replace(/\D/g, '');
+
+        const docRef = doc(db, 'students', cleanId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = { id: docSnap.id, ...docSnap.data() };
+          const storedPhoneDigits = String(data.parentPhone || '').replace(/\D/g, '');
+
+          if (
+            storedPhoneDigits &&
+            inputDigits &&
+            (storedPhoneDigits.endsWith(inputDigits) || inputDigits.endsWith(storedPhoneDigits))
+          ) {
+            sessionStorage.setItem('portal_student_id', docSnap.id);
+            sessionStorage.setItem('portal_parent_phone', parentPhone.trim());
+            sessionStorage.setItem('portal_student_data', JSON.stringify(data));
+            navigate('/portal/dashboard');
+            return;
+          }
+        }
+
+        setErrorMsg('Kredensial tidak ditemukan');
       }
     } catch (err) {
-      console.warn('API Portal call error (dev/fallback):', err);
-      // Fallback untuk prototyping saat endpoint functions belum jalan di Vite local dev:
-      sessionStorage.setItem('portal_student_id', studentId.trim());
-      sessionStorage.setItem('portal_parent_phone', parentPhone.trim());
-      navigate('/portal/dashboard');
+      console.error('Portal Login error:', err);
+      setErrorMsg('Kredensial tidak ditemukan');
     } finally {
       setLoading(false);
     }
@@ -99,7 +141,7 @@ export default function PortalLogin() {
               />
             </div>
             <p className="text-[10px] text-slate-400">
-              ID dapat dilihat pada Kartu Anggota / ID Card digital siswa.
+              ID tertera pada Kartu ID Card / Kartu Anggota Siswa.
             </p>
           </div>
 
@@ -122,7 +164,7 @@ export default function PortalLogin() {
               />
             </div>
             <p className="text-[10px] text-slate-400">
-              Gunakan nomor HP yang terdaftar saat registrasi siswa di akademi.
+              Nomor kontak yang terdaftar saat registrasi siswa.
             </p>
           </div>
 
