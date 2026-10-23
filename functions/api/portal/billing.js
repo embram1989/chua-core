@@ -208,14 +208,22 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 3. Ambil data tenant untuk mendapatkan QRIS dan Info Rekening
+    // 3. Ambil data tenant untuk mendapatkan QRIS dan Info Rekening Bank
+    let bankDetails = {
+      bank: '',
+      number: '',
+      name: ''
+    };
+
     let tenantInfo = {
       id: tenantId || '',
       name: '',
       qrisUrl: null,
       bankName: '',
       bankAccount: '',
-      accountHolder: ''
+      bankAccountNumber: '',
+      accountHolder: '',
+      bankAccountName: ''
     };
 
     if (tenantId) {
@@ -225,17 +233,79 @@ export async function onRequestPost(context) {
         if (tenantResp.ok) {
           const tenantDoc = await tenantResp.json();
           const tFields = parseFirestoreFields(tenantDoc.fields);
+
+          const firstBank = Array.isArray(tFields.bankAccounts) && tFields.bankAccounts.length > 0 ? tFields.bankAccounts[0] : null;
+
+          const extractedBank = tFields.bankName || firstBank?.bankName || tFields.bank || '';
+          const extractedNumber = tFields.bankAccountNumber || tFields.bankAccount || tFields.noRekening || tFields.accountNumber || firstBank?.accountNumber || firstBank?.bankAccountNumber || '';
+          const extractedName = tFields.bankAccountName || tFields.bankAccountHolder || tFields.accountHolder || tFields.atasNama || firstBank?.accountName || firstBank?.bankAccountName || tFields.name || '';
+
+          bankDetails = {
+            bank: extractedBank,
+            number: extractedNumber,
+            name: extractedName
+          };
+
           tenantInfo = {
             id: tenantId,
             name: tFields.name || tFields.arenaName || '',
             qrisUrl: tFields.qrisUrl || tFields.qrisImageUrl || tFields.qrisImageBase64 || null,
-            bankName: tFields.bankName || tFields.bank || '',
-            bankAccount: tFields.bankAccount || tFields.noRekening || tFields.accountNumber || '',
-            accountHolder: tFields.accountHolder || tFields.atasNama || ''
+            bankName: extractedBank,
+            bankAccount: extractedNumber,
+            bankAccountNumber: extractedNumber,
+            accountHolder: extractedName,
+            bankAccountName: extractedName,
+            bankDetails
           };
         }
       } catch (err) {
         console.warn('Gagal mengambil data tenant:', err);
+      }
+    }
+
+    // Fallback: Jika data bank masih kosong atau tenantId belum terhubung, cek koleksi tenants
+    if (!bankDetails.number && !tenantInfo.qrisUrl) {
+      try {
+        const tenantListUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/tenants?pageSize=5`;
+        const listResp = await fetch(tenantListUrl, { method: 'GET', headers: reqHeaders });
+        if (listResp.ok) {
+          const listData = await listResp.json();
+          const docs = listData.documents || [];
+          if (docs.length > 0) {
+            let selectedDoc = docs[0];
+            if (tenantId) {
+              const matched = docs.find(d => (d.name || '').endsWith(`/${tenantId}`));
+              if (matched) selectedDoc = matched;
+            }
+            const tFields = parseFirestoreFields(selectedDoc.fields);
+            const firstBank = Array.isArray(tFields.bankAccounts) && tFields.bankAccounts.length > 0 ? tFields.bankAccounts[0] : null;
+
+            const extractedBank = tFields.bankName || firstBank?.bankName || tFields.bank || '';
+            const extractedNumber = tFields.bankAccountNumber || tFields.bankAccount || tFields.noRekening || tFields.accountNumber || firstBank?.accountNumber || firstBank?.bankAccountNumber || '';
+            const extractedName = tFields.bankAccountName || tFields.bankAccountHolder || tFields.accountHolder || tFields.atasNama || firstBank?.accountName || firstBank?.bankAccountName || tFields.name || '';
+
+            bankDetails = {
+              bank: extractedBank,
+              number: extractedNumber,
+              name: extractedName
+            };
+
+            const tDocId = (selectedDoc.name || '').split('/').pop();
+            tenantInfo = {
+              id: tDocId || tenantId,
+              name: tFields.name || tFields.arenaName || tenantInfo.name,
+              qrisUrl: tFields.qrisUrl || tFields.qrisImageUrl || tFields.qrisImageBase64 || tenantInfo.qrisUrl,
+              bankName: extractedBank,
+              bankAccount: extractedNumber,
+              bankAccountNumber: extractedNumber,
+              accountHolder: extractedName,
+              bankAccountName: extractedName,
+              bankDetails
+            };
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn('Fallback koleksi tenants gagal:', fallbackErr);
       }
     }
 
@@ -383,6 +453,7 @@ export async function onRequestPost(context) {
         success: true,
         message: 'Data penagihan riil berhasil dimuat',
         tenant: tenantInfo,
+        bankDetails,
         billing: {
           totalAmount,
           details,

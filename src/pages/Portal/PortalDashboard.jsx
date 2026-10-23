@@ -51,8 +51,9 @@ export default function PortalDashboard() {
     }
   })();
 
-  // State untuk penagihan & QRIS
+  // State untuk penagihan, QRIS, & Rekening Bank Dinamis
   const [billingData, setBillingData] = useState(null);
+  const [bankDetails, setBankDetails] = useState({ bank: '', number: '', name: '' });
   const [isLoadingBilling, setIsLoadingBilling] = useState(true);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
@@ -78,6 +79,19 @@ export default function PortalDashboard() {
           const res = await response.json();
           if (isMounted && res.success) {
             setBillingData(res);
+            if (res.bankDetails) {
+              setBankDetails({
+                bank: res.bankDetails.bank || '',
+                number: res.bankDetails.number || '',
+                name: res.bankDetails.name || ''
+              });
+            } else if (res.tenant) {
+              setBankDetails({
+                bank: res.tenant.bankName || '',
+                number: res.tenant.bankAccountNumber || res.tenant.bankAccount || '',
+                name: res.tenant.bankAccountName || res.tenant.accountHolder || ''
+              });
+            }
             setIsLoadingBilling(false);
             return;
           }
@@ -125,17 +139,34 @@ export default function PortalDashboard() {
           localTotal += sppFee;
         }
 
+        // Ekstraksi info bank dari profil tenant
+        const firstBank = Array.isArray(tData.bankAccounts) && tData.bankAccounts.length > 0 ? tData.bankAccounts[0] : null;
+        const extractedBank = tData.bankName || firstBank?.bankName || tData.bank || '';
+        const extractedNumber = tData.bankAccountNumber || tData.bankAccount || tData.noRekening || tData.accountNumber || firstBank?.accountNumber || '';
+        const extractedName = tData.bankAccountName || tData.bankAccountHolder || tData.accountHolder || tData.atasNama || firstBank?.accountName || tData.name || '';
+
+        const localBankDetails = {
+          bank: extractedBank,
+          number: extractedNumber,
+          name: extractedName
+        };
+
         if (isMounted) {
+          setBankDetails(localBankDetails);
           setBillingData({
             success: true,
             tenant: {
               id: tenantId || '',
               name: tData.name || student.academyName || 'Sports Arena',
               qrisUrl: tData.qrisUrl || tData.qrisImageUrl || tData.qrisImageBase64 || null,
-              bankName: tData.bankName || tData.bank || '',
-              bankAccount: tData.bankAccount || tData.noRekening || '',
-              accountHolder: tData.accountHolder || tData.atasNama || ''
+              bankName: extractedBank,
+              bankAccount: extractedNumber,
+              bankAccountNumber: extractedNumber,
+              accountHolder: extractedName,
+              bankAccountName: extractedName,
+              bankDetails: localBankDetails
             },
+            bankDetails: localBankDetails,
             billing: {
               totalAmount: localTotal,
               details: localDetails,
@@ -203,13 +234,13 @@ export default function PortalDashboard() {
 
   const isPaid = billingData?.billing?.isPaidThisMonth ?? (totalAmount === 0);
   const qrisUrl = billingData?.tenant?.qrisUrl || null;
-  const bankName = billingData?.tenant?.bankName || '';
-  const bankAccount = billingData?.tenant?.bankAccount || '';
-  const accountHolder = billingData?.tenant?.accountHolder || '';
+  const activeBank = bankDetails.bank || billingData?.bankDetails?.bank || billingData?.tenant?.bankName || '';
+  const activeAccountNumber = bankDetails.number || billingData?.bankDetails?.number || billingData?.tenant?.bankAccountNumber || billingData?.tenant?.bankAccount || '';
+  const activeAccountName = bankDetails.name || billingData?.bankDetails?.name || billingData?.tenant?.bankAccountName || billingData?.tenant?.accountHolder || '';
 
   const handleCopyAccount = () => {
-    if (bankAccount) {
-      navigator.clipboard.writeText(bankAccount);
+    if (activeAccountNumber) {
+      navigator.clipboard.writeText(activeAccountNumber);
       setCopiedAccount(true);
       setTimeout(() => setCopiedAccount(false), 2000);
     }
@@ -578,40 +609,46 @@ export default function PortalDashboard() {
               </div>
 
               {/* Info Alternatif Transfer Bank */}
-              {(bankName || bankAccount) && (
-                <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700/80 space-y-1.5 text-left text-xs">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                      Alternatif Transfer Bank
-                    </p>
-                    <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">
-                      {bankName || 'BANK'}
-                    </span>
-                  </div>
+              <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700/80 space-y-2 text-left text-xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    Alternatif Transfer Bank
+                  </p>
+                  <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full font-extrabold uppercase border border-blue-500/30">
+                    {activeBank || 'TRANSFER BANK'}
+                  </span>
+                </div>
 
-                  <div className="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/60 mt-1">
-                    <div>
-                      <p className="text-[10px] text-slate-400 font-mono">Nomor Rekening:</p>
-                      <p className="font-mono font-bold text-amber-300 text-sm select-all">
-                        {bankAccount}
-                      </p>
-                      {accountHolder && (
-                        <p className="text-[10px] text-slate-300 mt-0.5">a.n {accountHolder}</p>
-                      )}
-                    </div>
-
+                <div className="space-y-1.5 pt-0.5">
+                  <label className="text-[10px] text-slate-400 font-medium block">
+                    Nomor Rekening Tujuan:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={activeAccountNumber || ''}
+                      placeholder={activeAccountNumber ? '' : 'Nomor rekening belum diatur'}
+                      className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-sm font-mono font-bold text-amber-300 focus:outline-hidden select-all"
+                    />
                     <button
                       type="button"
                       onClick={handleCopyAccount}
-                      className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      disabled={!activeAccountNumber}
+                      className="shrink-0 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
                       title="Salin Nomor Rekening"
                     >
-                      <Copy className="w-3 h-3" />
+                      <Copy className="w-3.5 h-3.5" />
                       <span>{copiedAccount ? 'Tersalin!' : 'Salin'}</span>
                     </button>
                   </div>
+
+                  {/* Teks nama pemilik rekening (a.n. Nama Pemilik) tepat di bawah kolom nomor rekening */}
+                  <p className="text-[11px] text-slate-300 pt-0.5 font-medium">
+                    a.n. <strong className="text-white font-semibold">{activeAccountName || academyName}</strong>
+                  </p>
                 </div>
-              )}
+              </div>
 
               <p className="text-[10px] text-slate-400 text-center leading-normal">
                 Dapat dibayar menggunakan GoPay, OVO, DANA, BCA Mobile, Livin', atau seluruh aplikasi mobile banking di Indonesia.
