@@ -53,6 +53,8 @@ export default function PortalDashboard() {
 
   // State untuk penagihan, QRIS, & Rekening Bank Dinamis
   const [billingData, setBillingData] = useState(null);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [selectedBankIndex, setSelectedBankIndex] = useState(0);
   const [bankDetails, setBankDetails] = useState({ bank: '', number: '', name: '' });
   const [isLoadingBilling, setIsLoadingBilling] = useState(true);
   const [showQrisModal, setShowQrisModal] = useState(false);
@@ -79,17 +81,32 @@ export default function PortalDashboard() {
           const res = await response.json();
           if (isMounted && res.success) {
             setBillingData(res);
+
+            // Normalisasi daftar rekening bank
+            const list = Array.isArray(res.bankAccounts) && res.bankAccounts.length > 0
+              ? res.bankAccounts
+              : (Array.isArray(res.tenant?.bankAccounts) && res.tenant.bankAccounts.length > 0
+                ? res.tenant.bankAccounts
+                : (res.bankDetails?.number || res.bankDetails?.bank
+                  ? [{ bankName: res.bankDetails.bank || 'Bank', accountNumber: res.bankDetails.number || '', accountName: res.bankDetails.name || '' }]
+                  : (res.tenant?.bankAccountNumber || res.tenant?.bankAccount
+                    ? [{ bankName: res.tenant.bankName || 'Bank', accountNumber: res.tenant.bankAccountNumber || res.tenant.bankAccount || '', accountName: res.tenant.bankAccountName || res.tenant.accountHolder || '' }]
+                    : [])));
+
+            setBankAccounts(list);
+            setSelectedBankIndex(0);
+
             if (res.bankDetails) {
               setBankDetails({
                 bank: res.bankDetails.bank || '',
                 number: res.bankDetails.number || '',
                 name: res.bankDetails.name || ''
               });
-            } else if (res.tenant) {
+            } else if (list.length > 0) {
               setBankDetails({
-                bank: res.tenant.bankName || '',
-                number: res.tenant.bankAccountNumber || res.tenant.bankAccount || '',
-                name: res.tenant.bankAccountName || res.tenant.accountHolder || ''
+                bank: list[0].bankName || '',
+                number: list[0].accountNumber || '',
+                name: list[0].accountName || ''
               });
             }
             setIsLoadingBilling(false);
@@ -139,19 +156,41 @@ export default function PortalDashboard() {
           localTotal += sppFee;
         }
 
-        // Ekstraksi info bank dari profil tenant
-        const firstBank = Array.isArray(tData.bankAccounts) && tData.bankAccounts.length > 0 ? tData.bankAccounts[0] : null;
-        const extractedBank = tData.bankName || firstBank?.bankName || tData.bank || '';
-        const extractedNumber = tData.bankAccountNumber || tData.bankAccount || tData.noRekening || tData.accountNumber || firstBank?.accountNumber || '';
-        const extractedName = tData.bankAccountName || tData.bankAccountHolder || tData.accountHolder || tData.atasNama || firstBank?.accountName || tData.name || '';
+        // Ekstraksi seluruh info bank dari profil tenant
+        const rawBankList = Array.isArray(tData.bankAccounts)
+          ? tData.bankAccounts
+          : (Array.isArray(tData.accounts) ? tData.accounts : []);
 
+        const extractedBankAccounts = [];
+        for (const item of rawBankList) {
+          if (!item) continue;
+          const bName = (item.bankName || item.bank || item.namaBank || '').trim();
+          const bNum = String(item.accountNumber || item.bankAccountNumber || item.bankAccount || item.noRekening || item.nomorRekening || '').trim();
+          const bAccName = (item.accountName || item.bankAccountName || item.accountHolder || item.atasNama || tData.name || '').trim();
+          if (bName || bNum) {
+            extractedBankAccounts.push({ bankName: bName || 'Bank', accountNumber: bNum, accountName: bAccName });
+          }
+        }
+
+        if (extractedBankAccounts.length === 0) {
+          const fallbackBank = tData.bankName || tData.bank || '';
+          const fallbackNumber = String(tData.bankAccountNumber || tData.bankAccount || tData.noRekening || tData.accountNumber || '').trim();
+          const fallbackHolder = tData.bankAccountName || tData.bankAccountHolder || tData.accountHolder || tData.atasNama || tData.name || '';
+          if (fallbackBank || fallbackNumber) {
+            extractedBankAccounts.push({ bankName: fallbackBank || 'Bank', accountNumber: fallbackNumber, accountName: fallbackHolder });
+          }
+        }
+
+        const primaryAcc = extractedBankAccounts[0] || { bankName: '', accountNumber: '', accountName: '' };
         const localBankDetails = {
-          bank: extractedBank,
-          number: extractedNumber,
-          name: extractedName
+          bank: primaryAcc.bankName,
+          number: primaryAcc.accountNumber,
+          name: primaryAcc.accountName
         };
 
         if (isMounted) {
+          setBankAccounts(extractedBankAccounts);
+          setSelectedBankIndex(0);
           setBankDetails(localBankDetails);
           setBillingData({
             success: true,
@@ -159,14 +198,16 @@ export default function PortalDashboard() {
               id: tenantId || '',
               name: tData.name || student.academyName || 'Sports Arena',
               qrisUrl: tData.qrisUrl || tData.qrisImageUrl || tData.qrisImageBase64 || null,
-              bankName: extractedBank,
-              bankAccount: extractedNumber,
-              bankAccountNumber: extractedNumber,
-              accountHolder: extractedName,
-              bankAccountName: extractedName,
-              bankDetails: localBankDetails
+              bankName: primaryAcc.bankName,
+              bankAccount: primaryAcc.accountNumber,
+              bankAccountNumber: primaryAcc.accountNumber,
+              accountHolder: primaryAcc.accountName,
+              bankAccountName: primaryAcc.accountName,
+              bankDetails: localBankDetails,
+              bankAccounts: extractedBankAccounts
             },
             bankDetails: localBankDetails,
+            bankAccounts: extractedBankAccounts,
             billing: {
               totalAmount: localTotal,
               details: localDetails,
@@ -234,9 +275,26 @@ export default function PortalDashboard() {
 
   const isPaid = billingData?.billing?.isPaidThisMonth ?? (totalAmount === 0);
   const qrisUrl = billingData?.tenant?.qrisUrl || null;
-  const activeBank = bankDetails.bank || billingData?.bankDetails?.bank || billingData?.tenant?.bankName || '';
-  const activeAccountNumber = bankDetails.number || billingData?.bankDetails?.number || billingData?.tenant?.bankAccountNumber || billingData?.tenant?.bankAccount || '';
-  const activeAccountName = bankDetails.name || billingData?.bankDetails?.name || billingData?.tenant?.bankAccountName || billingData?.tenant?.accountHolder || '';
+  // Daftar rekening bank efektif (mendukung multi-rekening)
+  const effectiveBankList = bankAccounts.length > 0 
+    ? bankAccounts 
+    : (Array.isArray(billingData?.bankAccounts) && billingData.bankAccounts.length > 0
+      ? billingData.bankAccounts
+      : (Array.isArray(billingData?.tenant?.bankAccounts) && billingData.tenant.bankAccounts.length > 0
+        ? billingData.tenant.bankAccounts
+        : (bankDetails.number || bankDetails.bank 
+          ? [{ bankName: bankDetails.bank || 'Bank', accountNumber: bankDetails.number || '', accountName: bankDetails.name || '' }] 
+          : [])));
+
+  const currentAccount = effectiveBankList[selectedBankIndex] || effectiveBankList[0] || {
+    bankName: bankDetails.bank || billingData?.bankDetails?.bank || billingData?.tenant?.bankName || '',
+    accountNumber: bankDetails.number || billingData?.bankDetails?.number || billingData?.tenant?.bankAccountNumber || billingData?.tenant?.bankAccount || '',
+    accountName: bankDetails.name || billingData?.bankDetails?.name || billingData?.tenant?.bankAccountName || billingData?.tenant?.accountHolder || ''
+  };
+
+  const activeBank = currentAccount.bankName || 'TRANSFER BANK';
+  const activeAccountNumber = currentAccount.accountNumber || '';
+  const activeAccountName = currentAccount.accountName || academyName;
 
   const handleCopyAccount = () => {
     if (activeAccountNumber) {
@@ -609,7 +667,7 @@ export default function PortalDashboard() {
               </div>
 
               {/* Info Alternatif Transfer Bank */}
-              <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700/80 space-y-2 text-left text-xs">
+              <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700/80 space-y-3 text-left text-xs">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                     Alternatif Transfer Bank
@@ -619,9 +677,52 @@ export default function PortalDashboard() {
                   </span>
                 </div>
 
+                {/* Pilihan Multi-Rekening (Jika tenant memiliki > 1 rekening) */}
+                {effectiveBankList.length > 1 && (
+                  <div className="space-y-1.5 pt-0.5">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400 font-bold uppercase tracking-wider">
+                        Pilih Rekening Bank:
+                      </span>
+                      <span className="text-blue-300 font-bold">
+                        {effectiveBankList.length} Bank Tersedia
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      {effectiveBankList.map((acc, idx) => {
+                        const isSelected = idx === selectedBankIndex;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setSelectedBankIndex(idx);
+                              setCopiedAccount(false);
+                            }}
+                            className={`px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-start gap-0.5 text-left border ${
+                              isSelected
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400 shadow-md shadow-blue-600/30 ring-1 ring-blue-300'
+                                : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-[11px] font-black tracking-tight flex items-center gap-1">
+                              <CreditCard className="w-3 h-3 shrink-0 opacity-80" />
+                              {acc.bankName || `Bank ${idx + 1}`}
+                            </span>
+                            <span className={`text-[9px] font-mono truncate w-full ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                              {acc.accountNumber || '-'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5 pt-0.5">
                   <label className="text-[10px] text-slate-400 font-medium block">
-                    Nomor Rekening Tujuan:
+                    Nomor Rekening Tujuan ({activeBank}):
                   </label>
                   <div className="flex items-center gap-2">
                     <input

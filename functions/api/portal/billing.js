@@ -130,6 +130,50 @@ function parseFirestoreFields(fields) {
   return result;
 }
 
+/**
+ * Normalizes all bank accounts from tenant fields into a clean array:
+ * [{ bankName, accountNumber, accountName }]
+ */
+function extractAllBankAccounts(tFields) {
+  if (!tFields || typeof tFields !== 'object') return [];
+  const accounts = [];
+  const rawList = Array.isArray(tFields.bankAccounts)
+    ? tFields.bankAccounts
+    : (Array.isArray(tFields.accounts) ? tFields.accounts : []);
+
+  for (const item of rawList) {
+    if (!item) continue;
+    const bankName = (item.bankName || item.bank || item.namaBank || '').trim();
+    const accountNumber = String(item.accountNumber || item.bankAccountNumber || item.bankAccount || item.noRekening || item.nomorRekening || '').trim();
+    const accountName = (item.accountName || item.bankAccountName || item.accountHolder || item.atasNama || tFields.name || '').trim();
+
+    if (bankName || accountNumber) {
+      accounts.push({
+        bankName: bankName || 'Bank',
+        accountNumber,
+        accountName
+      });
+    }
+  }
+
+  // Fallback ke field individual jika array kosong
+  if (accounts.length === 0) {
+    const sBank = (tFields.bankName || tFields.bank || '').trim();
+    const sNum = String(tFields.bankAccountNumber || tFields.bankAccount || tFields.noRekening || tFields.accountNumber || '').trim();
+    const sHolder = (tFields.bankAccountName || tFields.bankAccountHolder || tFields.accountHolder || tFields.atasNama || tFields.name || '').trim();
+
+    if (sBank || sNum) {
+      accounts.push({
+        bankName: sBank || 'Bank',
+        accountNumber: sNum,
+        accountName: sHolder
+      });
+    }
+  }
+
+  return accounts;
+}
+
 // OPTIONS CORS Preflight handler
 export async function onRequestOptions() {
   return new Response(null, {
@@ -208,7 +252,8 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 3. Ambil data tenant untuk mendapatkan QRIS dan Info Rekening Bank
+    // 3. Ambil data tenant untuk mendapatkan QRIS dan seluruh Info Rekening Bank
+    let bankAccounts = [];
     let bankDetails = {
       bank: '',
       number: '',
@@ -223,7 +268,8 @@ export async function onRequestPost(context) {
       bankAccount: '',
       bankAccountNumber: '',
       accountHolder: '',
-      bankAccountName: ''
+      bankAccountName: '',
+      bankAccounts: []
     };
 
     if (tenantId) {
@@ -234,28 +280,26 @@ export async function onRequestPost(context) {
           const tenantDoc = await tenantResp.json();
           const tFields = parseFirestoreFields(tenantDoc.fields);
 
-          const firstBank = Array.isArray(tFields.bankAccounts) && tFields.bankAccounts.length > 0 ? tFields.bankAccounts[0] : null;
-
-          const extractedBank = tFields.bankName || firstBank?.bankName || tFields.bank || '';
-          const extractedNumber = tFields.bankAccountNumber || tFields.bankAccount || tFields.noRekening || tFields.accountNumber || firstBank?.accountNumber || firstBank?.bankAccountNumber || '';
-          const extractedName = tFields.bankAccountName || tFields.bankAccountHolder || tFields.accountHolder || tFields.atasNama || firstBank?.accountName || firstBank?.bankAccountName || tFields.name || '';
+          bankAccounts = extractAllBankAccounts(tFields);
+          const primaryBank = bankAccounts[0] || { bankName: '', accountNumber: '', accountName: '' };
 
           bankDetails = {
-            bank: extractedBank,
-            number: extractedNumber,
-            name: extractedName
+            bank: primaryBank.bankName,
+            number: primaryBank.accountNumber,
+            name: primaryBank.accountName
           };
 
           tenantInfo = {
             id: tenantId,
             name: tFields.name || tFields.arenaName || '',
             qrisUrl: tFields.qrisUrl || tFields.qrisImageUrl || tFields.qrisImageBase64 || null,
-            bankName: extractedBank,
-            bankAccount: extractedNumber,
-            bankAccountNumber: extractedNumber,
-            accountHolder: extractedName,
-            bankAccountName: extractedName,
-            bankDetails
+            bankName: primaryBank.bankName,
+            bankAccount: primaryBank.accountNumber,
+            bankAccountNumber: primaryBank.accountNumber,
+            accountHolder: primaryBank.accountName,
+            bankAccountName: primaryBank.accountName,
+            bankDetails,
+            bankAccounts
           };
         }
       } catch (err) {
@@ -264,7 +308,7 @@ export async function onRequestPost(context) {
     }
 
     // Fallback: Jika data bank masih kosong atau tenantId belum terhubung, cek koleksi tenants
-    if (!bankDetails.number && !tenantInfo.qrisUrl) {
+    if (bankAccounts.length === 0 && !tenantInfo.qrisUrl) {
       try {
         const tenantListUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/tenants?pageSize=5`;
         const listResp = await fetch(tenantListUrl, { method: 'GET', headers: reqHeaders });
@@ -278,16 +322,13 @@ export async function onRequestPost(context) {
               if (matched) selectedDoc = matched;
             }
             const tFields = parseFirestoreFields(selectedDoc.fields);
-            const firstBank = Array.isArray(tFields.bankAccounts) && tFields.bankAccounts.length > 0 ? tFields.bankAccounts[0] : null;
-
-            const extractedBank = tFields.bankName || firstBank?.bankName || tFields.bank || '';
-            const extractedNumber = tFields.bankAccountNumber || tFields.bankAccount || tFields.noRekening || tFields.accountNumber || firstBank?.accountNumber || firstBank?.bankAccountNumber || '';
-            const extractedName = tFields.bankAccountName || tFields.bankAccountHolder || tFields.accountHolder || tFields.atasNama || firstBank?.accountName || firstBank?.bankAccountName || tFields.name || '';
+            bankAccounts = extractAllBankAccounts(tFields);
+            const primaryBank = bankAccounts[0] || { bankName: '', accountNumber: '', accountName: '' };
 
             bankDetails = {
-              bank: extractedBank,
-              number: extractedNumber,
-              name: extractedName
+              bank: primaryBank.bankName,
+              number: primaryBank.accountNumber,
+              name: primaryBank.accountName
             };
 
             const tDocId = (selectedDoc.name || '').split('/').pop();
@@ -295,12 +336,13 @@ export async function onRequestPost(context) {
               id: tDocId || tenantId,
               name: tFields.name || tFields.arenaName || tenantInfo.name,
               qrisUrl: tFields.qrisUrl || tFields.qrisImageUrl || tFields.qrisImageBase64 || tenantInfo.qrisUrl,
-              bankName: extractedBank,
-              bankAccount: extractedNumber,
-              bankAccountNumber: extractedNumber,
-              accountHolder: extractedName,
-              bankAccountName: extractedName,
-              bankDetails
+              bankName: primaryBank.bankName,
+              bankAccount: primaryBank.accountNumber,
+              bankAccountNumber: primaryBank.accountNumber,
+              accountHolder: primaryBank.accountName,
+              bankAccountName: primaryBank.accountName,
+              bankDetails,
+              bankAccounts
             };
           }
         }
@@ -454,6 +496,7 @@ export async function onRequestPost(context) {
         message: 'Data penagihan riil berhasil dimuat',
         tenant: tenantInfo,
         bankDetails,
+        bankAccounts,
         billing: {
           totalAmount,
           details,
