@@ -775,7 +775,7 @@ export default function AcademyPage({ userProfile }) {
                 className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4 text-cyan-400" />
-                <span>Akademu Baru</span>
+                <span>Akademi Baru</span>
               </button>
             </div>
           </div>

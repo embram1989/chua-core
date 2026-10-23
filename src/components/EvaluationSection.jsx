@@ -37,7 +37,8 @@ import {
   Sparkles,
   BarChart2,
   Lock,
-  RefreshCw
+  RefreshCw,
+  ChevronDown
 } from 'lucide-react';
 import {
   Radar,
@@ -573,190 +574,168 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+          <div className="space-y-6">
             
-            {/* KOLOM KIRI: DAFTAR SISWA (MASTER - 4 COLS) */}
-            <div className="lg:col-span-4 p-3.5 sm:p-4 bg-slate-50/50 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-indigo-600" />
-                  <span>Daftar Siswa ({classStudents.length})</span>
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium">Pilih atlet</span>
-              </div>
-
-              <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
-                {classStudents.map((st) => {
-                  const isSelected = selectedStudent?.id === st.id;
-                  const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
-                  const currentRole = st.playerRole || st.position;
-
-                  return (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => handleSelectStudent(st)}
-                      className={`w-full p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'bg-white border border-slate-200/70 text-slate-800 hover:border-indigo-300 hover:bg-indigo-50/30'
-                      }`}
+            {/* 2A. DROPDOWN SELECTOR SISWA & PROFIL ATLET AKTIF */}
+            <div className="p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                {/* Dropdown Siswa (Select Ringkas & Elegan) */}
+                <div className="flex-1">
+                  <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-indigo-600" />
+                    <span>Pilih Siswa / Atlet Evaluasi ({classStudents.length} Atlet)</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedStudent?.id || ''}
+                      onChange={(e) => {
+                        const found = classStudents.find((s) => s.id === e.target.value);
+                        if (found) handleSelectStudent(found);
+                      }}
+                      className="w-full px-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-10"
                     >
-                      <div className="overflow-hidden min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-xs truncate">{st.studentName}</p>
-                          {isEvaluatedToday && (
-                            <span
-                              title="Sudah dievaluasi pada tanggal ini"
-                              className={`px-1.5 py-0.5 rounded text-[9px] font-semibold shrink-0 ${
-                                isSelected ? 'bg-indigo-700 text-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                              }`}
-                            >
-                              ✓ Terisi
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 truncate">
-                          {currentRole ? (
-                            <span className={`text-[10px] font-medium ${
-                              isSelected ? 'text-indigo-200' : 'text-slate-500'
-                            }`}>
-                              {currentRole}
-                            </span>
-                          ) : (
-                            <span className={`text-[10px] italic ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>
-                              Belum Set Posisi
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? 'text-white translate-x-0.5' : 'text-slate-300'}`} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* KOLOM KANAN: FORM EVALUASI KPI & RADAR (DETAIL - 8 COLS) */}
-            <div className="lg:col-span-8 p-4 sm:p-5 space-y-4">
-              {selectedStudent ? (
-                <form onSubmit={handleSaveEvaluation} className="space-y-5">
-                  
-                  {/* IDENTITAS SISWA AKTIF & INLINE POSISI BERMAIN */}
-                  <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-100 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-base font-bold text-slate-900">{selectedStudent.studentName}</h4>
-                          {calculateAge(selectedStudent.birthDate) !== '-' && (
-                            <span className="px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[10px] font-medium">
-                              Usia: {calculateAge(selectedStudent.birthDate)} Thn
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Wali: <span className="text-slate-700 font-medium">{selectedStudent.parentName || '-'}</span> {selectedStudent.parentPhone ? `(${selectedStudent.parentPhone})` : ''}
-                        </p>
-                      </div>
-
-                      {/* TANGGAL EVALUASI */}
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <label className="text-xs text-slate-500 font-medium">
-                          Tgl:
-                        </label>
-                        <input
-                          type="date"
-                          value={evaluationDate}
-                          onChange={(e) => setEvaluationDate(e.target.value)}
-                          className="px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800 cursor-pointer shadow-2xs"
-                        />
-                      </div>
+                      {classStudents.map((st) => {
+                        const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
+                        const pos = st.playerRole || st.position || 'Belum Set Posisi';
+                        return (
+                          <option key={st.id} value={st.id}>
+                            {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
+                      <ChevronDown className="w-4 h-4" />
                     </div>
+                  </div>
+                </div>
 
-                    {/* BARIS INLINE: POSISI BERMAIN, GANTI POSISI, SKOR RATA-RATA */}
-                    <div className="pt-2.5 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
-                          <Target className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                          <span>Posisi Bermain:</span>
-                        </span>
-
-                        {playerRole ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-slate-800 border border-slate-200 rounded-lg text-xs font-semibold shadow-2xs">
-                            <Lock className="w-3 h-3 text-slate-400" />
-                            <span>{playerRole}</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-xs font-medium">
-                            <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
-                            <span>Belum Set</span>
-                          </span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={handleOpenMutationModal}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                          title="Ganti Posisi Atlet"
-                        >
-                          <RefreshCw className="w-3 h-3 text-indigo-600 shrink-0" />
-                          <span>Ganti Posisi</span>
-                        </button>
-                      </div>
-
-                      {/* INDIKATOR OVERALL SCORE LIVE SEJAJAR */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-slate-500 font-medium">Skor Rata-Rata:</span>
-                        <span className="text-xl font-black text-slate-900">{overallScore}</span>
-                        <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${getScoreGrade(overallScore).badge}`}>
-                          {getScoreGrade(overallScore).grade}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* HELPER TEXT KECIL UNTUK PERINGATAN POSISI (MENGGANTIKAN ALERT BESAR) */}
-                    {!playerRole && (
-                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 pt-0.5">
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                        <span>Posisi atlet belum ditentukan. Klik "Ganti Posisi" untuk menetapkan posisi resmi atlet.</span>
-                      </p>
-                    )}
+                {/* Tanggal & Indikator Selesai Sesi */}
+                <div className="flex flex-wrap items-center gap-3 self-start lg:self-end">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Tanggal Sesi</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={evaluationDate}
+                      onChange={(e) => setEvaluationDate(e.target.value)}
+                      className="px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
+                    />
                   </div>
 
-                  {/* SMART PRE-FILL DARI HISTORI TERAKHIR */}
-                  {lastStudentEvaluation ? (
-                    <div className="px-3 py-2 bg-indigo-50/60 border border-indigo-100 text-indigo-900 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0 animate-pulse" />
-                        <span className="truncate">
-                          <strong>Smart Pre-Fill:</strong> Nilai slider dimuat otomatis dari sesi {lastStudentEvaluation.date || 'terakhir'}.
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md shrink-0">
-                        Histori Terakhir
+                  {selectedStudent && evaluatedStudentIdsToday.has(selectedStudent.id) && (
+                    <div className="self-end pb-0.5">
+                      <span className="inline-flex items-center gap-1 px-3 py-2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold shadow-2xs">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Sesi Hari Ini Sudah Terisi</span>
                       </span>
-                    </div>
-                  ) : (
-                    <div className="px-3 py-1.5 bg-slate-50 text-slate-500 rounded-xl text-xs flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>Evaluasi Pertama Atlet (Nilai awal baseline 75)</span>
                     </div>
                   )}
+                </div>
+              </div>
 
-                  {/* VISUALISASI RADAR CHART */}
-                  <div className="bg-slate-900 rounded-2xl p-4 text-white shadow-md space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                        <BarChart2 className="w-4 h-4" />
-                        <span>Profil Atlet / Scouting Radar</span>
+              {/* Rincian Ringkas Atlet Terpilih & Kontrol Posisi */}
+              {selectedStudent && (
+                <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-black text-slate-900">{selectedStudent.studentName}</span>
+                      {calculateAge(selectedStudent.birthDate) !== '-' && (
+                        <span className="px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[10px] font-semibold">
+                          Usia: {calculateAge(selectedStudent.birthDate)} Thn
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-slate-300 hidden sm:inline">&bull;</span>
+                    <p className="text-xs text-slate-500">
+                      Wali: <strong className="text-slate-700">{selectedStudent.parentName || '-'}</strong> {selectedStudent.parentPhone ? `(${selectedStudent.parentPhone})` : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Posisi & Mutasi */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                        <Target className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Posisi:</span>
                       </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">Real-Time Evaluation</span>
+                      {playerRole ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white text-slate-800 border border-slate-200 rounded-lg text-xs font-bold shadow-2xs">
+                          <Lock className="w-3 h-3 text-slate-400" />
+                          <span>{playerRole}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold">
+                          Belum Set
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleOpenMutationModal}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        title="Ubah posisi bermain atlet"
+                      >
+                        <RefreshCw className="w-3 h-3 text-indigo-600" />
+                        <span>Ganti Posisi</span>
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                      {/* Recharts ResponsiveContainer */}
-                      <div className="md:col-span-7 h-64 w-full flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height={260}>
+                    {/* Live Skor */}
+                    <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                      <span className="text-xs text-slate-500 font-medium">Skor Total:</span>
+                      <span className="text-lg font-black text-slate-900">{overallScore}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${getScoreGrade(overallScore).badge}`}>
+                        {getScoreGrade(overallScore).grade}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Smart Pre-Fill Banner */}
+              {lastStudentEvaluation ? (
+                <div className="px-3.5 py-2 bg-indigo-50/70 border border-indigo-100 text-indigo-900 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0 animate-pulse" />
+                    <span>
+                      <strong>Smart Pre-Fill:</strong> Nilai slider dimuat otomatis dari rapor sesi tanggal <strong>{lastStudentEvaluation.date || 'sebelumnya'}</strong>.
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/90 px-2 py-0.5 rounded-md shrink-0">
+                    Histori Terakhir
+                  </span>
+                </div>
+              ) : (
+                <div className="px-3.5 py-1.5 bg-slate-100/70 text-slate-500 rounded-xl text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>Sesi evaluasi perdana atlet di kelas ini (Baseline nilai awal: 75).</span>
+                </div>
+              )}
+            </div>
+
+            {/* 2B. TATA LETAK GRID 2-KOLOM (KIRI & KANAN) */}
+            {selectedStudent ? (
+              <form onSubmit={handleSaveEvaluation} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                  
+                  {/* KOLOM KIRI: GRAFIK RADAR + FISIK + TEKNIK */}
+                  <div className="space-y-6">
+                    
+                    {/* 1. Grafik Scouting Radar */}
+                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                          <BarChart2 className="w-4 h-4" />
+                          <span>Profil Atlet / Scouting Radar</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-semibold">Real-Time Scouting</span>
+                      </div>
+
+                      {/* Recharts Container */}
+                      <div className="h-60 w-full flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height={240}>
                           <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                             <PolarGrid stroke="#334155" />
                             <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 700 }} />
@@ -766,51 +745,32 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                         </ResponsiveContainer>
                       </div>
 
-                      {/* Summary Sub-Scores */}
-                      <div className="md:col-span-5 grid grid-cols-1 gap-1.5 text-xs">
-                        <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/60 flex items-center justify-between">
-                          <span className="text-rose-300 font-bold text-[11px] flex items-center gap-1.5">
-                            <Dumbbell className="w-3.5 h-3.5 text-rose-400" />
-                            <span>1. Kondisi Fisik</span>
-                          </span>
+                      {/* Sub-Score Breakdown Cards */}
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs pt-1 border-t border-slate-800/80">
+                        <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/60 text-center">
+                          <span className="text-rose-300 block text-[9px] font-bold uppercase truncate">1. Fisik</span>
                           <span className="font-black text-rose-200 text-sm">{pillarScores.fisik}</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-blue-950/60 border border-blue-800/60 flex items-center justify-between">
-                          <span className="text-blue-300 font-bold text-[11px] flex items-center gap-1.5">
-                            <Activity className="w-3.5 h-3.5 text-blue-400" />
-                            <span>2. Kemampuan Teknik</span>
-                          </span>
+                        <div className="p-2 rounded-xl bg-blue-950/60 border border-blue-800/60 text-center">
+                          <span className="text-blue-300 block text-[9px] font-bold uppercase truncate">2. Teknik</span>
                           <span className="font-black text-blue-200 text-sm">{pillarScores.teknik}</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-purple-950/60 border border-purple-800/60 flex items-center justify-between">
-                          <span className="text-purple-300 font-bold text-[11px] flex items-center gap-1.5">
-                            <Brain className="w-3.5 h-3.5 text-purple-400" />
-                            <span>3. Pemahaman Taktik</span>
-                          </span>
+                        <div className="p-2 rounded-xl bg-purple-950/60 border border-purple-800/60 text-center">
+                          <span className="text-purple-300 block text-[9px] font-bold uppercase truncate">3. Taktik</span>
                           <span className="font-black text-purple-200 text-sm">{pillarScores.taktik}</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-800/60 flex items-center justify-between">
-                          <span className="text-emerald-300 font-bold text-[11px] flex items-center gap-1.5">
-                            <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>4. Mentalitas</span>
-                          </span>
+                        <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-center">
+                          <span className="text-emerald-300 block text-[9px] font-bold uppercase truncate">4. Mental</span>
                           <span className="font-black text-emerald-200 text-sm">{pillarScores.mental}</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-indigo-950/60 border border-indigo-800/60 flex items-center justify-between">
-                          <span className="text-indigo-300 font-bold text-[11px] flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                            <span>5. Posisi Spesifik</span>
-                          </span>
+                        <div className="p-2 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-center col-span-2 sm:col-span-1">
+                          <span className="text-indigo-300 block text-[9px] font-bold uppercase truncate">5. Posisi</span>
                           <span className="font-black text-indigo-200 text-sm">{pillarScores.position}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* RENDER UI SLIDER BERDASARKAN PILAR */}
-                  <div className="space-y-5">
-                    
-                    {/* PILAR 1: KONDISI FISIK (ROSE ACCENT) */}
+                    {/* 2. Pilar 1: Kondisi Fisik */}
                     <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 space-y-3">
                       <div className="flex items-center justify-between border-b border-rose-200/80 pb-2">
                         <span className="text-xs font-black uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
@@ -821,7 +781,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                           Rata-rata: {pillarScores.fisik}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(pillars.fisik || []).map((kpi) => {
                           const val = scores[kpi] !== undefined ? scores[kpi] : 75;
                           return (
@@ -845,7 +805,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       </div>
                     </div>
 
-                    {/* PILAR 2: KEMAMPUAN TEKNIK (BLUE ACCENT) */}
+                    {/* 3. Pilar 2: Kemampuan Teknik */}
                     <div className="p-4 rounded-2xl border border-blue-200 bg-blue-50/30 space-y-3">
                       <div className="flex items-center justify-between border-b border-blue-200/80 pb-2">
                         <span className="text-xs font-black uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
@@ -856,7 +816,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                           Rata-rata: {pillarScores.teknik}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(pillars.teknik || []).map((kpi) => {
                           const val = scores[kpi] !== undefined ? scores[kpi] : 75;
                           return (
@@ -880,7 +840,12 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       </div>
                     </div>
 
-                    {/* PILAR 3: PEMAHAMAN TAKTIK (PURPLE ACCENT) */}
+                  </div>
+
+                  {/* KOLOM KANAN: TAKTIK + MENTALITAS + SPESIFIK POSISI */}
+                  <div className="space-y-6">
+                    
+                    {/* 1. Pilar 3: Pemahaman Taktik */}
                     <div className="p-4 rounded-2xl border border-purple-200 bg-purple-50/30 space-y-3">
                       <div className="flex items-center justify-between border-b border-purple-200/80 pb-2">
                         <span className="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
@@ -891,7 +856,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                           Rata-rata: {pillarScores.taktik}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(pillars.taktik || []).map((kpi) => {
                           const val = scores[kpi] !== undefined ? scores[kpi] : 75;
                           return (
@@ -915,7 +880,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       </div>
                     </div>
 
-                    {/* PILAR 4: MENTALITAS (EMERALD ACCENT) */}
+                    {/* 2. Pilar 4: Mentalitas */}
                     <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 space-y-3">
                       <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2">
                         <span className="text-xs font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
@@ -926,7 +891,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                           Rata-rata: {pillarScores.mental}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(pillars.mental || []).map((kpi) => {
                           const val = scores[kpi] !== undefined ? scores[kpi] : 75;
                           return (
@@ -950,19 +915,20 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       </div>
                     </div>
 
-                    {/* PILAR 5: POSISI SPESIFIK (INDIGO ACCENT) */}
-                    {roleKPIs.length > 0 && (
-                      <div className="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/30 space-y-3">
-                        <div className="flex items-center justify-between border-b border-indigo-200/80 pb-2">
-                          <span className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-1.5">
-                            <Zap className="w-4 h-4 text-indigo-600" />
-                            <span>5. Parameter Spesifik Posisi: {playerRole}</span>
-                          </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
-                            Rata-rata: {pillarScores.position}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* 3. Pilar 5: Parameter Spesifik Posisi (Midfielder / Playmaker dll.) */}
+                    <div className="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/30 space-y-3">
+                      <div className="flex items-center justify-between border-b border-indigo-200/80 pb-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-1.5">
+                          <Zap className="w-4 h-4 text-indigo-600" />
+                          <span>5. Parameter Spesifik Posisi: {playerRole || 'Belum Ditentukan'}</span>
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          Rata-rata: {pillarScores.position}
+                        </span>
+                      </div>
+
+                      {roleKPIs.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {roleKPIs.map((kpi) => {
                             const val = scores[kpi] !== undefined ? scores[kpi] : 75;
                             return (
@@ -987,38 +953,56 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                             );
                           })}
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* AUTO-GENERATOR CATATAN PELATIH */}
-                  <div className="space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Catatan Evaluasi Pelatih (Rapor Siswa)</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleGenerateDraft}
-                        className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>⚡ Buat Draf Analisis Otomatis</span>
-                      </button>
+                      ) : (
+                        <div className="p-4 bg-white border border-dashed border-indigo-200 rounded-xl text-center space-y-2">
+                          <p className="text-xs text-indigo-900 font-medium">
+                            Posisi resmi atlet belum ditentukan (misal: <em>Midfielder / Playmaker, Defender, Flank, Forward</em>).
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleOpenMutationModal}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Tetapkan Posisi Atlet Sekarang</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    <textarea
-                      rows={3}
-                      value={coachNote}
-                      onChange={(e) => setCoachNote(e.target.value)}
-                      placeholder={`e.g. Sebagai ${playerRole || 'atlet'}, pergerakan dan pengambilan keputusannya sudah matang. Tingkatkan ketahanan fisik di set penutup.`}
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800"
-                    />
                   </div>
 
-                  {/* SIMPAN KE FIRESTORE */}
-                  <div className="pt-2 flex justify-end">
+                </div>
+
+                {/* 2C. CATATAN EVALUASI PELATIH & TOMBOL SIMPAN (FULL WIDTH) */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <MessageSquare className="w-4 h-4 text-indigo-600" />
+                      <span>Catatan Evaluasi Pelatih (Rapor Siswa)</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateDraft}
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>⚡ Buat Draf Analisis Otomatis</span>
+                    </button>
+                  </div>
+
+                  <textarea
+                    rows={3}
+                    value={coachNote}
+                    onChange={(e) => setCoachNote(e.target.value)}
+                    placeholder={`e.g. Sebagai ${playerRole || 'atlet'}, pergerakan dan pengambilan keputusannya sudah matang. Tingkatkan ketahanan fisik di set penutup.`}
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800"
+                  />
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <p className="text-[11px] text-slate-400">
+                      * Rapor evaluasi ini tersimpan secara permanen dan otomatis disinkronisasi ke Portal Wali Murid &amp; Atlet.
+                    </p>
                     <button
                       type="submit"
                       disabled={isSaving || !playerRole}
@@ -1032,18 +1016,19 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                       ) : (
                         <>
                           <Award className="w-4 h-4 text-cyan-200" />
-                          <span>Simpan Evaluasi {selectedStudent.studentName}</span>
+                          <span>Simpan Evaluasi {selectedStudent?.studentName || 'Atlet'}</span>
                         </>
                       )}
                     </button>
                   </div>
-                </form>
-              ) : (
-                <div className="py-12 text-center text-xs text-slate-400">
-                  Pilih siswa dari daftar sebelah kiri untuk mulai mengisi rapor evaluasi.
                 </div>
-              )}
-            </div>
+
+              </form>
+            ) : (
+              <div className="py-12 text-center text-xs text-slate-400">
+                Pilih siswa dari dropdown di atas untuk mulai mengisi rapor evaluasi.
+              </div>
+            )}
           </div>
         )}
       </div>
