@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { loginWithGoogle, loginWithEmailAndPassword } from '../services/authService';
-import { AlertCircle, Lock, Mail, UserCheck, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Lock, Mail, UserCheck, ShieldCheck, GraduationCap } from 'lucide-react';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState('email'); // 'email' atau 'google'
@@ -295,6 +296,17 @@ export default function LoginPage({ onLoginSuccess }) {
                 Pelatih Akademi
               </button>
             </div>
+          </div>
+
+          {/* Tautan ke Portal Wali Murid & Atlet */}
+          <div className="mt-5 pt-4 border-t border-slate-100 w-full text-center">
+            <Link
+              to="/portal"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 rounded-xl transition-all duration-200 group shadow-2xs hover:shadow-xs cursor-pointer"
+            >
+              <GraduationCap className="w-4 h-4 text-blue-600 group-hover:scale-105 transition-transform" />
+              <span>Portal Wali Murid &amp; Atlet ➔</span>
+            </Link>
           </div>
 
         </div>
