@@ -31,7 +31,8 @@ import {
   Star,
   Target,
   TrendingUp,
-  Quote
+  Quote,
+  Home
 } from 'lucide-react';
 import { getStudentInitials, calculateAge } from '../../utils/helpers';
 
@@ -147,6 +148,9 @@ export default function PortalDashboard() {
   const [evaluationData, setEvaluationData] = useState(null);
   const [isLoadingEvaluation, setIsLoadingEvaluation] = useState(true);
   const [activeEvalTab, setActiveEvalTab] = useState('evaluasi'); // 'evaluasi' | 'prestasi'
+
+  // State untuk Tab Aktif Bottom Navigation: 'home' | 'billing' | 'schedule' | 'evaluation'
+  const [activeTab, setActiveTab] = useState('home');
 
   // 2. Fetch billing data dari endpoint /api/portal/billing saat mount
   useEffect(() => {
@@ -649,7 +653,7 @@ export default function PortalDashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 min-h-screen text-slate-800">
+    <div className="flex-1 flex flex-col bg-slate-50 min-h-screen text-slate-800 relative pb-24">
       {/* 1. HEADER MOBILE-FRIENDLY & TOMBOL KELUAR */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 py-3.5 flex items-center justify-between">
         <div className="flex items-center space-x-2.5">
@@ -677,76 +681,217 @@ export default function PortalDashboard() {
         </button>
       </header>
 
-      {/* CONTAINER BODY UTAMA */}
+      {/* CONTAINER BODY UTAMA BERBASIS TAB */}
       <main className="p-4 sm:p-5 space-y-4 flex-1">
         
-        {/* 2. KARTU PROFIL UTAMA (HERO SECTION DENGAN GRADIEN MODERN) */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white p-5 shadow-lg shadow-blue-600/15">
-          {/* Subtle Ambient Background Shapes */}
-          <div className="absolute -top-10 -right-10 w-36 h-36 bg-white/10 rounded-full blur-xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-indigo-500/20 rounded-full blur-xl pointer-events-none" />
+        {/* ============================================================== */}
+        {/* TAB 1: BERANDA ('home') */}
+        {/* ============================================================== */}
+        {activeTab === 'home' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* 2. KARTU PROFIL UTAMA (HERO SECTION DENGAN GRADIEN MODERN) */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white p-5 shadow-lg shadow-blue-600/15">
+              {/* Subtle Ambient Background Shapes */}
+              <div className="absolute -top-10 -right-10 w-36 h-36 bg-white/10 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-indigo-500/20 rounded-full blur-xl pointer-events-none" />
 
-          {/* Top Badge: Cabang & Akademi */}
-          <div className="flex items-center justify-between gap-2 mb-3.5 relative z-10">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
-              <Sparkles className="w-3 h-3 text-amber-300" />
-              <span>{sportCategory}</span>
-            </span>
-            <span className="text-[11px] font-bold text-blue-100/90 truncate max-w-[160px]">
-              {academyName}
-            </span>
-          </div>
-
-          {/* Profile Details Row */}
-          <div className="flex items-start gap-3.5 relative z-10">
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={studentName}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-white/60 shadow-md bg-white shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md text-white font-black text-xl flex items-center justify-center shrink-0 border-2 border-white/40 shadow-md">
-                {getStudentInitials(studentName)}
+              {/* Top Badge: Cabang & Akademi */}
+              <div className="flex items-center justify-between gap-2 mb-3.5 relative z-10">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>{sportCategory}</span>
+                </span>
+                <span className="text-[11px] font-bold text-blue-100/90 truncate max-w-[160px]">
+                  {academyName}
+                </span>
               </div>
-            )}
 
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-lg font-black text-white leading-tight break-words">
-                {studentName}
-              </h2>
-              <p className="text-[11px] text-blue-100/90 mt-0.5 font-medium">
-                {age !== '-' ? `${age} Tahun` : 'Siswa Aktif'}
-                {student.schoolOrigin ? ` • ${student.schoolOrigin}` : ''}
-              </p>
-              <p className="text-[10px] font-mono text-blue-200 mt-1 tracking-wider opacity-90">
-                ID: {student.id}
-              </p>
+              {/* Profile Details Row */}
+              <div className="flex items-start gap-3.5 relative z-10">
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt={studentName}
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-white/60 shadow-md bg-white shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md text-white font-black text-xl flex items-center justify-center shrink-0 border-2 border-white/40 shadow-md">
+                    {getStudentInitials(studentName)}
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base sm:text-lg font-black text-white leading-tight break-words">
+                    {studentName}
+                  </h2>
+                  <p className="text-[11px] text-blue-100/90 mt-0.5 font-medium">
+                    {age !== '-' ? `${age} Tahun` : 'Siswa Aktif'}
+                    {student.schoolOrigin ? ` • ${student.schoolOrigin}` : ''}
+                  </p>
+                  <p className="text-[10px] font-mono text-blue-200 mt-1 tracking-wider opacity-90">
+                    ID: {student.id}
+                  </p>
+                </div>
+              </div>
+
+              {/* Metadata Chips: Kelas & Pelatih */}
+              <div className="mt-4 pt-3 border-t border-white/15 grid grid-cols-2 gap-2 relative z-10 text-xs">
+                <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 flex items-center gap-2 border border-white/10">
+                  <BookOpen className="w-4 h-4 text-blue-200 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">Kelas</p>
+                    <p className="font-bold text-white text-[11px] truncate">{className}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 flex items-center gap-2 border border-white/10">
+                  <User className="w-4 h-4 text-blue-200 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">Pelatih</p>
+                    <p className="font-bold text-white text-[11px] truncate">{coachName}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RINGKASAN CEPAT STATUS SISWA */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Ringkasan Informasi Siswa
+                </h3>
+                <span className="text-[10px] text-slate-400">Pembaruan Realtime</span>
+              </div>
+
+              {/* Status SPP / Keuangan Card */}
+              <div
+                onClick={() => setActiveTab('billing')}
+                className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    isPaid ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 group-hover:bg-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100 group-hover:bg-amber-100'
+                  }`}>
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Status Iuran SPP
+                    </p>
+                    <p className="font-black text-slate-800 text-sm truncate">
+                      {isPaid ? 'Lunas (Tidak Ada Tunggakan)' : formatRupiah(totalAmount)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {isPaid ? 'Iuran bulan ini telah terverifikasi' : `${billingDetails.length} komponen tagihan aktif`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 shrink-0 pl-2">
+                  <span className="text-[11px] font-bold text-blue-600 group-hover:underline">Buka</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </div>
+
+              {/* Status Jadwal & Kehadiran Card */}
+              <div
+                onClick={() => setActiveTab('schedule')}
+                className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0 group-hover:bg-blue-100 transition-colors">
+                    <CalendarDays className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Sesi Latihan &amp; Presensi
+                    </p>
+                    <p className="font-black text-slate-800 text-sm truncate">
+                      {scheduleData?.stats?.attendanceRate ? `${scheduleData.stats.attendanceRate} Kehadiran` : 'Jadwal Aktif'}
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {scheduleData?.classInfo?.className || className} &bull; {scheduleData?.schedules?.length || 0} Sesi/Minggu
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 shrink-0 pl-2">
+                  <span className="text-[11px] font-bold text-blue-600 group-hover:underline">Buka</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </div>
+
+              {/* Status Rapor & Prestasi Card */}
+              <div
+                onClick={() => setActiveTab('evaluation')}
+                className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 shrink-0 group-hover:bg-purple-100 transition-colors">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Prestasi &amp; Rapor Evaluasi
+                    </p>
+                    <p className="font-black text-slate-800 text-sm truncate">
+                      {evaluationData?.latestEvaluation ? `Rapor Pelatih: Skor ${evaluationData.latestEvaluation.overallScore}/100` : 'Rapor Belum Dirilis'}
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {evaluationData?.achievements?.length ? `${evaluationData.achievements.length} Medali & Kejuaraan` : 'Perkembangan 4 pilar atlet'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 shrink-0 pl-2">
+                  <span className="text-[11px] font-bold text-blue-600 group-hover:underline">Buka</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </div>
+            </div>
+
+            {/* QUICK ACTIONS GRID */}
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('billing')}
+                className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-1.5 transition-all shadow-2xs cursor-pointer group active:scale-95"
+              >
+                <div className="w-8 h-8 rounded-xl bg-amber-50 group-hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700">Keuangan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('schedule')}
+                className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-1.5 transition-all shadow-2xs cursor-pointer group active:scale-95"
+              >
+                <div className="w-8 h-8 rounded-xl bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors">
+                  <CalendarDays className="w-4 h-4" />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700">Jadwal</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('evaluation')}
+                className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-1.5 transition-all shadow-2xs cursor-pointer group active:scale-95"
+              >
+                <div className="w-8 h-8 rounded-xl bg-purple-50 group-hover:bg-purple-100 text-purple-600 flex items-center justify-center transition-colors">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700">Rapor</span>
+              </button>
             </div>
           </div>
+        )}
 
-          {/* Metadata Chips: Kelas & Pelatih */}
-          <div className="mt-4 pt-3 border-t border-white/15 grid grid-cols-2 gap-2 relative z-10 text-xs">
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 flex items-center gap-2 border border-white/10">
-              <BookOpen className="w-4 h-4 text-blue-200 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">Kelas</p>
-                <p className="font-bold text-white text-[11px] truncate">{className}</p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 flex items-center gap-2 border border-white/10">
-              <User className="w-4 h-4 text-blue-200 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wider text-blue-200 font-bold">Pelatih</p>
-                <p className="font-bold text-white text-[11px] truncate">{coachName}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. SEKSI ADMINISTRASI SPP DENGAN TOTAL TAGIHAN RIIL */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
+        {/* ============================================================== */}
+        {/* TAB 2: KEUANGAN / SPP ('billing') */}
+        {/* ============================================================== */}
+        {activeTab === 'billing' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* 3. SEKSI ADMINISTRASI SPP DENGAN TOTAL TAGIHAN RIIL */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
@@ -873,11 +1018,18 @@ export default function PortalDashboard() {
             </div>
           </div>
         )}
+          </div>
+        )}
 
-        {/* 5. SEKSI INFORMASI SESI LATIHAN & CATATAN PRESENSI */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+        {/* ============================================================== */}
+        {/* TAB 3: JADWAL & PRESENSI ('schedule') */}
+        {/* ============================================================== */}
+        {activeTab === 'schedule' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* 5. SEKSI INFORMASI SESI LATIHAN & CATATAN PRESENSI */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
                 <CalendarDays className="w-4 h-4" />
               </div>
@@ -1088,9 +1240,16 @@ export default function PortalDashboard() {
             </div>
           )}
         </div>
+          </div>
+        )}
 
-        {/* 6. SEKSI PRESTASI & EVALUASI PELATIH */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
+        {/* ============================================================== */}
+        {/* TAB 4: PRESTASI & EVALUASI PELATIH ('evaluation') */}
+        {/* ============================================================== */}
+        {activeTab === 'evaluation' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* 6. SEKSI PRESTASI & EVALUASI PELATIH */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
@@ -1396,17 +1555,83 @@ export default function PortalDashboard() {
             </div>
           )}
         </div>
+          </div>
+        )}
 
       </main>
 
       {/* FOOTER INFORMASI */}
-      <footer className="p-4 text-center text-slate-400 text-[10px] border-t border-slate-200 bg-white">
+      <footer className="p-4 text-center text-slate-400 text-[10px] border-t border-slate-200 bg-white mb-2">
         <div className="flex items-center justify-center gap-1 text-slate-600 font-semibold mb-0.5">
           <ShieldCheck className="w-3 h-3 text-blue-600" />
           <span>PORTAL RESMI WALI MURID</span>
         </div>
         <p>CHUA SPORT CORE &bull; Sistem Terpadu Manajemen Akademi</p>
       </footer>
+
+      {/* 7. FIXED BOTTOM NAVIGATION BAR (MAX-W-[480PX]) */}
+      <nav className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto z-50 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 py-2 flex justify-around items-center shadow-2xl">
+        {/* Tab 1: Beranda */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'home'
+              ? 'text-blue-400 font-bold'
+              : 'text-slate-400 hover:text-slate-200 font-medium'
+          }`}
+        >
+          <Home className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'home' ? 'text-blue-400 scale-110' : 'text-slate-400'}`} />
+          <span className="text-[10px] tracking-tight">Beranda</span>
+        </button>
+
+        {/* Tab 2: Keuangan */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('billing')}
+          className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'billing'
+              ? 'text-blue-400 font-bold'
+              : 'text-slate-400 hover:text-slate-200 font-medium'
+          }`}
+        >
+          <div className="relative">
+            <CreditCard className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'billing' ? 'text-blue-400 scale-110' : 'text-slate-400'}`} />
+            {!isPaid && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse ring-2 ring-slate-900" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Keuangan</span>
+        </button>
+
+        {/* Tab 3: Jadwal */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('schedule')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'schedule'
+              ? 'text-blue-400 font-bold'
+              : 'text-slate-400 hover:text-slate-200 font-medium'
+          }`}
+        >
+          <CalendarDays className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'schedule' ? 'text-blue-400 scale-110' : 'text-slate-400'}`} />
+          <span className="text-[10px] tracking-tight">Jadwal</span>
+        </button>
+
+        {/* Tab 4: Rapor */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('evaluation')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'evaluation'
+              ? 'text-blue-400 font-bold'
+              : 'text-slate-400 hover:text-slate-200 font-medium'
+          }`}
+        >
+          <Trophy className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'evaluation' ? 'text-blue-400 scale-110' : 'text-slate-400'}`} />
+          <span className="text-[10px] tracking-tight">Rapor</span>
+        </button>
+      </nav>
 
       {/* 6. MODAL QRIS PEMBAYARAN DENGAN RINCIAN BIAYA RIIL */}
       {showQrisModal && (

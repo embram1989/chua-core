@@ -9,7 +9,7 @@ import { Outlet } from 'react-router-dom';
 export default function PortalLayout() {
   return (
     <div className="min-h-screen bg-slate-900 sm:bg-slate-950 flex justify-center items-start sm:py-6 sm:px-4 font-sans antialiased text-slate-800">
-      <div className="w-full max-w-[480px] min-h-screen sm:min-h-[85vh] bg-white sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-800/40">
+      <div className="w-full max-w-[480px] mx-auto min-h-screen sm:min-h-[85vh] bg-slate-50 sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-800/40">
         <Outlet />
       </div>
     </div>
