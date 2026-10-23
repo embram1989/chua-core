@@ -1744,6 +1744,7 @@ export default function AcademyPage({ userProfile }) {
         onClose={() => setIdCardTarget(null)}
         data={idCardTarget?.data}
         role={idCardTarget?.role || 'SISWA'}
+        tenantData={tenantProfile || userProfile?.tenant}
         tenantName={tenantProfile?.name || userProfile?.tenant?.name || arenaName}
         tenantLogo={tenantProfile?.logoUrl || userProfile?.tenant?.logoUrl || ''}
         academyName={activeAcademy?.name || 'Akademi'}

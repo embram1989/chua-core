@@ -7,10 +7,7 @@ import {
   Loader2, 
   IdCard, 
   ShieldCheck, 
-  Sparkles,
-  User,
-  GraduationCap,
-  Award
+  AlertCircle
 } from 'lucide-react';
 import { getStudentInitials } from '../utils/helpers';
 
@@ -24,13 +21,15 @@ export default function IdCardGenerator({
   onClose,
   data,
   role = 'SISWA', // 'SISWA' | 'PELATIH'
-  tenantName = 'CHUA SPORT CORE',
+  tenantData = null,
+  tenantName = '',
   tenantLogo = '',
   academyName = '',
   sportCategory = ''
 }) {
   const cardRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
 
   if (!isOpen || !data) return null;
 
@@ -45,22 +44,35 @@ export default function IdCardGenerator({
     ? (data.className ? `Kelas: ${data.className}` : (data.schoolOrigin || 'Akademi Siswa'))
     : (data.license ? `Lisensi: ${data.license}` : (data.specialty || 'Instruktur Resmi'));
 
+  // Resolusi data tenant dari props tenantData dengan fallback
+  const finalTenantName = tenantData?.name || tenantName || 'CHUA SPORT CORE';
+  const finalTenantLogo = tenantData?.logoUrl || tenantLogo || '';
+  const finalTenantAddress = tenantData?.address || tenantData?.alamat || '';
+  const finalTenantPhone = tenantData?.phone || tenantData?.whatsapp || tenantData?.noHp || '';
+
   const handleDownload = async () => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || isDownloading) return;
     setIsDownloading(true);
+    setDownloadError(null);
 
     try {
-      // Tunggu frame render selesai
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Jeda sejenak untuk memastikan render gambar stabil
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 3, // Skala 3x agar hasil cetak jernih & tajam (HD)
+      const renderPromise = html2canvas(cardRef.current, {
         useCORS: true,
-        allowTaint: false,
+        scale: 2,
+        allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false
       });
 
+      // Timeout 12 detik sebagai pengaman
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Waktu proses gambar habis. Silakan coba lagi.')), 12000)
+      );
+
+      const canvas = await Promise.race([renderPromise, timeoutPromise]);
       const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       const safeName = fullName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
@@ -71,6 +83,7 @@ export default function IdCardGenerator({
       document.body.removeChild(link);
     } catch (err) {
       console.error('Gagal men-generate ID card:', err);
+      setDownloadError('Gagal mengunduh kartu. Silakan periksa koneksi atau coba unduh kembali.');
     } finally {
       setIsDownloading(false);
     }
@@ -78,9 +91,9 @@ export default function IdCardGenerator({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[94vh]">
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center space-x-2.5">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${isStudent ? 'bg-blue-600' : 'bg-amber-600'}`}>
               <IdCard className="w-4 h-4" />
@@ -90,7 +103,7 @@ export default function IdCardGenerator({
                 Generate ID Card {isStudent ? 'Siswa' : 'Pelatih'}
               </h3>
               <p className="text-[11px] text-slate-500">
-                Kartu anggota digital siap cetak dengan QR Code resmi
+                Kartu anggota digital resmi dengan QR Code terverifikasi
               </p>
             </div>
           </div>
@@ -104,50 +117,62 @@ export default function IdCardGenerator({
         </div>
 
         {/* Modal Body / Preview Area */}
-        <div className="p-6 overflow-y-auto flex flex-col items-center justify-center bg-slate-100/60">
+        <div className="p-5 sm:p-6 overflow-y-auto flex flex-col items-center justify-center bg-slate-100/60">
           
           {/* THE ID CARD ELEMENT TO BE RENDERED/DOWNLOADED */}
           <div
             ref={cardRef}
-            className="w-[260px] h-[415px] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col relative border border-slate-200/90 select-none text-slate-800"
+            className="w-[265px] min-h-[440px] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col relative border border-slate-200/90 select-none text-slate-800"
             style={{
               fontFamily: "'Inter', sans-serif"
             }}
           >
             {/* Lanyard Clip Slot Simulation */}
-            <div className="w-full pt-2.5 pb-1 flex justify-center bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700">
+            <div className="w-full pt-2 pb-1 flex justify-center bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700">
               <div className="w-11 h-1.5 rounded-full bg-slate-900/30 shadow-inner" />
             </div>
 
-            {/* Card Header (Tenant & Academy Info) */}
-            <div className="px-3 pb-3 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white flex items-center gap-2 relative">
-              {tenantLogo ? (
+            {/* Card Header (Informasi Tenant - Rata Tengah) */}
+            <div className="px-3 pt-1 pb-2.5 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white flex flex-col items-center text-center relative">
+              {/* Baris 1: Logo Tenant */}
+              {finalTenantLogo ? (
                 <img
-                  src={tenantLogo}
-                  alt={tenantName}
+                  src={finalTenantLogo}
+                  alt={finalTenantName}
                   crossOrigin="anonymous"
-                  className="w-8 h-8 rounded-md object-cover bg-white shrink-0 shadow-xs"
+                  className="w-8 h-8 object-cover rounded-md mb-1 mx-auto shadow-xs"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-md bg-white/20 text-white font-black text-xs flex items-center justify-center shrink-0 border border-white/30">
-                  {tenantName ? tenantName.charAt(0).toUpperCase() : 'A'}
+                <div className="w-8 h-8 rounded-md bg-white/20 text-white font-black text-xs flex items-center justify-center mb-1 mx-auto border border-white/30">
+                  {finalTenantName ? finalTenantName.charAt(0).toUpperCase() : 'G'}
                 </div>
               )}
-              <div className="min-w-0 flex-1">
-                <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-blue-100 truncate">
-                  {tenantName}
-                </h4>
-                <p className="text-xs font-black text-white leading-tight truncate">
-                  {academyName || 'Sport Academy'}
+
+              {/* Baris 2: Nama Tenant */}
+              <h4 className="text-[18px] font-bold whitespace-normal break-words leading-tight text-white">
+                {finalTenantName}
+              </h4>
+
+              {/* Baris 3: Alamat Tenant */}
+              {finalTenantAddress && (
+                <p className="text-[8px] text-white/90 whitespace-normal break-words leading-tight mt-0.5">
+                  {finalTenantAddress}
                 </p>
-              </div>
+              )}
+
+              {/* Baris 4: No. Telp/WA */}
+              {finalTenantPhone && (
+                <p className="text-[8px] font-semibold text-white/90">
+                  Telp/WA: {finalTenantPhone}
+                </p>
+              )}
             </div>
 
-            {/* Decorative Wave Divider / Top Accent */}
-            <div className="h-2 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 shadow-xs" />
+            {/* Decorative Gold Divider / Top Accent */}
+            <div className="h-1.5 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 shadow-xs" />
 
             {/* Card Middle: Profile Photo & Identification */}
-            <div className="px-4 pt-3 pb-2 flex flex-col items-center text-center bg-gradient-to-b from-blue-50/50 via-white to-white flex-1">
+            <div className="px-3 pt-3 pb-2 flex flex-col items-center text-center bg-gradient-to-b from-blue-50/40 via-white to-white flex-1">
               {/* Photo or Initials */}
               <div className="relative mb-2">
                 {photoUrl ? (
@@ -176,18 +201,18 @@ export default function IdCardGenerator({
                 </span>
               </div>
 
-              {/* Full Name */}
-              <h3 className="font-black text-slate-900 text-sm leading-snug line-clamp-2 px-1 mt-1 max-w-full">
+              {/* Nama Lengkap Siswa / Pelatih (Full wrapped, tidak terpotong) */}
+              <h3 className="text-sm font-bold text-gray-900 whitespace-normal break-words text-center px-2 mt-1">
                 {fullName}
               </h3>
 
-              {/* Sub-info (Sport & Class/License) */}
+              {/* Sub-info (Cabang Olahraga & Kelas/Lisensi) */}
               <div className="flex items-center justify-center gap-1.5 mt-1 flex-wrap">
-                <span className="px-2 py-0.5 rounded-md bg-blue-100/70 text-blue-800 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-md bg-blue-100/80 text-blue-800 text-[10px] font-bold">
                   {sport}
                 </span>
                 {subInfo && (
-                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium truncate max-w-[130px]">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium break-words max-w-[150px]">
                     {subInfo}
                   </span>
                 )}
@@ -198,7 +223,7 @@ export default function IdCardGenerator({
                 <div className="p-1.5 bg-white rounded-lg border border-slate-200/90 shadow-2xs">
                   <QRCode
                     value={documentId}
-                    size={74}
+                    size={72}
                     level="M"
                   />
                 </div>
@@ -219,8 +244,16 @@ export default function IdCardGenerator({
             </div>
           </div>
 
+          {/* Feedback error jika download bermasalah */}
+          {downloadError && (
+            <div className="mt-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2 max-w-[280px]">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>{downloadError}</span>
+            </div>
+          )}
+
           <p className="text-[11px] text-slate-500 text-center mt-3">
-            Gunakan tombol unduh di bawah untuk menyimpan kartu dalam format gambar PNG resolusi tinggi.
+            Kartu berformat PNG siap cetak berkualitas tinggi.
           </p>
         </div>
 
