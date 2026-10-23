@@ -91,15 +91,13 @@ async function getGoogleAccessToken(clientEmail, privateKeyPem) {
 
     if (!tokenResponse.ok) {
       const errText = await tokenResponse.text();
-      console.warn('Google OAuth token exchange failed:', errText);
-      return null;
+      throw new Error(`Google OAuth token exchange failed (${tokenResponse.status}): ${errText}`);
     }
 
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (err) {
-    console.warn('Error signing Google Service Account token:', err);
-    return null;
+    throw new Error(`Auth Error: ${err.message}`);
   }
 }
 
@@ -187,8 +185,10 @@ export async function onRequestPost(context) {
   try {
     const { request, env = {} } = context;
 
-    // 1. Ekstrak kredensial dari environment Cloudflare
+    // 1. Ekstrak kredensial dan Database ID Khusus
     const projectId = env.FIREBASE_PROJECT_ID || 'ai-studio-chuasportcorespo-a3f4ecd8-7371-486a-9e89-d74d93ce6065';
+    // Gunakan database ID khusus proyek, BUKAN (default)
+    const databaseId = env.FIREBASE_DATABASE_ID || 'ai-studio-chuasportcorespo-a3f4ecd8-7371-486a-9e89-d74d93ce6065';
     const clientEmail = env.FIREBASE_CLIENT_EMAIL || '';
     const privateKey = env.FIREBASE_PRIVATE_KEY ? env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '';
 
@@ -198,7 +198,11 @@ export async function onRequestPost(context) {
 
     if (!studentId || !parentPhone) {
       return new Response(
-        JSON.stringify({ success: false, message: 'Kredensial tidak ditemukan' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Kredensial tidak ditemukan', 
+          details: 'ID Siswa atau Nomor HP Wali belum diisi.' 
+        }),
         { status: 401, headers: corsHeaders }
       );
     }
@@ -207,8 +211,15 @@ export async function onRequestPost(context) {
     const cleanParentPhone = String(parentPhone).trim();
     const inputDigits = cleanParentPhone.replace(/\D/g, '');
 
-    // 3. Dapatkan Access Token (jika kredensial Service Account tersedia)
-    const accessToken = await getGoogleAccessToken(clientEmail, privateKey);
+    // 3. Dapatkan Access Token Service Account
+    let accessToken = null;
+    let authError = null;
+    try {
+      accessToken = await getGoogleAccessToken(clientEmail, privateKey);
+    } catch (tokenErr) {
+      authError = tokenErr.message;
+      console.error('Google Auth error:', tokenErr);
+    }
 
     const reqHeaders = {
       'Content-Type': 'application/json'
@@ -235,7 +246,8 @@ export async function onRequestPost(context) {
       }
     };
 
-    const runQueryUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
+    // URL menggunakan databaseId khusus: databases/ai-studio-chuasportcorespo-a3f4ecd8-7371-486a-9e89-d74d93ce6065
+    const runQueryUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents:runQuery`;
 
     const firestoreResponse = await fetch(runQueryUrl, {
       method: 'POST',
@@ -244,6 +256,7 @@ export async function onRequestPost(context) {
     });
 
     let matchedStudent = null;
+    let firestoreErrorDetails = null;
 
     if (firestoreResponse.ok) {
       const queryResults = await firestoreResponse.json();
@@ -263,14 +276,15 @@ export async function onRequestPost(context) {
         }
       }
     } else {
-      console.warn('Firestore runQuery returned status:', firestoreResponse.status);
+      const errText = await firestoreResponse.text();
+      firestoreErrorDetails = `Firestore runQuery (${firestoreResponse.status}): ${errText}`;
+      console.error(firestoreErrorDetails);
     }
 
-    // Fallback sekunder: Jika runQuery belum menemukan (misal format nomor HP tersimpan dengan spasi khusus),
-    // coba periksa langsung dokumen ber-ID studentId via Firestore REST GET
+    // Fallback sekunder: Jika runQuery belum menemukan, periksa langsung dokumen ber-ID studentId via Firestore REST GET
     if (!matchedStudent && cleanStudentId.length >= 3) {
       try {
-        const getDocUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/students/${encodeURIComponent(cleanStudentId)}`;
+        const getDocUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/students/${encodeURIComponent(cleanStudentId)}`;
         const directDocResp = await fetch(getDocUrl, {
           method: 'GET',
           headers: reqHeaders
@@ -280,20 +294,21 @@ export async function onRequestPost(context) {
           const docData = await directDocResp.json();
           const docId = (docData.name || '').split('/').pop() || cleanStudentId;
           const fields = parseFirestoreFields(docData.fields);
+          const doc = { id: docId, ...fields };
           const docPhone = String(fields.parentPhone || '').replace(/\D/g, '');
 
           // Cocokkan digit nomor HP dan kecocokan ID case-insensitive
           if (
-            docId.toLowerCase().startsWith(studentId.toLowerCase()) &&
+            doc.id.toLowerCase().startsWith(studentId.toLowerCase()) &&
             docPhone &&
             inputDigits &&
             (docPhone.endsWith(inputDigits) || inputDigits.endsWith(docPhone))
           ) {
-            matchedStudent = {
-              id: docId,
-              ...fields
-            };
+            matchedStudent = doc;
           }
+        } else if (!firestoreErrorDetails) {
+          const directErrText = await directDocResp.text();
+          firestoreErrorDetails = `Direct doc fetch (${directDocResp.status}): ${directErrText}`;
         }
       } catch (err) {
         console.warn('Direct document fetch fallback error:', err);
@@ -312,11 +327,25 @@ export async function onRequestPost(context) {
       );
     }
 
-    // Jika tidak valid atau data kosong
+    // Jika terjadi kegagalan fetch dari Firebase/Google OAuth, ekspos error asli untuk debugging
+    if (firestoreErrorDetails || authError) {
+      const combinedError = [authError, firestoreErrorDetails].filter(Boolean).join(' | ');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: combinedError,
+          details: combinedError
+        }),
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    // Jika kueri sukses namun tidak ditemukan kecocokan
     return new Response(
       JSON.stringify({
         success: false,
-        message: 'Kredensial tidak ditemukan'
+        message: 'Kredensial tidak ditemukan',
+        details: 'Tidak ada siswa yang cocok dengan ID dan Nomor HP yang dimasukkan.'
       }),
       { status: 401, headers: corsHeaders }
     );
@@ -325,10 +354,10 @@ export async function onRequestPost(context) {
     return new Response(
       JSON.stringify({
         success: false,
-        message: 'Kredensial tidak ditemukan',
-        error: error.message
+        message: error.message || 'Terjadi kesalahan internal pada server',
+        details: error.stack || error.message
       }),
-      { status: 401, headers: corsHeaders }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

@@ -41,7 +41,7 @@ export default function PortalLogin() {
         navigate('/portal/dashboard');
       } else {
         // HTTP 401/500 atau kredensial tidak cocok
-        setError(data.message || data.error || 'Kredensial tidak ditemukan');
+        setError(data.message || data.details || data.error || 'Kredensial tidak ditemukan');
       }
     } catch (err) {
       console.error('Login request failed:', err);
