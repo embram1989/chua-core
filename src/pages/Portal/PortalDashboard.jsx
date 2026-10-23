@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { 
   GraduationCap, 
@@ -20,7 +20,11 @@ import {
   Copy,
   Receipt,
   Loader2,
-  ListOrdered
+  ListOrdered,
+  MapPin,
+  CalendarDays,
+  XCircle,
+  Activity
 } from 'lucide-react';
 import { getStudentInitials, calculateAge } from '../../utils/helpers';
 
@@ -35,6 +39,24 @@ const formatRupiah = (val) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(num);
+};
+
+/**
+ * Helper to format attendance date into Indonesian locale
+ */
+const formatAttendanceDate = (dateStr) => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  } catch {
+    return dateStr;
+  }
 };
 
 export default function PortalDashboard() {
@@ -59,6 +81,11 @@ export default function PortalDashboard() {
   const [isLoadingBilling, setIsLoadingBilling] = useState(true);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
+
+  // State untuk Jadwal Sesi Latihan & Catatan Presensi Siswa
+  const [scheduleData, setScheduleData] = useState(null);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
+  const [activeScheduleTab, setActiveScheduleTab] = useState('jadwal'); // 'jadwal' | 'presensi'
 
   // 2. Fetch billing data dari endpoint /api/portal/billing saat mount
   useEffect(() => {
@@ -232,6 +259,130 @@ export default function PortalDashboard() {
       isMounted = false;
     };
   }, [student?.id, student?.tenantId]);
+
+  // 3. Fetch Jadwal Latihan & Catatan Presensi Siswa dari /api/portal/schedule
+  useEffect(() => {
+    if (!student?.id) return;
+    let isMounted = true;
+
+    const fetchSchedule = async () => {
+      setIsLoadingSchedule(true);
+      try {
+        const response = await fetch('/api/portal/schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: student.id,
+            tenantId: student.tenantId || '',
+            classId: student.classId || ''
+          })
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          if (isMounted && res.success) {
+            setScheduleData(res);
+            setIsLoadingSchedule(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Schedule API fetch failed (fallback to client):', err);
+      }
+
+      // Dev-mode fallback jika Pages functions endpoint belum aktif di preview lokal
+      try {
+        let classObj = null;
+        if (student.classId) {
+          const cDoc = await getDoc(doc(db, 'academy_classes', student.classId));
+          if (cDoc.exists()) {
+            classObj = { id: cDoc.id, ...cDoc.data() };
+          }
+        }
+        if (!classObj && student.tenantId) {
+          const cq = query(collection(db, 'academy_classes'), where('tenantId', '==', student.tenantId));
+          const cSnap = await getDocs(cq);
+          if (!cSnap.empty) {
+            const found = cSnap.docs.find(d => d.data().className === student.className);
+            classObj = found ? { id: found.id, ...found.data() } : { id: cSnap.docs[0].id, ...cSnap.docs[0].data() };
+          }
+        }
+
+        const localSchedules = Array.isArray(classObj?.schedules) ? classObj.schedules : [];
+        const localAttendances = [];
+
+        if (student.tenantId) {
+          try {
+            const attQuery = query(collection(db, 'academy_attendance'), where('tenantId', '==', student.tenantId));
+            const attSnap = await getDocs(attQuery);
+            const cleanSid = String(student.id).toLowerCase();
+            attSnap.forEach(d => {
+              const data = d.data();
+              const studentsList = Array.isArray(data.students) ? data.students : [];
+              const matched = studentsList.find(s => String(s.studentId || s.id || '').toLowerCase() === cleanSid);
+              if (matched) {
+                localAttendances.push({
+                  id: d.id,
+                  date: data.date || '',
+                  className: data.className || student.className || 'Kelas',
+                  coachName: data.coachName || student.coachName || 'Pelatih',
+                  status: matched.status || 'Hadir',
+                  notes: data.notes || ''
+                });
+              }
+            });
+          } catch (e) {
+            console.warn('Fallback attendances error:', e);
+          }
+        }
+
+        localAttendances.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        let hadirCount = 0;
+        let izinCount = 0;
+        let sakitCount = 0;
+        let alphaCount = 0;
+        for (const a of localAttendances) {
+          const st = String(a.status || '').toLowerCase();
+          if (st.includes('hadir')) hadirCount++;
+          else if (st.includes('izin')) izinCount++;
+          else if (st.includes('sakit')) sakitCount++;
+          else alphaCount++;
+        }
+
+        if (isMounted) {
+          setScheduleData({
+            success: true,
+            classInfo: {
+              id: classObj?.id || student.classId || '',
+              className: classObj?.className || student.className || 'Kelas Reguler',
+              sport: classObj?.sport || student.sportCategory || 'Badminton',
+              coachName: classObj?.coachName || student.coachName || 'Pelatih Utama'
+            },
+            schedules: localSchedules,
+            attendances: localAttendances,
+            stats: {
+              totalSessions: localAttendances.length,
+              hadir: hadirCount,
+              izin: izinCount,
+              sakit: sakitCount,
+              alpha: alphaCount,
+              attendanceRate: localAttendances.length > 0 ? `${Math.round((hadirCount / localAttendances.length) * 100)}%` : '100%'
+            }
+          });
+        }
+      } catch (fbErr) {
+        console.warn('Fallback schedule error:', fbErr);
+      } finally {
+        if (isMounted) setIsLoadingSchedule(false);
+      }
+    };
+
+    fetchSchedule();
+    return () => {
+      isMounted = false;
+    };
+  }, [student?.id, student?.tenantId, student?.classId]);
 
   // Jika tidak ada data siswa aktif, redirect langsung ke halaman login portal
   if (!student) {
@@ -530,33 +681,219 @@ export default function PortalDashboard() {
           </div>
         )}
 
-        {/* 5. SEKSI INFORMASI SESI LATIHAN */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-              <Calendar className="w-4 h-4" />
+        {/* 5. SEKSI INFORMASI SESI LATIHAN & CATATAN PRESENSI */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                <CalendarDays className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Sesi Latihan &amp; Presensi
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  {scheduleData?.classInfo?.className || className} &bull; {scheduleData?.classInfo?.coachName || coachName}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Informasi Sesi Latihan
-              </h3>
-              <p className="text-[11px] text-slate-400">
-                Jadwal mingguan &amp; koordinasi
-              </p>
-            </div>
+
+            {/* Attendance Rate Badge */}
+            {scheduleData?.stats && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-extrabold border border-emerald-200">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                <span>{scheduleData.stats.attendanceRate} Hadir</span>
+              </span>
+            )}
           </div>
 
-          <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/70 text-xs text-blue-900 space-y-1">
-            <div className="flex items-center justify-between font-bold">
-              <span>Sesi Kelas {className}</span>
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md">
-                Terjadwal
-              </span>
-            </div>
-            <p className="text-[11px] text-blue-700/90 leading-relaxed">
-              Pastikan atlet hadir 15 menit sebelum sesi dimulai dengan seragam latihan resmi.
-            </p>
+          {/* Sub-Tabs: Jadwal vs Presensi */}
+          <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setActiveScheduleTab('jadwal')}
+              className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                activeScheduleTab === 'jadwal'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Jadwal Sesi ({scheduleData?.schedules?.length || 0})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveScheduleTab('presensi')}
+              className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                activeScheduleTab === 'presensi'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Catatan Presensi ({scheduleData?.attendances?.length || 0})
+            </button>
           </div>
+
+          {/* TAB 1: JADWAL LATIHAN */}
+          {activeScheduleTab === 'jadwal' && (
+            <div className="space-y-2.5">
+              {isLoadingSchedule ? (
+                <div className="py-6 flex flex-col items-center justify-center text-slate-400 text-xs space-y-1.5">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span>Memuat jadwal sesi latihan...</span>
+                </div>
+              ) : (scheduleData?.schedules && scheduleData.schedules.length > 0) ? (
+                <div className="space-y-2">
+                  {scheduleData.schedules.map((s, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-slate-50 hover:bg-blue-50/40 rounded-xl border border-slate-100 transition-colors flex items-center justify-between"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-extrabold rounded-md uppercase">
+                            {s.day}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1 font-mono">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {s.startTime} - {s.endTime} WIB
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{s.courtName || 'Lapangan Utama'}</span>
+                        </p>
+                      </div>
+
+                      <span className="text-[10px] bg-slate-200/80 text-slate-700 px-2.5 py-1 rounded-lg font-bold shrink-0">
+                        Aktif
+                      </span>
+                    </div>
+                  ))}
+                  
+                  <div className="p-2.5 bg-blue-50/70 rounded-xl border border-blue-100 text-[11px] text-blue-800 flex items-start gap-2">
+                    <Activity className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                    <span>Pastikan atlet hadir 15 menit sebelum sesi dimulai dengan seragam resmi akademi.</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-7 px-4 text-center rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-800">
+                    Belum Ada Jadwal Terdaftar
+                  </p>
+                  <p className="text-[11px] text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+                    Pengelola belum memasukkan jadwal sesi latihan untuk kelas ini. Silakan hubungi pelatih atau admin.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: CATATAN PRESENSI */}
+          {activeScheduleTab === 'presensi' && (
+            <div className="space-y-3">
+              {isLoadingSchedule ? (
+                <div className="py-6 flex flex-col items-center justify-center text-slate-400 text-xs space-y-1.5">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span>Memuat catatan presensi...</span>
+                </div>
+              ) : (
+                <>
+                  {/* Statistik Kehadiran Grid */}
+                  {scheduleData?.stats && (
+                    <div className="grid grid-cols-4 gap-1.5 text-center text-xs">
+                      <div className="p-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                        <p className="text-[9px] uppercase font-bold text-emerald-600">Hadir</p>
+                        <p className="text-sm font-black text-emerald-800 mt-0.5">{scheduleData.stats.hadir}</p>
+                      </div>
+                      <div className="p-2 bg-amber-50 border border-amber-100 rounded-xl">
+                        <p className="text-[9px] uppercase font-bold text-amber-600">Izin</p>
+                        <p className="text-sm font-black text-amber-800 mt-0.5">{scheduleData.stats.izin}</p>
+                      </div>
+                      <div className="p-2 bg-violet-50 border border-violet-100 rounded-xl">
+                        <p className="text-[9px] uppercase font-bold text-violet-600">Sakit</p>
+                        <p className="text-sm font-black text-violet-800 mt-0.5">{scheduleData.stats.sakit}</p>
+                      </div>
+                      <div className="p-2 bg-rose-50 border border-rose-100 rounded-xl">
+                        <p className="text-[9px] uppercase font-bold text-rose-600">Alpha</p>
+                        <p className="text-sm font-black text-rose-800 mt-0.5">{scheduleData.stats.alpha}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List Catatan Presensi */}
+                  {scheduleData?.attendances && scheduleData.attendances.length > 0 ? (
+                    <div className="divide-y divide-slate-100 text-xs max-h-64 overflow-y-auto">
+                      {scheduleData.attendances.map((item, idx) => {
+                        const st = String(item.status || '').toLowerCase();
+                        const isHadir = st.includes('hadir');
+                        const isIzin = st.includes('izin');
+                        const isSakit = st.includes('sakit');
+                        const isAlpha = st.includes('alpa') || st.includes('alpha');
+
+                        return (
+                          <div key={item.id || idx} className="py-2.5 flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-slate-800">
+                                {formatAttendanceDate(item.date)}
+                              </p>
+                              <p className="text-[10px] text-slate-400">
+                                {item.className || className} {item.notes ? `• ${item.notes}` : ''}
+                              </p>
+                            </div>
+
+                            {isHadir && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 shrink-0">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Hadir</span>
+                              </span>
+                            )}
+                            {isIzin && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200 shrink-0">
+                                <Clock className="w-3 h-3 text-amber-600" />
+                                <span>Izin</span>
+                              </span>
+                            )}
+                            {isSakit && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 text-[10px] font-bold border border-violet-200 shrink-0">
+                                <AlertCircle className="w-3 h-3 text-violet-600" />
+                                <span>Sakit</span>
+                              </span>
+                            )}
+                            {isAlpha && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200 shrink-0">
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                                <span>Alpha</span>
+                              </span>
+                            )}
+                            {!isHadir && !isIzin && !isSakit && !isAlpha && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold shrink-0">
+                                {item.status}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="py-7 px-4 text-center rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-800">
+                        Belum Ada Rekam Presensi
+                      </p>
+                      <p className="text-[11px] text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+                        Data kehadiran sesi latihan atlet akan tercatat secara otomatis setelah pelatih melakukan absensi.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
       </main>
