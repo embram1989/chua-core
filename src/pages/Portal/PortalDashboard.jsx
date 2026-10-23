@@ -24,7 +24,14 @@ import {
   MapPin,
   CalendarDays,
   XCircle,
-  Activity
+  Activity,
+  Trophy,
+  Award,
+  Medal,
+  Star,
+  Target,
+  TrendingUp,
+  Quote
 } from 'lucide-react';
 import { getStudentInitials, calculateAge } from '../../utils/helpers';
 
@@ -59,6 +66,55 @@ const formatAttendanceDate = (dateStr) => {
   }
 };
 
+/**
+ * Helper to determine evaluation score label and style
+ */
+const getEvaluationGrade = (score) => {
+  const s = Number(score) || 0;
+  if (s >= 90) return { label: 'Istimewa', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', text: 'text-emerald-600' };
+  if (s >= 80) return { label: 'Sangat Baik', badge: 'bg-blue-50 text-blue-700 border-blue-200', text: 'text-blue-600' };
+  if (s >= 70) return { label: 'Baik', badge: 'bg-cyan-50 text-cyan-700 border-cyan-200', text: 'text-cyan-600' };
+  if (s >= 60) return { label: 'Cukup', badge: 'bg-amber-50 text-amber-700 border-amber-200', text: 'text-amber-600' };
+  return { label: 'Perlu Bimbingan', badge: 'bg-rose-50 text-rose-700 border-rose-200', text: 'text-rose-600' };
+};
+
+/**
+ * Helper to style achievement and medal badges based on tournament result
+ */
+const getTournamentMedalStyle = (resultStr) => {
+  const r = String(resultStr || '').toLowerCase();
+  if (r.includes('1') || r.includes('emas') || r.includes('gold') || r.includes('pertama')) {
+    return {
+      bg: 'bg-amber-50/60',
+      border: 'border-amber-200',
+      badge: 'bg-amber-100 text-amber-800 border-amber-200',
+      iconColor: 'text-amber-500'
+    };
+  }
+  if (r.includes('2') || r.includes('perak') || r.includes('silver') || r.includes('kedua')) {
+    return {
+      bg: 'bg-slate-50',
+      border: 'border-slate-200',
+      badge: 'bg-slate-200 text-slate-800 border-slate-300',
+      iconColor: 'text-slate-500'
+    };
+  }
+  if (r.includes('3') || r.includes('perunggu') || r.includes('bronze') || r.includes('ketiga')) {
+    return {
+      bg: 'bg-orange-50/60',
+      border: 'border-orange-200',
+      badge: 'bg-orange-100 text-orange-800 border-orange-200',
+      iconColor: 'text-orange-500'
+    };
+  }
+  return {
+    bg: 'bg-blue-50/60',
+    border: 'border-blue-200',
+    badge: 'bg-blue-100 text-blue-800 border-blue-200',
+    iconColor: 'text-blue-500'
+  };
+};
+
 export default function PortalDashboard() {
   const navigate = useNavigate();
 
@@ -86,6 +142,11 @@ export default function PortalDashboard() {
   const [scheduleData, setScheduleData] = useState(null);
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
   const [activeScheduleTab, setActiveScheduleTab] = useState('jadwal'); // 'jadwal' | 'presensi'
+
+  // State untuk Prestasi Turnamen & Evaluasi Pelatih
+  const [evaluationData, setEvaluationData] = useState(null);
+  const [isLoadingEvaluation, setIsLoadingEvaluation] = useState(true);
+  const [activeEvalTab, setActiveEvalTab] = useState('evaluasi'); // 'evaluasi' | 'prestasi'
 
   // 2. Fetch billing data dari endpoint /api/portal/billing saat mount
   useEffect(() => {
@@ -383,6 +444,138 @@ export default function PortalDashboard() {
       isMounted = false;
     };
   }, [student?.id, student?.tenantId, student?.classId]);
+
+  // 4. Fetch evaluation data & prestasi dari endpoint /api/portal/evaluations saat mount
+  useEffect(() => {
+    if (!student?.id) return;
+    let isMounted = true;
+
+    const fetchEvaluations = async () => {
+      setIsLoadingEvaluation(true);
+      try {
+        const response = await fetch('/api/portal/evaluations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: student.id,
+            tenantId: student.tenantId || ''
+          })
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          if (isMounted && res.success) {
+            setEvaluationData(res);
+            setIsLoadingEvaluation(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Evaluations API fetch failed (fallback to client):', err);
+      }
+
+      // Dev-mode fallback jika Pages functions endpoint belum aktif di preview lokal
+      try {
+        let localEvals = [];
+        let localAchievements = [];
+
+        // Ambil evaluasi langsung dari Firestore client
+        try {
+          const evQ = query(
+            collection(db, 'academy_evaluations'),
+            where('studentId', '==', student.id)
+          );
+          const evSnap = await getDocs(evQ);
+          evSnap.forEach(d => {
+            const data = d.data();
+            const pScores = data.pillarScores || {};
+            const teknikScore = typeof pScores.teknik === 'number' ? pScores.teknik : (typeof data.technicalScore === 'number' ? data.technicalScore : 75);
+            const fisikScore = typeof pScores.fisik === 'number' ? pScores.fisik : (typeof data.physicalScore === 'number' ? data.physicalScore : 75);
+            const mentalScore = typeof pScores.mental === 'number' ? pScores.mental : (typeof data.mentalScore === 'number' ? data.mentalScore : 75);
+            const taktikScore = typeof pScores.taktik === 'number' ? pScores.taktik : (typeof data.tacticalScore === 'number' ? data.tacticalScore : 75);
+            const overall = typeof data.overallScore === 'number' 
+              ? data.overallScore 
+              : (typeof pScores.overall === 'number' 
+                ? pScores.overall 
+                : Math.round((teknikScore + fisikScore + mentalScore + taktikScore) / 4));
+
+            localEvals.push({
+              id: d.id,
+              date: data.date || (data.createdAt ? String(data.createdAt).substring(0, 10) : '-'),
+              evaluator: data.evaluator || data.coachName || 'Pelatih Utama',
+              className: data.className || student.className || 'Kelas Akademi',
+              sport: data.sport || data.sportName || student.sportCategory || 'Olahraga',
+              playerRole: data.playerRole || 'Umum',
+              overallScore: overall,
+              pillarScores: {
+                teknik: Math.round(teknikScore),
+                fisik: Math.round(fisikScore),
+                mental: Math.round(mentalScore),
+                taktik: Math.round(taktikScore),
+                position: pScores.position ? Math.round(pScores.position) : null
+              },
+              coachNote: data.coachNote || data.notes || 'Perkembangan atlet menunjukkan konsistensi dan determinasi yang baik.',
+              scores: data.scores || {}
+            });
+          });
+        } catch (e) {
+          console.warn('Fallback evals error:', e);
+        }
+
+        // Ambil prestasi dari data student atau doc student
+        try {
+          let studentDocData = student;
+          if (student.id) {
+            const sDoc = await getDoc(doc(db, 'students', student.id));
+            if (sDoc.exists()) {
+              studentDocData = { ...student, ...sDoc.data() };
+            }
+          }
+          const rawTournaments = Array.isArray(studentDocData.tournaments)
+            ? studentDocData.tournaments
+            : (Array.isArray(studentDocData.achievements) ? studentDocData.achievements : []);
+
+          rawTournaments.forEach((t, idx) => {
+            localAchievements.push({
+              id: t.id || `ach-${idx}`,
+              name: t.name || t.title || t.tournamentName || 'Kejuaraan / Turnamen',
+              date: t.date || t.year || '-',
+              result: t.result || t.rank || t.achievement || 'Peserta',
+              category: t.category || t.sport || student.sportCategory || 'Umum',
+              notes: t.notes || ''
+            });
+          });
+        } catch (e) {
+          console.warn('Fallback achievements error:', e);
+        }
+
+        localEvals.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        localAchievements.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        if (isMounted) {
+          setEvaluationData({
+            success: true,
+            evaluations: localEvals,
+            latestEvaluation: localEvals[0] || null,
+            achievements: localAchievements,
+            student: {
+              id: student.id,
+              studentName: student.studentName || ''
+            }
+          });
+        }
+      } catch (fallbackErr) {
+        console.error('All evaluations fetch attempts failed:', fallbackErr);
+      } finally {
+        if (isMounted) setIsLoadingEvaluation(false);
+      }
+    };
+
+    fetchEvaluations();
+    return () => {
+      isMounted = false;
+    };
+  }, [student?.id, student?.tenantId]);
 
   // Jika tidak ada data siswa aktif, redirect langsung ke halaman login portal
   if (!student) {
@@ -891,6 +1084,314 @@ export default function PortalDashboard() {
                     </div>
                   )}
                 </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 6. SEKSI PRESTASI & EVALUASI PELATIH */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                <Trophy className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Prestasi &amp; Evaluasi Pelatih
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  Rapor performa atlet &amp; catatan kejuaraan
+                </p>
+              </div>
+            </div>
+
+            {/* Overall Score Badge jika ada evaluasi */}
+            {evaluationData?.latestEvaluation ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold border border-blue-200">
+                <TrendingUp className="w-3 h-3 text-blue-600" />
+                <span>Skor {evaluationData.latestEvaluation.overallScore}/100</span>
+              </span>
+            ) : (evaluationData?.achievements && evaluationData.achievements.length > 0) ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold border border-amber-200">
+                <Medal className="w-3 h-3 text-amber-600" />
+                <span>{evaluationData.achievements.length} Prestasi</span>
+              </span>
+            ) : null}
+          </div>
+
+          {/* Sub-Tabs: Evaluasi vs Prestasi */}
+          <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setActiveEvalTab('evaluasi')}
+              className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeEvalTab === 'evaluasi'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Evaluasi Pelatih ({evaluationData?.evaluations?.length || 0})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEvalTab('prestasi')}
+              className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeEvalTab === 'prestasi'
+                  ? 'bg-white text-amber-600 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>Prestasi ({evaluationData?.achievements?.length || 0})</span>
+            </button>
+          </div>
+
+          {/* TAB 1: EVALUASI PELATIH */}
+          {activeEvalTab === 'evaluasi' && (
+            <div className="space-y-3">
+              {isLoadingEvaluation ? (
+                <div className="py-6 flex flex-col items-center justify-center text-slate-400 text-xs space-y-1.5">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span>Memuat catatan evaluasi pelatih...</span>
+                </div>
+              ) : evaluationData?.latestEvaluation ? (
+                <div className="space-y-3">
+                  {/* Kartu Rapor Utama */}
+                  <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-3.5 border border-slate-200 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                            Rapor Evaluasi Terkini
+                          </span>
+                          <span className="text-[10px] text-slate-400">&bull;</span>
+                          <span className="text-[11px] font-bold text-slate-700">
+                            {formatAttendanceDate(evaluationData.latestEvaluation.date)}
+                          </span>
+                        </div>
+                        <p className="text-xs font-black text-slate-800 mt-0.5">
+                          {evaluationData.latestEvaluation.evaluator || coachName}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {evaluationData.latestEvaluation.className || className} &bull; {evaluationData.latestEvaluation.sport || sportCategory}
+                        </p>
+                      </div>
+
+                      {/* Grade Badge */}
+                      {(() => {
+                        const grade = getEvaluationGrade(evaluationData.latestEvaluation.overallScore);
+                        return (
+                          <div className="text-right shrink-0">
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black border ${grade.badge}`}>
+                              {grade.label}
+                            </span>
+                            <p className="text-xs font-mono font-black text-slate-900 mt-0.5">
+                              {evaluationData.latestEvaluation.overallScore} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                            </p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* 4 Pilar Evaluasi: Teknik, Fisik, Mental, Taktik */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {/* Teknik */}
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-600 flex items-center gap-1">
+                            <Target className="w-3 h-3 text-blue-500" />
+                            Teknik
+                          </span>
+                          <span className="font-mono font-bold text-slate-800">
+                            {evaluationData.latestEvaluation.pillarScores?.teknik ?? 75}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-blue-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores?.teknik ?? 75))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Fisik */}
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-600 flex items-center gap-1">
+                            <Activity className="w-3 h-3 text-emerald-500" />
+                            Fisik
+                          </span>
+                          <span className="font-mono font-bold text-slate-800">
+                            {evaluationData.latestEvaluation.pillarScores?.fisik ?? 75}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores?.fisik ?? 75))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Mental */}
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-600 flex items-center gap-1">
+                            <Star className="w-3 h-3 text-purple-500" />
+                            Mental
+                          </span>
+                          <span className="font-mono font-bold text-slate-800">
+                            {evaluationData.latestEvaluation.pillarScores?.mental ?? 75}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores?.mental ?? 75))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Taktik */}
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-600 flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3 text-amber-500" />
+                            Taktik
+                          </span>
+                          <span className="font-mono font-bold text-slate-800">
+                            {evaluationData.latestEvaluation.pillarScores?.taktik ?? 75}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores?.taktik ?? 75))}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Catatan Pelatih */}
+                    {evaluationData.latestEvaluation.coachNote && (
+                      <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-amber-800 font-bold text-[11px]">
+                          <Quote className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>Catatan &amp; Arahan Pelatih:</span>
+                        </div>
+                        <p className="text-slate-700 italic text-[11px] leading-relaxed pl-5">
+                          &ldquo;{evaluationData.latestEvaluation.coachNote}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Riwayat Evaluasi Sebelumnya (jika lebih dari 1) */}
+                  {evaluationData.evaluations.length > 1 && (
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                        Riwayat Rapor Sebelumnya ({evaluationData.evaluations.length - 1})
+                      </p>
+                      <div className="divide-y divide-slate-100 text-xs max-h-48 overflow-y-auto">
+                        {evaluationData.evaluations.slice(1).map((ev, idx) => (
+                          <div key={ev.id || idx} className="py-2 flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-slate-800 text-[11px]">
+                                {formatAttendanceDate(ev.date)} &bull; {ev.evaluator || 'Pelatih'}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                                {ev.coachNote || 'Evaluasi latihan berkala'}
+                              </p>
+                            </div>
+                            <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-[10px]">
+                              Skor {ev.overallScore}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="py-7 px-4 text-center rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+                    <Target className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-800">
+                    Belum Ada Catatan Evaluasi
+                  </p>
+                  <p className="text-[11px] text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+                    Evaluasi pilar teknik, fisik, dan mental atlet akan ditampilkan di sini setelah pelatih merilis rapor latihan.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: PRESTASI & PENGHARGAAN ATLET */}
+          {activeEvalTab === 'prestasi' && (
+            <div className="space-y-2.5">
+              {isLoadingEvaluation ? (
+                <div className="py-6 flex flex-col items-center justify-center text-slate-400 text-xs space-y-1.5">
+                  <Loader2 className="w-5 h-5 animate-spin text-amber-600" />
+                  <span>Memuat daftar prestasi atlet...</span>
+                </div>
+              ) : (evaluationData?.achievements && evaluationData.achievements.length > 0) ? (
+                <div className="space-y-2">
+                  {evaluationData.achievements.map((ach, idx) => {
+                    const style = getTournamentMedalStyle(ach.result);
+                    return (
+                      <div
+                        key={ach.id || idx}
+                        className={`p-3 rounded-xl border ${style.border} ${style.bg} transition-all flex items-start justify-between gap-3`}
+                      >
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className={`w-8 h-8 rounded-xl bg-white flex items-center justify-center border ${style.border} shrink-0 shadow-2xs`}>
+                            <Trophy className={`w-4 h-4 ${style.iconColor}`} />
+                          </div>
+                          <div className="min-w-0 space-y-0.5">
+                            <h4 className="text-xs font-bold text-slate-900 leading-snug">
+                              {ach.name}
+                            </h4>
+                            <p className="text-[10px] text-slate-500 flex items-center gap-1.5">
+                              <span>{ach.date}</span>
+                              {ach.category && (
+                                <>
+                                  <span>&bull;</span>
+                                  <span>{ach.category}</span>
+                                </>
+                              )}
+                            </p>
+                            {ach.notes && (
+                              <p className="text-[10px] text-slate-600 italic mt-1">
+                                {ach.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Rank Badge */}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border shrink-0 ${style.badge}`}>
+                          {ach.result}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-7 px-4 text-center rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+                    <Trophy className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-800">
+                    Belum Ada Catatan Prestasi Turnamen
+                  </p>
+                  <p className="text-[11px] text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+                    Daftar kejuaraan, medali, dan piagam yang diraih atlet akan tampil secara otomatis di sini.
+                  </p>
+                </div>
               )}
             </div>
           )}
