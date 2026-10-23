@@ -8,7 +8,9 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
-  serverTimestamp 
+  serverTimestamp,
+  writeBatch,
+  getDocs
 } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
@@ -59,8 +61,10 @@ import {
   Activity,
   Target,
   CreditCard,
-  Receipt
+  Receipt,
+  Loader2
 } from 'lucide-react';
+import { uploadToCloudinary } from '../services/uploadService';
 import EventDetailModal from '../components/EventDetailModal';
 import EventDetailPage from './EventDetailPage';
 import SponsorPaymentModal from '../components/SponsorPaymentModal';
@@ -200,7 +204,7 @@ export default function EventManagementPage({ userProfile }) {
 
   // Extract unique sports dynamically from tenant's courts (Zero Mock Data)
   const uniqueSports = Array.from(
-    new Set(courts.map((court) => court.sport).filter(Boolean))
+    new Set(courts.map((court) => court.sport || court.category).filter(Boolean))
   );
   // Fallback if tenant has no courts configured with sport yet
   const availableSports = uniqueSports.length > 0 ? uniqueSports : ['Badminton', 'Futsal', 'Basket', 'Padel', 'Tennis'];
@@ -223,6 +227,9 @@ export default function EventManagementPage({ userProfile }) {
   const [selectedCourts, setSelectedCourts] = useState([]);
 
   const [eventPosterBase64, setEventPosterBase64] = useState('');
+  const [posterFile, setPosterFile] = useState(null);
+  const [posterPreview, setPosterPreview] = useState('');
+  const [isUploadingPoster, setIsUploadingPoster] = useState(false);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
 
   // Sponsor Form State
@@ -243,8 +250,11 @@ export default function EventManagementPage({ userProfile }) {
     eventId: '',
     documentType: 'Technical Handbook',
     fileUrl: '',
+    fileName: '',
     contentSummary: '',
   });
+  const [docFile, setDocFile] = useState(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
   const [isSavingDoc, setIsSavingDoc] = useState(false);
 
   // 1. Subscribe to Firestore Collections
@@ -357,20 +367,18 @@ export default function EventManagementPage({ userProfile }) {
     };
   }, [tenantId]);
 
-  // Handle Poster File Upload to Base64
+  // Handle Poster File Selection (Menyimpan File object untuk diunggah ke Cloudinary saat submit)
   const handlePosterFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Ukuran file gambar terlalu besar. Maksimal 2MB.');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Ukuran file gambar terlalu besar. Maksimal 10MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEventPosterBase64(reader.result);
-        setEventForm((prev) => ({ ...prev, posterUrl: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      setPosterFile(file);
+      const localPreviewUrl = URL.createObjectURL(file);
+      setPosterPreview(localPreviewUrl);
+      setEventPosterBase64(localPreviewUrl);
     }
   };
 
@@ -385,6 +393,7 @@ export default function EventManagementPage({ userProfile }) {
       setEditingEvent(eventObj);
       setSportCategory(eventObj.sportCategory || 'racket');
       setTournamentFormat(eventObj.tournamentFormat || 'knockout');
+      const existingPoster = eventObj.bannerUrl || eventObj.posterUrl || '';
       setEventForm({
         name: eventObj.name || '',
         sport: eventObj.sport || defaultSport,
@@ -395,10 +404,13 @@ export default function EventManagementPage({ userProfile }) {
         totalSlots: eventObj.totalSlots !== undefined && eventObj.totalSlots !== null ? eventObj.totalSlots : '',
         prizePool: eventObj.prizePool !== undefined && eventObj.prizePool !== null ? eventObj.prizePool : '',
         description: eventObj.description || '',
-        posterUrl: eventObj.posterUrl || '',
+        posterUrl: existingPoster,
+        bannerUrl: existingPoster,
       });
       setSelectedCourts(eventObj.courts || []);
-      setEventPosterBase64(eventObj.posterUrl || '');
+      setPosterFile(null);
+      setPosterPreview(existingPoster);
+      setEventPosterBase64(existingPoster);
     } else {
       setEditingEvent(null);
       setSportCategory('');
@@ -414,8 +426,11 @@ export default function EventManagementPage({ userProfile }) {
         prizePool: '',
         description: '',
         posterUrl: '',
+        bannerUrl: '',
       });
       setSelectedCourts([]);
+      setPosterFile(null);
+      setPosterPreview('');
       setEventPosterBase64('');
     }
     setIsEventModalOpen(true);
@@ -491,7 +506,28 @@ export default function EventManagementPage({ userProfile }) {
     }
 
     setIsSavingEvent(true);
+    let finalBannerUrl = eventForm.bannerUrl || eventForm.posterUrl || '';
+
     try {
+      // 1. Jika ada file gambar baru yang dipilih, unggah ke Cloudinary terlebih dahulu
+      if (posterFile) {
+        setIsUploadingPoster(true);
+        try {
+          const uploadResult = await uploadToCloudinary(posterFile, { folder: 'chua_sport/events' });
+          finalBannerUrl = uploadResult.secure_url;
+        } catch (uploadErr) {
+          console.error('Gagal mengunggah banner/poster ke Cloudinary:', uploadErr);
+          alert(`Gagal mengunggah gambar poster: ${uploadErr.message || 'Terjadi kesalahan saat upload'}`);
+          setIsSavingEvent(false);
+          setIsUploadingPoster(false);
+          return;
+        } finally {
+          setIsUploadingPoster(false);
+        }
+      } else if (posterPreview && !posterPreview.startsWith('blob:') && !posterPreview.startsWith('data:')) {
+        finalBannerUrl = posterPreview;
+      }
+
       const locationString = selectedCourts.length > 0
         ? selectedCourts.map((c) => c.courtName).join(', ')
         : 'GOR Utama';
@@ -511,63 +547,99 @@ export default function EventManagementPage({ userProfile }) {
         totalSlots: eventForm.totalSlots === '' ? 0 : Number(eventForm.totalSlots) || 0,
         prizePool: eventForm.prizePool === '' ? 0 : Number(eventForm.prizePool) || 0,
         description: eventForm.description.trim(),
-        posterUrl: eventPosterBase64 || eventForm.posterUrl || '',
+        bannerUrl: finalBannerUrl,
+        posterUrl: finalBannerUrl,
         updatedAt: serverTimestamp(),
       };
 
+      // Helper function to calculate all date strings between start and end (inclusive) without timezone offset issues
+      const getDatesInRange = (startDate, endDate) => {
+        const dates = [];
+        if (!startDate || !endDate) return dates;
+        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+        
+        let current = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
+        
+        while (current <= end) {
+          const y = current.getFullYear();
+          const m = String(current.getMonth() + 1).padStart(2, '0');
+          const d = String(current.getDate()).padStart(2, '0');
+          dates.push(`${y}-${m}-${d}`);
+          current.setDate(current.getDate() + 1);
+        }
+        return dates;
+      };
+
+      const batch = writeBatch(db);
       let currentEventId = editingEvent?.id;
 
       if (editingEvent) {
-        await updateDoc(doc(db, 'events', editingEvent.id), payload);
-      } else {
-        payload.createdAt = serverTimestamp();
-        const docRef = await addDoc(collection(db, 'events'), payload);
-        currentEventId = docRef.id;
-      }
+        // 1. QUERY ALL OLD BOOKING SLOTS FOR THIS EVENT (by eventId or referenceId)
+        const bookingsRef = collection(db, 'bookings');
+        const [snapEventId, snapRefId] = await Promise.all([
+          getDocs(query(bookingsRef, where('eventId', '==', editingEvent.id))),
+          getDocs(query(bookingsRef, where('referenceId', '==', editingEvent.id))),
+        ]);
 
-      // AUTO-BOOKING INJECTION: Lock courts across all dates in range for tournament (Full-Day block)
-      if (selectedCourts.length > 0 && currentEventId && eventForm.startDate && eventForm.endDate) {
-        const getDatesInRange = (startDate, endDate) => {
-          const dates = [];
-          let currentDate = new Date(startDate);
-          const end = new Date(endDate);
-          while (currentDate <= end) {
-            dates.push(currentDate.toISOString().split('T')[0]); // Format YYYY-MM-DD
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-          return dates;
-        };
+        // Deduplicate documents to delete
+        const docsToDelete = new Map();
+        snapEventId.forEach((d) => docsToDelete.set(d.id, d.ref));
+        snapRefId.forEach((d) => docsToDelete.set(d.id, d.ref));
 
-        const bookingPromises = [];
-        const datesToBook = getDatesInRange(eventForm.startDate, eventForm.endDate);
-
-        selectedCourts.forEach(court => {
-          datesToBook.forEach(date => {
-            bookingPromises.push(
-              addDoc(collection(db, 'bookings'), {
-                tenantId,
-                eventId: currentEventId,
-                courtId: court.courtId,
-                courtName: court.courtName,
-                date: date,
-                bookingDate: date,
-                startTime: '08:00', // Start from opening hour or 00:00 to match OPERATIONAL_HOURS
-                endTime: '23:00',   // Until closing hour 23:00
-                bookingType: 'TOURNAMENT',
-                customerName: `Turnamen: ${eventForm.name.trim()}`,
-                customerPhone: '-',
-                status: 'Lunas',
-                totalPrice: 0,
-                paymentMethod: 'Internal GOR',
-                createdAt: serverTimestamp()
-              })
-            );
-          });
+        // Delete all old booking/lock records in the batch
+        docsToDelete.forEach((ref) => {
+          batch.delete(ref);
         });
 
-        await Promise.all(bookingPromises);
+        // Update the event document in the batch
+        const eventRef = doc(db, 'events', editingEvent.id);
+        batch.update(eventRef, payload);
+      } else {
+        // Create new event document reference in the batch
+        const newEventRef = doc(collection(db, 'events'));
+        currentEventId = newEventRef.id;
+        payload.createdAt = serverTimestamp();
+        batch.set(newEventRef, payload);
       }
 
+      // 2. RECREATE BOOKING SCHEDULE (AUTO-LOCK COURTS ACROSS ALL NEW DATES)
+      if (selectedCourts.length > 0 && currentEventId && eventForm.startDate && eventForm.endDate) {
+        const datesToBook = getDatesInRange(eventForm.startDate, eventForm.endDate);
+
+        selectedCourts.forEach((court) => {
+          datesToBook.forEach((date) => {
+            const newBookingRef = doc(collection(db, 'bookings'));
+            batch.set(newBookingRef, {
+              tenantId,
+              eventId: currentEventId,
+              referenceId: currentEventId,
+              courtId: court.courtId,
+              courtName: court.courtName,
+              date: date,
+              bookingDate: date,
+              startTime: '08:00', // Full-day tournament block
+              endTime: '23:00',
+              bookingType: 'TOURNAMENT',
+              customerName: `Turnamen: ${eventForm.name.trim()}`,
+              customerPhone: '-',
+              status: 'Lunas',
+              totalPrice: 0,
+              paymentMethod: 'Internal GOR',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          });
+        });
+      }
+
+      // 3. ATOMICALLY COMMIT BATCH (All succeed or all roll back)
+      await batch.commit();
+
+      // Reset state file lokal
+      setPosterFile(null);
+      setPosterPreview(finalBannerUrl);
       setIsEventModalOpen(false);
     } catch (err) {
       console.error('Failed to save event:', err);
@@ -590,9 +662,22 @@ export default function EventManagementPage({ userProfile }) {
   };
 
   const handleDeleteEvent = async (eventId, eventName) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus event "${eventName}"? Data sponsor dan dokumen terkait dapat berpengaruh.`)) {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus event "${eventName}"? Jadwal booking lapangan terkait juga akan dibatalkan/dihapus.`)) {
       try {
-        await deleteDoc(doc(db, 'events', eventId));
+        const bookingsRef = collection(db, 'bookings');
+        const [snap1, snap2] = await Promise.all([
+          getDocs(query(bookingsRef, where('eventId', '==', eventId))),
+          getDocs(query(bookingsRef, where('referenceId', '==', eventId))),
+        ]);
+
+        const docsToDelete = new Map();
+        snap1.forEach((d) => docsToDelete.set(d.id, d.ref));
+        snap2.forEach((d) => docsToDelete.set(d.id, d.ref));
+
+        const batch = writeBatch(db);
+        docsToDelete.forEach((ref) => batch.delete(ref));
+        batch.delete(doc(db, 'events', eventId));
+        await batch.commit();
       } catch (err) {
         console.error('Failed to delete event:', err);
         handleFirestoreError(err, 'delete', `events/${eventId}`);
@@ -746,6 +831,7 @@ export default function EventManagementPage({ userProfile }) {
   // DOCUMENT ACTIONS
   // ----------------------------------------------------
   const handleOpenDocModal = (docObj = null) => {
+    setDocFile(null);
     if (docObj) {
       setEditingDoc(docObj);
       setDocForm({
@@ -753,6 +839,7 @@ export default function EventManagementPage({ userProfile }) {
         eventId: docObj.eventId || '',
         documentType: docObj.documentType || 'Technical Handbook',
         fileUrl: docObj.fileUrl || '',
+        fileName: docObj.fileName || '',
         contentSummary: docObj.contentSummary || '',
       });
     } else {
@@ -762,6 +849,7 @@ export default function EventManagementPage({ userProfile }) {
         eventId: events[0]?.id || '',
         documentType: 'Technical Handbook',
         fileUrl: '',
+        fileName: '',
         contentSummary: '',
       });
     }
@@ -779,6 +867,33 @@ export default function EventManagementPage({ userProfile }) {
       return;
     }
 
+    if (!docFile && !docForm.fileUrl) {
+      alert('Silakan pilih file dokumen (PDF, Word) untuk diunggah.');
+      return;
+    }
+
+    let finalFileUrl = docForm.fileUrl;
+    let finalFileName = docForm.fileName || '';
+
+    // Upload to Cloudinary if new file selected
+    if (docFile) {
+      setIsUploadingDoc(true);
+      try {
+        const uploadResult = await uploadToCloudinary(docFile, {
+          folder: 'chua_sport_regulations',
+        });
+        finalFileUrl = uploadResult.secure_url;
+        finalFileName = docFile.name;
+      } catch (uploadError) {
+        console.error('Failed to upload document file:', uploadError);
+        alert('Gagal mengunggah dokumen ke Cloudinary: ' + (uploadError.message || 'Terjadi kesalahan'));
+        setIsUploadingDoc(false);
+        return;
+      } finally {
+        setIsUploadingDoc(false);
+      }
+    }
+
     setIsSavingDoc(true);
     try {
       const selectedEvent = events.find((ev) => ev.id === docForm.eventId);
@@ -788,7 +903,8 @@ export default function EventManagementPage({ userProfile }) {
         eventId: docForm.eventId,
         eventName: selectedEvent ? selectedEvent.name : 'Event Turnamen',
         documentType: docForm.documentType,
-        fileUrl: docForm.fileUrl.trim(),
+        fileUrl: finalFileUrl || '',
+        fileName: finalFileName,
         contentSummary: docForm.contentSummary.trim(),
         updatedAt: serverTimestamp(),
       };
@@ -801,6 +917,7 @@ export default function EventManagementPage({ userProfile }) {
       }
 
       setIsDocModalOpen(false);
+      setDocFile(null);
     } catch (err) {
       console.error('Failed to save document:', err);
       handleFirestoreError(err, editingDoc ? 'update' : 'create', 'event_documents');
@@ -878,8 +995,23 @@ export default function EventManagementPage({ userProfile }) {
   const totalSponsorPaid = sponsors.reduce((acc, curr) => acc + (Number(curr.totalPaid) || 0), 0);
   const totalSponsorRemaining = Math.max(0, totalSponsorDealLunas - totalSponsorPaid);
 
-  // Filter courts by selected sport in Step 1
-  const filteredCourtsForEvent = courts.filter((c) => c.sport === eventForm.sport);
+  // Filter courts by selected sport with case-insensitive comparison (court.category or court.sport)
+  const selectedSportNormalized = (eventForm.sport || '').trim().toLowerCase();
+  const filteredCourtsForEvent = courts.filter((court) => {
+    const courtCategory = (court.category || '').trim().toLowerCase();
+    const courtSport = (court.sport || '').trim().toLowerCase();
+
+    // Direct case-insensitive match on category or sport
+    if (courtCategory && courtCategory === selectedSportNormalized) return true;
+    if (courtSport && courtSport === selectedSportNormalized) return true;
+
+    // Fallback: match without whitespace (e.g. 'sepak bola' vs 'sepakbola')
+    const normalizedSelectedNoSpace = selectedSportNormalized.replace(/\s+/g, '');
+    if (courtCategory && courtCategory.replace(/\s+/g, '') === normalizedSelectedNoSpace) return true;
+    if (courtSport && courtSport.replace(/\s+/g, '') === normalizedSelectedNoSpace) return true;
+
+    return false;
+  });
 
   // RENDER BERSYARAT: EVENT COMMAND CENTER (EVENT DETAIL DASHBOARD)
   if (selectedEventForDetail) {
@@ -2255,18 +2387,42 @@ export default function EventManagementPage({ userProfile }) {
 
                       {/* 11. BANNER / POSTER EVENT */}
                       <div className="md:col-span-2 p-3.5 bg-gray-50 border border-gray-200 rounded-2xl space-y-2">
-                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                          Banner / Poster Event (Upload Image)
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-gray-700 uppercase">
+                            Banner / Poster Event (Upload Image)
+                          </label>
+                          {posterPreview && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPosterFile(null);
+                                setPosterPreview('');
+                                setEventPosterBase64('');
+                                setEventForm((prev) => ({ ...prev, posterUrl: '', bannerUrl: '' }));
+                              }}
+                              className="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              <span>Hapus Banner</span>
+                            </button>
+                          )}
+                        </div>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={handlePosterFileChange}
-                          className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                          disabled={isSavingEvent || isUploadingPoster}
+                          className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
                         />
-                        {eventPosterBase64 && (
-                          <div className="relative h-28 w-full rounded-xl overflow-hidden border border-gray-300">
-                            <img src={eventPosterBase64} alt="Poster Preview" className="w-full h-full object-cover" />
+                        {posterPreview && (
+                          <div className="relative h-32 w-full rounded-xl overflow-hidden border border-gray-300 shadow-2xs">
+                            <img src={posterPreview} alt="Poster Preview" className="w-full h-full object-cover" />
+                            {isUploadingPoster && (
+                              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-2xs flex flex-col items-center justify-center text-white gap-1.5">
+                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                <span className="text-xs font-bold">Mengunggah gambar ke Cloudinary...</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -2326,7 +2482,8 @@ export default function EventManagementPage({ userProfile }) {
                       <button
                         type="button"
                         onClick={handleStep3Back}
-                        className="flex items-center space-x-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl cursor-pointer transition-all"
+                        disabled={isSavingEvent || isUploadingPoster}
+                        className="flex items-center space-x-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl cursor-pointer transition-all disabled:opacity-50"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Kembali</span>
@@ -2334,14 +2491,24 @@ export default function EventManagementPage({ userProfile }) {
 
                       <button
                         type="submit"
-                        disabled={isSavingEvent}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 cursor-pointer disabled:opacity-50 transition-all"
+                        disabled={isSavingEvent || isUploadingPoster}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 cursor-pointer disabled:opacity-50 transition-all flex items-center gap-2"
                       >
-                        {isSavingEvent
-                          ? 'Menyimpan...'
-                          : editingEvent
-                          ? 'Simpan Perubahan'
-                          : 'Simpan & Buat Event'}
+                        {isUploadingPoster ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>Mengunggah gambar...</span>
+                          </>
+                        ) : isSavingEvent ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>Menyimpan Event...</span>
+                          </>
+                        ) : editingEvent ? (
+                          'Simpan Perubahan'
+                        ) : (
+                          'Simpan & Buat Event'
+                        )}
                       </button>
                     </>
                   )}
@@ -2535,8 +2702,12 @@ export default function EventManagementPage({ userProfile }) {
               </div>
               <button
                 type="button"
-                onClick={() => setIsDocModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                onClick={() => {
+                  setIsDocModalOpen(false);
+                  setDocFile(null);
+                }}
+                disabled={isSavingDoc || isUploadingDoc}
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2595,18 +2766,47 @@ export default function EventManagementPage({ userProfile }) {
                 </div>
               </div>
 
-              {/* URL / Link Dokumen */}
+              {/* Unggah Dokumen (PDF, Word) */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Link / URL Dokumen (Google Drive, PDF, dsb)
+                  Unggah Dokumen (PDF, Word) {!editingDoc && <span className="text-red-500">*</span>}
                 </label>
                 <input
-                  type="url"
-                  placeholder="https://drive.google.com/file/d/..."
-                  value={docForm.fileUrl}
-                  onChange={(e) => setDocForm({ ...docForm, fileUrl: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setDocFile(e.target.files[0]);
+                    }
+                  }}
+                  disabled={isSavingDoc || isUploadingDoc}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer bg-white"
                 />
+                {docFile ? (
+                  <p className="mt-1.5 text-[11px] text-green-600 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">File terpilih: {docFile.name} ({(docFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                  </p>
+                ) : docForm.fileUrl ? (
+                  <div className="mt-1.5 flex items-center justify-between text-[11px] bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                    <span className="text-gray-600 truncate mr-2">
+                      Dokumen terunggah: <strong className="text-gray-800">{docForm.fileName || 'Dokumen Regulasi'}</strong>
+                    </span>
+                    <a
+                      href={docForm.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 font-bold hover:underline inline-flex items-center gap-1 shrink-0"
+                    >
+                      <span>Lihat File</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    Format didukung: PDF (.pdf), Word (.doc, .docx). File akan diunggah otomatis ke Cloudinary saat disimpan.
+                  </p>
+                )}
               </div>
 
               {/* Ringkasan / Peraturan */}
@@ -2627,17 +2827,30 @@ export default function EventManagementPage({ userProfile }) {
               <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsDocModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+                  onClick={() => {
+                    setIsDocModalOpen(false);
+                    setDocFile(null);
+                  }}
+                  disabled={isSavingDoc || isUploadingDoc}
+                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  disabled={isSavingDoc}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 cursor-pointer disabled:opacity-50"
+                  disabled={isSavingDoc || isUploadingDoc}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
                 >
-                  {isSavingDoc ? 'Menyimpan...' : editingDoc ? 'Simpan Perubahan' : 'Simpan Dokumen'}
+                  {(isSavingDoc || isUploadingDoc) && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>
+                    {isUploadingDoc
+                      ? 'Mengunggah...'
+                      : isSavingDoc
+                      ? 'Menyimpan...'
+                      : editingDoc
+                      ? 'Simpan Perubahan'
+                      : 'Simpan Dokumen'}
+                  </span>
                 </button>
               </div>
             </form>

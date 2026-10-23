@@ -645,9 +645,19 @@ export default function DashboardPage({ userProfile }) {
         <div className="absolute right-40 -top-10 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex items-start sm:items-center space-x-4 min-w-0 z-10">
-          <div className="w-13 h-13 bg-white/10 backdrop-blur-md border border-white/20 text-white font-black rounded-2xl flex items-center justify-center text-base shadow-inner shrink-0">
-            CSC
-          </div>
+          {tenantProfile?.logoUrl ? (
+            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm shrink-0 border border-white/20">
+              <img
+                src={tenantProfile.logoUrl}
+                alt={tenantProfile?.name || 'Logo GOR'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 text-white font-black rounded-xl flex items-center justify-center text-2xl shadow-inner shrink-0">
+              {tenantProfile?.name?.trim() ? tenantProfile.name.trim().charAt(0).toUpperCase() : 'G'}
+            </div>
+          )}
           <div className="min-w-0">
             <div className="flex items-center space-x-2 flex-wrap gap-y-1">
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">

@@ -8,7 +8,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
-import { calculateAge } from '../utils/helpers';
+import { calculateAge, getStudentInitials } from '../utils/helpers';
 import useArenaData from '../hooks/useArenaData';
 
 import SppPaymentModal from '../components/SppPaymentModal';
@@ -19,6 +19,7 @@ import CoachModal from '../components/CoachModal';
 import ClassModal from '../components/ClassModal';
 import CreateAcademyModal from '../components/CreateAcademyModal';
 import GenerateAcademyScheduleModal from '../components/GenerateAcademyScheduleModal';
+import IdCardGenerator from '../components/IdCardGenerator';
 import AttendanceSection from '../components/AttendanceSection';
 import EvaluationSection from '../components/EvaluationSection';
 import GrowthTrackerSection from '../components/GrowthTrackerSection';
@@ -37,6 +38,7 @@ import {
   School, 
   Eye, 
   TrendingUp,
+  IdCard,
 
   CreditCard, 
   Calendar,
@@ -231,6 +233,8 @@ export default function AcademyPage({ userProfile }) {
   const [sppReceiptData, setSppReceiptData] = useState(null);
   const [detailModalStudent, setDetailModalStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [editingCoach, setEditingCoach] = useState(null);
+  const [idCardTarget, setIdCardTarget] = useState(null); // { data, role: 'SISWA' | 'PELATIH' }
 
   // Student Form States
   const [studentName, setStudentName] = useState('');
@@ -703,6 +707,13 @@ export default function AcademyPage({ userProfile }) {
     window.open(waUrl, '_blank');
   };
 
+  const getStudentInitials = (name) => {
+    if (!name) return 'S';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <div className="space-y-6 text-slate-800">
       
@@ -764,7 +775,7 @@ export default function AcademyPage({ userProfile }) {
                 className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4 text-cyan-400" />
-                <span>+ Tambah Akademi</span>
+                <span>Akademu Baru</span>
               </button>
             </div>
           </div>
@@ -881,7 +892,10 @@ export default function AcademyPage({ userProfile }) {
             )}
             {activeAcademyTab === 'pelatih' && (
               <button
-                onClick={() => setShowCoachModal(true)}
+                onClick={() => {
+                  setEditingCoach(null);
+                  setShowCoachModal(true);
+                }}
                 className="px-3.5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 title="Tambah Pelatih"
               >
@@ -972,12 +986,15 @@ export default function AcademyPage({ userProfile }) {
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>+ Tambah Siswa Baru</span>
+                  <span>Siswa Baru</span>
                 </button>
               )}
               {activeAcademyTab === 'pelatih' && (
                 <button
-                  onClick={() => setShowCoachModal(true)}
+                  onClick={() => {
+                    setEditingCoach(null);
+                    setShowCoachModal(true);
+                  }}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
                 >
                   <UserPlus className="w-4 h-4" />
@@ -1053,324 +1070,178 @@ export default function AcademyPage({ userProfile }) {
               </button>
             </div>
           ) : (
-            <>
-              {/* MOBILE VIEW: SMART COLLAPSIBLE CARDS (ACCORDION) */}
-              <div className="flex flex-col gap-3 md:hidden">
-                {filteredStudents.map((st) => {
-                  const isExpanded = expandedStudentId === st.id;
-                  const sppInfo = calculateSppStatus(st, sppBillingStartDay, sppDueDay);
-                  const waUrl = formatWhatsAppUrl(st.parentPhone, st.studentName, arenaName);
+            /* DAFTAR SISWA (LIST VIEW / ROW HORIZONTAL MODERN) */
+            <div className="space-y-3">
+              {filteredStudents.map((st) => {
+                const sppInfo = calculateSppStatus(st, sppBillingStartDay, sppDueDay);
+                const waUrl = formatWhatsAppUrl(st.parentPhone, st.studentName, arenaName);
+                const age = calculateAge(st.birthDate);
 
-                  return (
-                    <div
-                      key={st.id}
-                      className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition-all"
-                    >
-                      {/* HEADER (Selalu Tampil) */}
-                      <div
-                        onClick={() => setExpandedStudentId(isExpanded ? null : st.id)}
-                        className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="flex flex-col gap-1 min-w-0 pr-2">
-                          <h3 className="font-bold text-sm text-slate-800 truncate flex items-center gap-1.5">
-                            <span>{st.studentName}</span>
-                            {calculateAge(st.birthDate) !== '-' && (
-                              <span className="text-xs font-bold text-slate-500">
-                                ({calculateAge(st.birthDate)} thn)
-                              </span>
-                            )}
-                          </h3>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[9px] rounded-md uppercase">
-                              {st.sportCategory || 'Badminton'}
-                            </span>
-                            {st.className && (
-                              <span className="px-2 py-0.5 bg-blue-50 text-blue-800 font-bold text-[9px] rounded-md">
-                                {st.className}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <span className={`px-2 py-0.5 font-extrabold rounded-full text-[9px] uppercase ${sppInfo.badgeClass}`}>
-                            {sppInfo.isPaid ? 'LUNAS' : 'MENUNGGAK'}
-                          </span>
-                          <div className="p-1 text-slate-400 bg-slate-50 rounded-lg">
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-blue-600" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-400" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* BODY/DETAIL (Hidden by Default) */}
-                      {isExpanded && (
-                        <div className="p-4 pt-3 border-t border-slate-100 bg-slate-50/50 space-y-3 text-xs">
-                          <div className="grid grid-cols-2 gap-2 text-slate-600">
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">Orang Tua / Wali</p>
-                              <p className="font-semibold text-slate-800">{st.parentName || '-'}</p>
-                              <p className="text-[11px] text-slate-500">{st.parentPhone || '-'}</p>
-                            </div>
-
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">SPP Bulanan</p>
-                              <p className="font-black text-slate-900">
-                                Rp {Number(st.monthlyFee || 0).toLocaleString('id-ID')}
-                              </p>
-                              <span className={`inline-block mt-0.5 px-2 py-0.5 font-bold rounded-full text-[9px] uppercase ${sppInfo.badgeClass}`}>
-                                {sppInfo.statusText}
-                              </span>
-                            </div>
-
-                            {st.coachName && (
-                              <div>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase">Pelatih Utama</p>
-                                <p className="font-medium text-slate-700">{st.coachName}</p>
-                              </div>
-                            )}
-
-                            {st.birthDate && (
-                              <div>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase">Tgl Lahir / Usia</p>
-                                <p className="font-medium text-slate-700">{st.birthDate} ({calculateAge(st.birthDate)} Thn)</p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* ACTION BUTTONS */}
-                          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-end gap-1.5 flex-wrap">
-                            {(!sppInfo.isPaid || st.paymentStatus === 'menunggak') && (
-                              <button 
-                                type="button"
-                                onClick={() => handleSendWABilling(st, activeAcademy?.name)}
-                                className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-lg transition-colors cursor-pointer border border-green-200 flex items-center space-x-1 shadow-2xs"
-                                title="Kirim Tagihan SPP via WhatsApp"
-                              >
-                                <MessageCircle className="w-3.5 h-3.5 text-green-600" />
-                                <span>Tagih via WA</span>
-                              </button>
-                            )}
-
-                            {sppInfo.isPaid && st.parentPhone && (
-                              <a
-                                href={waUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-lg transition-colors cursor-pointer border border-green-200 flex items-center space-x-1"
-                              >
-                                <MessageCircle className="w-3.5 h-3.5 text-green-600" />
-                                <span>WA Wali</span>
-                              </a>
-                            )}
-
-                            {sppInfo.isPaid ? (
-                              <div className="px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs rounded-lg flex items-center space-x-1">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Lunas</span>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => setPaymentModalStudent(st)}
-                                className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-2xs flex items-center space-x-1"
-                              >
-                                <CreditCard className="w-3.5 h-3.5" />
-                                <span>Bayar SPP</span>
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => setDetailModalStudent(st)}
-                              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>Detail</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingStudent(st);
-                                setShowAddModal(true);
-                              }}
-                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                              <span>Edit</span>
-                            </button>
-                          </div>
+                return (
+                  <div
+                    key={st.id}
+                    className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between p-4 border border-gray-200 rounded-xl bg-white mb-3 hover:border-blue-300 hover:shadow-xs transition-all"
+                  >
+                    {/* Area 1: Profil Siswa (Kiri) */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Avatar Foto atau Inisial */}
+                      {st.photoUrl ? (
+                        <img
+                          src={st.photoUrl}
+                          alt={st.studentName}
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-blue-200/60 shadow-2xs"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm flex-shrink-0 border border-blue-200/60 shadow-2xs">
+                          {getStudentInitials(st.studentName)}
                         </div>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
 
-              {/* DESKTOP VIEW: TABEL SISWA */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
-                      <th className="py-3 px-3">Siswa &amp; Demografi</th>
-                      <th className="py-3 px-3">Cabang, Kelas &amp; Pelatih</th>
-                      <th className="py-3 px-3">Orang Tua &amp; Kontak</th>
-                      <th className="py-3 px-3">SPP Bulanan</th>
-                      <th className="py-3 px-3">Status Tunggakan SPP</th>
-                      <th className="py-3 px-3 text-right">Aksi &amp; Komunikasi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredStudents.map((st) => {
-                      const sppInfo = calculateSppStatus(st, sppBillingStartDay, sppDueDay);
-                      const waUrl = formatWhatsAppUrl(st.parentPhone, st.studentName, arenaName);
-
-                      return (
-                        <tr 
-                          key={st.id} 
-                          className="hover:bg-slate-50 transition-colors cursor-pointer group"
+                      {/* Teks: Nama Siswa (tanpa truncate) & Usia / Asal Sekolah */}
+                      <div className="min-w-0 flex-1">
+                        <h3
+                          className="font-bold text-gray-900 whitespace-normal break-words text-sm sm:text-base leading-snug hover:text-blue-600 transition-colors cursor-pointer"
                           onClick={() => setDetailModalStudent(st)}
+                          title={st.studentName}
                         >
-                          <td className="py-3.5 px-3">
-                            <p className="font-bold text-slate-800 text-xs sm:text-sm group-hover:text-blue-600 flex items-center gap-1.5">
-                              <span>{st.studentName}</span>
-                              {calculateAge(st.birthDate) !== '-' && (
-                                <span className="text-xs font-semibold text-slate-500">
-                                  ({calculateAge(st.birthDate)} thn)
-                                </span>
-                              )}
-                            </p>
-                            {st.birthDate && (
-                              <p className="text-[10px] text-slate-500 flex items-center space-x-1">
-                                <span>Tgl Lahir: {st.birthDate} ({calculateAge(st.birthDate)} Thn)</span>
-                              </p>
-                            )}
-                            {st.nikKk && (
-                              <p className="text-[10px] text-slate-400 font-mono">NIK: {st.nikKk}</p>
-                            )}
-                          </td>
+                          {st.studentName}
+                        </h3>
+                        <p className="text-xs text-gray-500 break-words whitespace-normal mt-0.5 leading-relaxed">
+                          {age !== '-' && (
+                            <span>{age} Tahun</span>
+                          )}
+                          {age !== '-' && st.schoolOrigin && (
+                            <span className="mx-1.5 text-gray-400">&bull;</span>
+                          )}
+                          {st.schoolOrigin && (
+                            <span>{st.schoolOrigin}</span>
+                          )}
+                          {age === '-' && !st.schoolOrigin && (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
 
-                          <td className="py-3.5 px-3">
-                            <div className="flex flex-wrap items-center gap-1 mb-1">
-                              <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[9px] rounded-md uppercase inline-block">
-                                {st.sportCategory || 'Badminton'}
-                              </span>
-                              {st.className && (
-                                <span className="px-2 py-0.5 bg-blue-50 text-blue-800 font-bold text-[9px] rounded-md inline-block">
-                                  {st.className}
-                                </span>
-                              )}
-                            </div>
-                            {st.coachName && (
-                              <p className="text-[10px] text-gray-600 font-medium">
-                                Pelatih: <strong className="text-[#333333]">{st.coachName}</strong>
-                              </p>
-                            )}
-                            {st.schoolOrigin && (
-                              <p className="text-[10px] text-gray-400 font-medium">{st.schoolOrigin}</p>
-                            )}
-                          </td>
+                    {/* Area 2: Info Akademi (Tengah Kiri) */}
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      {/* Badge Cabang & Kelas Sejajar */}
+                      <div className="inline-flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-semibold text-xs rounded border border-blue-100/80">
+                          {st.sportCategory || activeAcademy?.sport || 'Olahraga'}
+                        </span>
+                        {st.className && (
+                          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200">
+                            {st.className}
+                          </span>
+                        )}
+                      </div>
 
-                          <td className="py-3.5 px-3">
-                            <p className="font-semibold text-gray-700">{st.parentName || '-'}</p>
-                            <p className="text-[10px] text-gray-400">{st.parentPhone || '-'}</p>
-                          </td>
+                      {/* Teks Abu-abu Kecil dengan Ikon User untuk Nama Pelatih */}
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                        <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span className="truncate">
+                          <span>Pelatih: </span>
+                          <span className="font-medium text-gray-700">{st.coachName || 'Belum Ditentukan'}</span>
+                        </span>
+                      </div>
+                    </div>
 
-                          <td className="py-3.5 px-3 font-extrabold text-[#333333]">
-                            Rp {Number(st.monthlyFee || 0).toLocaleString('id-ID')}
-                          </td>
+                    {/* Area 3: Kontak Wali & Keuangan (Tengah Kanan) */}
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      {/* Nama Wali & No HP dengan Ikon Phone */}
+                      <div className="flex items-center gap-1.5 text-xs text-gray-700 font-medium">
+                        <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span className="truncate">
+                          <span>{st.parentName || '-'}</span>
+                          {st.parentPhone && (
+                            <span className="text-gray-500 text-[11px] ml-1">({st.parentPhone})</span>
+                          )}
+                        </span>
+                      </div>
 
-                          {/* STATUS TUNGGAKAN SPP */}
-                          <td className="py-3.5 px-3">
-                            <span className={`px-2.5 py-1 font-extrabold rounded-full text-[10px] uppercase inline-block ${sppInfo.badgeClass}`}>
-                              {sppInfo.statusText}
-                            </span>
-                          </td>
+                      {/* Badge Status SPP */}
+                      <div className="mt-0.5">
+                        {sppInfo.isPaid ? (
+                          <span className="inline-block px-2.5 py-0.5 bg-green-100 text-green-700 font-bold text-[10px] rounded-full uppercase tracking-wider border border-green-200/80">
+                            LUNAS BULAN INI
+                          </span>
+                        ) : (
+                          <span className="inline-block px-2.5 py-0.5 bg-rose-100 text-rose-700 font-bold text-[10px] rounded-full uppercase tracking-wider border border-rose-200/80">
+                            {sppInfo.statusText || 'MENUNGGAK'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                          {/* ACTION BUTTONS: BAYAR SPP, DETAIL & DIRECT WHATSAPP LINK */}
-                          <td className="py-3.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-end space-x-1.5">
-                              
-                              {/* TAGIH VIA WA (JIKA BELUM LUNAS / MENUNGGAK) */}
-                              {(!sppInfo.isPaid || st.paymentStatus === 'menunggak') && (
-                                <button 
-                                  type="button"
-                                  onClick={() => handleSendWABilling(st, activeAcademy?.name)}
-                                  className="flex items-center gap-1 bg-green-50 text-green-700 hover:bg-green-100 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-green-200 transition-colors cursor-pointer shrink-0 shadow-2xs"
-                                  title="Kirim Tagihan SPP via WhatsApp"
-                                >
-                                  <MessageCircle className="w-3.5 h-3.5 text-green-600"/>
-                                  <span>Tagih via WA</span>
-                                </button>
-                              )}
+                    {/* Area 4: Aksi (Kanan) */}
+                    <div className="flex items-center gap-2 justify-start lg:justify-end shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                      {/* Tombol Utama: Hubungi Wali */}
+                      {st.parentPhone ? (
+                        <a
+                          href={waUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-lg transition-colors cursor-pointer"
+                          title="Hubungi Wali Murid via WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Hubungi Wali</span>
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-400 bg-slate-50 rounded-lg select-none">
+                          <MessageCircle className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                          <span>Tanpa No. HP</span>
+                        </span>
+                      )}
 
-                              {/* WHATSAPP DIRECT LINK ICON BUTTON (JIKA SUDAH LUNAS) */}
-                              {sppInfo.isPaid && st.parentPhone ? (
-                                <a
-                                  href={waUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title="Hubungi Wali Murid via WhatsApp"
-                                  className="p-1.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-lg transition-colors cursor-pointer border border-green-200 shrink-0 flex items-center space-x-1"
-                                >
-                                  <MessageCircle className="w-3.5 h-3.5 text-green-600" />
-                                  <span className="text-[10px] font-bold hidden sm:inline">Hubungi Wali</span>
-                                </a>
-                              ) : null}
+                      {/* Tombol Bayar SPP jika belum lunas */}
+                      {!sppInfo.isPaid && (
+                        <button
+                          type="button"
+                          onClick={() => setPaymentModalStudent(st)}
+                          className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer border border-emerald-200/80"
+                          title="Catat Pembayaran SPP"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                        </button>
+                      )}
 
-                              {sppInfo.isPaid ? (
-                                <div 
-                                  className="px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-[11px] rounded-lg select-none flex items-center space-x-1"
-                                  title="SPP bulan ini sudah lunas"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                  <span>Lunas</span>
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setPaymentModalStudent(st)}
-                                  className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer shadow-2xs flex items-center space-x-1"
-                                >
-                                  <CreditCard className="w-3.5 h-3.5" />
-                                  <span>Bayar SPP</span>
-                                </button>
-                              )}
+                      {/* Tombol Ikon Tambahan: ID Card, Detail & Edit */}
+                      <button
+                        type="button"
+                        onClick={() => setIdCardTarget({ data: st, role: 'SISWA' })}
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                        title="Generate ID Card Siswa"
+                      >
+                        <IdCard className="w-4 h-4" />
+                      </button>
 
-                              <button
-                                type="button"
-                                onClick={() => setDetailModalStudent(st)}
-                                className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-[11px] rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Detail</span>
-                              </button>
+                      <button
+                        type="button"
+                        onClick={() => setDetailModalStudent(st)}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        title="Lihat Detail Siswa"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingStudent(st);
-                                  setShowAddModal(true);
-                                }}
-                                className="px-2 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
-                                title="Edit Siswa / Pindah Kelas"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingStudent(st);
+                          setShowAddModal(true);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                        title="Edit Siswa / Pindah Kelas"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -1404,7 +1275,10 @@ export default function AcademyPage({ userProfile }) {
                 Daftarkan instruktur &amp; pelatih utama untuk memimpin kelas latihan {activeAcademy?.name || 'akademi Anda'}.
               </p>
               <button
-                onClick={() => setShowCoachModal(true)}
+                onClick={() => {
+                  setEditingCoach(null);
+                  setShowCoachModal(true);
+                }}
                 className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 + Tambah Pelatih Pertama
@@ -1413,24 +1287,62 @@ export default function AcademyPage({ userProfile }) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCoaches.map((c) => (
-                <div key={c.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-blue-500 transition-all space-y-2">
+                <div key={c.id} className="p-4 rounded-xl border border-slate-200 bg-white hover:border-blue-500 hover:shadow-xs transition-all space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[9px] rounded-md uppercase">
-                      {c.sportSpecialty || 'Badminton'}
-                    </span>
-                    {c.license && (
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-800 font-bold text-[9px] rounded-md">
-                        {c.license}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[9px] rounded-md uppercase">
+                        {c.sportSpecialty || 'Badminton'}
                       </span>
-                    )}
+                      {c.license && (
+                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-800 font-bold text-[9px] rounded-md">
+                          {c.license}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setIdCardTarget({ data: c, role: 'PELATIH' })}
+                        className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                        title="Generate ID Card Pelatih"
+                      >
+                        <IdCard className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCoach(c);
+                          setShowCoachModal(true);
+                        }}
+                        className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        title="Edit Data Pelatih"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-800">{c.name}</h4>
-                    <p className="text-xs text-slate-500 flex items-center space-x-1 mt-0.5">
-                      <Phone className="w-3 h-3 text-green-600 shrink-0" />
-                      <span>{c.phone || 'Tidak ada nomor WhatsApp'}</span>
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {c.photoUrl ? (
+                      <img
+                        src={c.photoUrl}
+                        alt={c.name}
+                        className="w-10 h-10 rounded-full object-cover shrink-0 border border-blue-200/80 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm shrink-0 border border-blue-200/80 shadow-2xs">
+                        {getStudentInitials(c.name)}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-slate-800 truncate" title={c.name}>
+                        {c.name}
+                      </h4>
+                      <p className="text-xs text-slate-500 flex items-center space-x-1 mt-0.5 truncate">
+                        <Phone className="w-3 h-3 text-green-600 shrink-0" />
+                        <span>{c.phone || 'Tidak ada nomor WhatsApp'}</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1749,19 +1661,30 @@ export default function AcademyPage({ userProfile }) {
           onStudentUpdated={(updatedStudent) => {
             setDetailModalStudent(updatedStudent);
           }}
+          onGenerateIdCard={(st) => {
+            setIdCardTarget({ data: st, role: 'SISWA' });
+          }}
         />
       )}
 
-      {/* MODAL 4: TAMBAH PELATIH BARU */}
+      {/* MODAL 4: TAMBAH / EDIT PELATIH */}
       {showCoachModal && (
         <CoachModal
           isOpen={showCoachModal}
-          onClose={() => setShowCoachModal(false)}
+          onClose={() => {
+            setShowCoachModal(false);
+            setEditingCoach(null);
+          }}
           userProfile={userProfile}
           activeAcademy={activeAcademy}
           uniqueSports={activeAcademySports}
+          coachToEdit={editingCoach}
           onCoachAdded={() => {
             setSuccessMsg('Pelatih baru berhasil ditambahkan!');
+            setTimeout(() => setSuccessMsg(null), 3000);
+          }}
+          onCoachUpdated={() => {
+            setSuccessMsg('Data pelatih berhasil diperbarui!');
             setTimeout(() => setSuccessMsg(null), 3000);
           }}
         />
@@ -1813,6 +1736,18 @@ export default function AcademyPage({ userProfile }) {
         onClose={() => setSppReceiptData(null)}
         transactionData={sppReceiptData}
         tenantData={tenantProfile}
+      />
+
+      {/* MODAL 9: GENERATE DIGITAL ID CARD (SISWA & PELATIH) */}
+      <IdCardGenerator
+        isOpen={Boolean(idCardTarget)}
+        onClose={() => setIdCardTarget(null)}
+        data={idCardTarget?.data}
+        role={idCardTarget?.role || 'SISWA'}
+        tenantName={tenantProfile?.name || userProfile?.tenant?.name || arenaName}
+        tenantLogo={tenantProfile?.logoUrl || userProfile?.tenant?.logoUrl || ''}
+        academyName={activeAcademy?.name || 'Akademi'}
+        sportCategory={activeAcademy?.sport || ''}
       />
 
     </div>

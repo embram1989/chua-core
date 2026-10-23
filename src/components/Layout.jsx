@@ -11,6 +11,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { logoutUser } from '../services/authService';
+import useArenaData from '../hooks/useArenaData';
 import {
   Dashboard3DIcon,
   Booking3DIcon,
@@ -37,6 +38,7 @@ export default function Layout({ userProfile }) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { tenantProfile } = useArenaData(userProfile);
 
   const handleLogout = async () => {
     try {
@@ -47,7 +49,9 @@ export default function Layout({ userProfile }) {
     }
   };
 
-  const tenantName = userProfile?.tenant?.name || 'CHUA SPORT CORE';
+  const tenant = tenantProfile || userProfile?.tenant;
+  const tenantName = tenant?.name || 'CHUA SPORT CORE';
+  const tenantLogo = tenant?.logoUrl || '';
   
   // Format Label Role untuk Badge Sidebar
   const roleDisplay = 
@@ -73,9 +77,13 @@ export default function Layout({ userProfile }) {
         <div className={`py-3.5 border-b border-slate-100 flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'flex-col gap-2 px-2 justify-center' : 'px-4 justify-between'}`}>
           {!isSidebarCollapsed ? (
             <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="w-32 h-auto object-contain" />
+          ) : tenantLogo ? (
+            <div className="w-10 h-10 rounded-md overflow-hidden flex items-center justify-center shadow-xs">
+              <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
+            </div>
           ) : (
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs rounded-xl flex items-center justify-center shadow-xs">
-              CSC
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs rounded-md flex items-center justify-center shadow-xs">
+              {tenantName?.trim() ? tenantName.trim().charAt(0).toUpperCase() : 'G'}
             </div>
           )}
           <button
@@ -91,9 +99,15 @@ export default function Layout({ userProfile }) {
 
         {/* Tenant Profile Banner */}
         <div className={`m-3 p-2.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'justify-center' : 'space-x-3'}`} title={tenantName}>
-          <div className="w-8 h-8 bg-white border border-blue-200 rounded-lg flex items-center justify-center text-blue-600 shrink-0 font-bold shadow-2xs">
-            <Building2 className="w-4 h-4" />
-          </div>
+          {tenantLogo ? (
+            <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 shadow-2xs">
+              <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-md bg-white border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 font-bold shadow-2xs">
+              <Building2 className="w-5 h-5" />
+            </div>
+          )}
           {!isSidebarCollapsed && (
             <div className="overflow-hidden flex-1">
               <p className="text-xs font-bold text-slate-800 truncate">{tenantName}</p>
@@ -179,7 +193,13 @@ export default function Layout({ userProfile }) {
       {/* MOBILE HEADER (< 1024px) */}
       <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 h-14 flex items-center justify-between shadow-xs">
         <div className="flex items-center space-x-2.5">
-          <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="h-8 w-auto object-contain shrink-0" />
+          {tenantLogo ? (
+            <div className="w-10 h-10 rounded-md overflow-hidden shrink-0">
+              <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="h-8 w-auto object-contain shrink-0" />
+          )}
           <div className="overflow-hidden border-l border-slate-200 pl-2.5">
             <h1 className="font-bold text-xs text-slate-800 leading-tight truncate max-w-[170px]">{tenantName}</h1>
             <span className="text-[9px] text-blue-600 font-bold">{roleDisplay}</span>

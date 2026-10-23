@@ -23,8 +23,11 @@ import {
   Loader2, 
   Check,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  Camera,
+  Trash2
 } from 'lucide-react';
+import { uploadToCloudinary } from '../services/uploadService';
 
 export default function StudentRegistrationModal({
   isOpen,
@@ -53,6 +56,23 @@ export default function StudentRegistrationModal({
   const [monthlyFee, setMonthlyFee] = useState('');
   const [registrationFee, setRegistrationFee] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
+
+  // Foto Profil Siswa State (Opsional untuk ID Card & Barcode)
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+
+  const handlePhotoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview('');
+  };
 
   // Emsifa API Wilayah States
   const [provinces, setProvinces] = useState([]);
@@ -149,6 +169,8 @@ export default function StudentRegistrationModal({
       setSelectedRegency(studentToEdit.regency ? { name: studentToEdit.regency } : null);
       setSelectedDistrict(studentToEdit.district ? { name: studentToEdit.district } : null);
       setSelectedVillage(studentToEdit.village ? { name: studentToEdit.village } : null);
+      setPhotoPreview(studentToEdit.photoUrl || '');
+      setPhotoFile(null);
     } else if (!studentToEdit && isOpen) {
       // Reset form
       setStudentName('');
@@ -165,6 +187,8 @@ export default function StudentRegistrationModal({
       setSelectedRegency(null);
       setSelectedDistrict(null);
       setSelectedVillage(null);
+      setPhotoPreview('');
+      setPhotoFile(null);
       setErrorMsg(null);
     }
   }, [studentToEdit, isOpen, uniqueSports]);
@@ -324,6 +348,17 @@ export default function StudentRegistrationModal({
     setIsSaving(true);
 
     try {
+      let finalPhotoUrl = studentToEdit?.photoUrl || null;
+
+      if (photoFile) {
+        const uploadRes = await uploadToCloudinary(photoFile, {
+          folder: `tenants/${tenantId}/students`
+        });
+        finalPhotoUrl = uploadRes.secure_url;
+      } else if (!photoPreview) {
+        finalPhotoUrl = null;
+      }
+
       const selectedClassObj = classesList.find((c) => c.id === studentClassId);
 
       const payload = {
@@ -331,6 +366,7 @@ export default function StudentRegistrationModal({
         academyId: activeAcademy?.id || activeAcademyId || studentToEdit?.academyId || '',
         academyName: activeAcademy?.name || studentToEdit?.academyName || '',
         studentName: studentName.trim(),
+        photoUrl: finalPhotoUrl,
         birthDate,
         nikKk: nikKk.trim(),
         schoolOrigin: schoolOrigin.trim(),
@@ -422,6 +458,64 @@ export default function StudentRegistrationModal({
               <span>{pricingWarning}</span>
             </div>
           )}
+
+          {/* AREA UNGGAH FOTO PROFIL SISWA (OPSIONAL - UNTUK ID CARD & BARCODE) */}
+          <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-left">
+            <div className="relative shrink-0">
+              {photoPreview ? (
+                <div className="relative group">
+                  <img
+                    src={photoPreview}
+                    alt="Preview Siswa"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-blue-500/30 shadow-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    title="Hapus Foto"
+                    className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-sm cursor-pointer transition-transform hover:scale-110"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500">
+                  <Camera className="w-6 h-6" />
+                  <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <label className="block text-xs font-bold text-gray-800 mb-0.5">
+                Foto Profil Siswa <span className="text-gray-400 font-normal">(Opsional)</span>
+              </label>
+              <p className="text-[11px] text-gray-500 mb-2.5">
+                Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> dan <strong>Barcode presensi</strong> siswa.
+              </p>
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {photoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium cursor-pointer"
+                  >
+                    Hapus Foto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
             {/* KOLOM KIRI: DATA DIRI SISWA */}
@@ -770,7 +864,7 @@ export default function StudentRegistrationModal({
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan...</span>
+                  <span>{photoFile ? 'Menyimpan data & mengunggah foto...' : 'Menyimpan data...'}</span>
                 </>
               ) : (
                 <>

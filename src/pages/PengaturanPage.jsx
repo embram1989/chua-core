@@ -32,6 +32,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { Pengaturan3DIcon, Keuangan3DIcon, Akademi3DIcon, RegulasiDokumen3DIcon } from '../components/icons/App3DIcons';
+import { uploadToCloudinary } from '../services/uploadService';
 
 const SUPPORTED_SPORTS = [
   'Badminton', 
@@ -82,6 +83,8 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [sportsType, setSportsType] = useState('Badminton');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankAccountName, setBankAccountName] = useState('');
@@ -228,6 +231,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
   useEffect(() => {
     if (tenant) {
       setName(tenant.name || '');
+      setLogoUrl(tenant.logoUrl || '');
       setAddress(tenant.address || '');
       setPhone(tenant.phone || '');
       setSportsType(tenant.sportsType || 'Badminton');
@@ -268,6 +272,52 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
       setCourtPrices(priceMap);
     }
   }, [courts]);
+
+  // Logo GOR Cloudinary Upload Handler
+  const handleLogoFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setTenantErrorMsg('File yang dipilih harus berupa gambar (JPG, PNG, WebP, SVG).');
+      return;
+    }
+
+    if (!tenant?.id) {
+      setTenantErrorMsg('ID Tenant belum ditemukan.');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    setTenantErrorMsg(null);
+    setTenantSuccessMsg(null);
+
+    try {
+      const uploadResult = await uploadToCloudinary(file, {
+        folder: 'chua_sport_tenant_logos',
+      });
+      const cloudUrl = uploadResult.secure_url;
+      setLogoUrl(cloudUrl);
+
+      // Simpan langsung ke dokumen tenant di Firestore
+      const tenantRef = doc(db, 'tenants', tenant.id);
+      await updateDoc(tenantRef, {
+        logoUrl: cloudUrl,
+        updatedAt: serverTimestamp(),
+      });
+
+      setTenantSuccessMsg('Logo GOR berhasil diunggah dan disimpan!');
+      if (onTenantUpdated) {
+        onTenantUpdated({ ...tenant, logoUrl: cloudUrl });
+      }
+      setTimeout(() => setTenantSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Error uploading tenant logo:', err);
+      setTenantErrorMsg('Gagal mengunggah logo ke Cloudinary: ' + (err.message || 'Terjadi kesalahan'));
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   // FileReader Handler to convert chosen image file into Base64 string
   const handleQrisFileSelect = (e) => {
@@ -316,6 +366,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
 
       const updatedData = {
         name: name.trim(),
+        logoUrl: logoUrl || '',
         address: address.trim(),
         phone: phone.trim(),
         sportsType,
@@ -498,6 +549,56 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
               <Building2 className="w-4 h-4 text-blue-600" />
               <span>Tab 1: Profil Identitas GOR</span>
             </h2>
+
+            {/* UNGGAH LOGO GOR */}
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
+              <label className="block text-xs font-bold text-gray-700 uppercase">
+                Logo GOR / Identitas Visual Arena
+              </label>
+
+              {/* Pratinjau Logo */}
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 rounded-xl border border-gray-200 shadow-2xs flex items-center justify-center overflow-hidden shrink-0">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Pratinjau Logo GOR"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-black text-xl">
+                      {name?.trim() ? name.trim().charAt(0).toUpperCase() : 'G'}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-xs font-bold text-gray-800">
+                    {logoUrl ? 'Logo GOR Aktif' : 'Belum Ada Logo Khusus (Menggunakan Inisial)'}
+                  </p>
+                  <p className="text-[11px] text-gray-500">
+                    Format: JPG, PNG, WebP, SVG. Logo otomatis diunggah ke Cloudinary dan ditampilkan pada Header &amp; Dashboard menggantikan logo CSC.
+                  </p>
+                </div>
+              </div>
+
+              {/* Input File & Status */}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoFileSelect}
+                  disabled={isUploadingLogo || savingTenant}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer bg-white"
+                />
+                {isUploadingLogo && (
+                  <p className="mt-1.5 text-xs text-blue-600 font-semibold flex items-center gap-1.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Sedang mengunggah logo ke Cloudinary &amp; menyimpan ke Firestore...</span>
+                  </p>
+                )}
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nama GOR / Sports Arena</label>

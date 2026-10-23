@@ -28,12 +28,11 @@ import {
   Edit3,
   Check,
   Loader2,
-  TrendingUp
+  TrendingUp,
+  IdCard
 } from 'lucide-react';
 import GrowthTrackerSection from './GrowthTrackerSection';
 import { calculateAge } from '../utils/helpers';
-
-
 
 export default function StudentDetailModal({
   isOpen,
@@ -42,7 +41,8 @@ export default function StudentDetailModal({
   userProfile,
   academyClasses = [],
   onEditStudent,
-  onStudentUpdated
+  onStudentUpdated,
+  onGenerateIdCard
 }) {
   const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
 
@@ -218,9 +218,17 @@ export default function StudentDetailModal({
         {/* MODAL HEADER */}
         <div className="bg-[#333333] text-white p-5 sm:p-6 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-md">
-              <GraduationCap className="w-6 h-6" />
-            </div>
+            {currentStudent.photoUrl ? (
+              <img
+                src={currentStudent.photoUrl}
+                alt={currentStudent.studentName}
+                className="w-12 h-12 rounded-2xl object-cover shadow-md border-2 border-white/20 shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-md shrink-0">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+            )}
             <div>
               <h3 className="font-bold text-base sm:text-lg text-white flex items-center gap-2">
                 <span>{currentStudent.studentName}</span>
@@ -236,12 +244,26 @@ export default function StudentDetailModal({
             </div>
           </div>
 
-          <button 
-            onClick={onClose} 
-            className="p-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {onGenerateIdCard && (
+              <button
+                type="button"
+                onClick={() => onGenerateIdCard(currentStudent)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                title="Cetak / Generate ID Card Siswa"
+              >
+                <IdCard className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Cetak ID Card</span>
+              </button>
+            )}
+            <button 
+              onClick={onClose} 
+              className="p-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+              aria-label="Tutup"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* TAB NAVIGATION BAR */}
@@ -325,7 +347,23 @@ export default function StudentDetailModal({
                       </button>
                     )}
                   </div>
-                  <p className="text-sm font-bold text-[#333333]">{currentStudent.studentName}</p>
+                  <div className="flex items-center gap-3 my-1">
+                    {currentStudent.photoUrl ? (
+                      <img
+                        src={currentStudent.photoUrl}
+                        alt={currentStudent.studentName}
+                        className="w-12 h-12 rounded-xl object-cover border border-blue-200 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm border border-blue-200 shadow-2xs">
+                        {currentStudent.studentName ? currentStudent.studentName.slice(0, 2).toUpperCase() : 'SW'}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-bold text-[#333333]">{currentStudent.studentName}</p>
+                      <p className="text-[11px] text-gray-400">ID Siswa: #{currentStudent.id?.slice(0, 8).toUpperCase() || 'NEW'}</p>
+                    </div>
+                  </div>
                   <div className="space-y-1.5 text-xs text-gray-600">
                     <p className="flex items-center space-x-1.5">
                       <Calendar className="w-3.5 h-3.5 text-blue-600" />

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
-import { X, User, Phone, Award, Dumbbell, MapPin, Loader2, FileText, Check } from 'lucide-react';
+import { X, User, Phone, Award, Dumbbell, MapPin, Loader2, FileText, Check, Camera, Upload, Trash2 } from 'lucide-react';
+import { uploadToCloudinary } from '../services/uploadService';
 
 export default function CoachModal({
   isOpen,
@@ -9,8 +10,11 @@ export default function CoachModal({
   userProfile,
   activeAcademy = null,
   uniqueSports,
-  onCoachAdded
+  coachToEdit = null,
+  onCoachAdded,
+  onCoachUpdated
 }) {
+  const isEditing = Boolean(coachToEdit);
   const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
 
   // Form Fields
@@ -20,6 +24,23 @@ export default function CoachModal({
   const [coachPhone, setCoachPhone] = useState('');
   const [sportSpecialty, setSportSpecialty] = useState(uniqueSports?.[0] || 'Badminton');
   const [license, setLicense] = useState('');
+
+  // Foto Profil Pelatih State (Opsional untuk ID Card & Barcode)
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+
+  const handlePhotoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview('');
+  };
 
   // Emsifa API Wilayah States
   const [provinces, setProvinces] = useState([]);
@@ -40,6 +61,41 @@ export default function CoachModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Pre-fill form if editing coach, or reset if creating
+  useEffect(() => {
+    if (coachToEdit && isOpen) {
+      setCoachName(coachToEdit.name || '');
+      setNickname(coachToEdit.nickname || '');
+      setNik(coachToEdit.nik || '');
+      setCoachPhone(coachToEdit.phone || '');
+      setSportSpecialty(coachToEdit.sportSpecialty || uniqueSports?.[0] || 'Badminton');
+      setLicense(coachToEdit.license || '');
+      setPhotoPreview(coachToEdit.photoUrl || '');
+      setPhotoFile(null);
+      setSelectedProvince(coachToEdit.address?.province ? { name: coachToEdit.address.province } : null);
+      setSelectedRegency(coachToEdit.address?.city ? { name: coachToEdit.address.city } : null);
+      setSelectedDistrict(coachToEdit.address?.district ? { name: coachToEdit.address.district } : null);
+      setSelectedVillage(coachToEdit.address?.village ? { name: coachToEdit.address.village } : null);
+      setAddressDetail(coachToEdit.address?.detail || '');
+      setErrorMsg(null);
+    } else if (!coachToEdit && isOpen) {
+      setCoachName('');
+      setNickname('');
+      setNik('');
+      setCoachPhone('');
+      setSportSpecialty(uniqueSports?.[0] || 'Badminton');
+      setLicense('');
+      setPhotoPreview('');
+      setPhotoFile(null);
+      setSelectedProvince(null);
+      setSelectedRegency(null);
+      setSelectedDistrict(null);
+      setSelectedVillage(null);
+      setAddressDetail('');
+      setErrorMsg(null);
+    }
+  }, [coachToEdit, isOpen, uniqueSports]);
 
   // Fetch Provinces from Emsifa API
   useEffect(() => {
@@ -171,7 +227,7 @@ export default function CoachModal({
 
   if (!isOpen) return null;
 
-  const handleCreateCoach = async (e) => {
+  const handleSubmitCoach = async (e) => {
     e.preventDefault();
     if (!coachName.trim() || !tenantId) {
       setErrorMsg('Nama lengkap pelatih wajib diisi.');
@@ -187,30 +243,55 @@ export default function CoachModal({
     setErrorMsg(null);
 
     try {
-      const newCoach = {
+      let finalPhotoUrl = coachToEdit?.photoUrl || null;
+
+      if (photoFile) {
+        const uploadRes = await uploadToCloudinary(photoFile, {
+          folder: `tenants/${tenantId}/coaches`
+        });
+        finalPhotoUrl = uploadRes.secure_url;
+      } else if (!photoPreview) {
+        finalPhotoUrl = null;
+      }
+
+      const coachData = {
         tenantId,
-        academyId: activeAcademy?.id || '',
-        academyName: activeAcademy?.name || '',
+        academyId: activeAcademy?.id || coachToEdit?.academyId || '',
+        academyName: activeAcademy?.name || coachToEdit?.academyName || '',
         name: coachName.trim(),
         nickname: nickname.trim(),
         nik: nik.trim(),
         phone: coachPhone.trim(),
         sportSpecialty,
         license: license.trim(),
+        photoUrl: finalPhotoUrl,
         address: {
-          province: selectedProvince?.name || '',
-          city: selectedRegency?.name || '',
-          district: selectedDistrict?.name || '',
-          village: selectedVillage?.name || '',
+          province: selectedProvince?.name || coachToEdit?.address?.province || '',
+          city: selectedRegency?.name || coachToEdit?.address?.city || '',
+          district: selectedDistrict?.name || coachToEdit?.address?.district || '',
+          village: selectedVillage?.name || coachToEdit?.address?.village || '',
           detail: addressDetail.trim()
-        },
-        createdAt: serverTimestamp()
+        }
       };
 
-      const docRef = await addDoc(collection(db, 'coaches'), newCoach);
+      if (isEditing) {
+        await updateDoc(doc(db, 'coaches', coachToEdit.id), {
+          ...coachData,
+          updatedAt: serverTimestamp()
+        });
 
-      if (onCoachAdded) {
-        onCoachAdded({ id: docRef.id, ...newCoach });
+        if (onCoachUpdated) {
+          onCoachUpdated({ id: coachToEdit.id, ...coachData });
+        }
+      } else {
+        const docRef = await addDoc(collection(db, 'coaches'), {
+          ...coachData,
+          createdAt: serverTimestamp()
+        });
+
+        if (onCoachAdded) {
+          onCoachAdded({ id: docRef.id, ...coachData });
+        }
       }
 
       onClose();
@@ -220,15 +301,17 @@ export default function CoachModal({
       setNik('');
       setCoachPhone('');
       setLicense('');
+      setPhotoPreview('');
+      setPhotoFile(null);
       setSelectedProvince(null);
       setSelectedRegency(null);
       setSelectedDistrict(null);
       setSelectedVillage(null);
       setAddressDetail('');
     } catch (err) {
-      console.error('Error adding coach:', err);
-      handleFirestoreError(err, 'create', 'coaches');
-      setErrorMsg('Gagal menambahkan pelatih. Silakan coba lagi.');
+      console.error('Error saving coach:', err);
+      handleFirestoreError(err, isEditing ? 'update' : 'create', 'coaches');
+      setErrorMsg(`Gagal ${isEditing ? 'mengupdate' : 'menambahkan'} pelatih. Silakan coba lagi.`);
     } finally {
       setSubmitting(false);
     }
@@ -241,8 +324,14 @@ export default function CoachModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-white shrink-0">
           <div>
-            <h3 className="font-bold text-base text-[#333333]">Pendaftaran Pelatih Baru (HR Data Master)</h3>
-            <p className="text-xs text-gray-500">Lengkapi identitas legal KTP, kontak, lisensi, &amp; alamat administratif Emsifa</p>
+            <h3 className="font-bold text-base text-[#333333]">
+              {isEditing ? 'Edit Data & Lisensi Pelatih' : 'Pendaftaran Pelatih Baru (HR Data Master)'}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {isEditing
+                ? 'Perbarui identitas, kontak, lisensi, foto, & alamat pelatih'
+                : 'Lengkapi identitas legal KTP, kontak, lisensi, foto, & alamat administratif Emsifa'}
+            </p>
           </div>
           <button 
             type="button"
@@ -259,7 +348,65 @@ export default function CoachModal({
           </div>
         )}
 
-        <form onSubmit={handleCreateCoach} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <form onSubmit={handleSubmitCoach} className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* AREA UNGGAH FOTO PROFIL PELATIH (OPSIONAL - UNTUK ID CARD & BARCODE) */}
+          <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-left">
+            <div className="relative shrink-0">
+              {photoPreview ? (
+                <div className="relative group">
+                  <img
+                    src={photoPreview}
+                    alt="Preview Pelatih"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-blue-500/30 shadow-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    title="Hapus Foto"
+                    className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-sm cursor-pointer transition-transform hover:scale-110"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500">
+                  <Camera className="w-6 h-6" />
+                  <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <label className="block text-xs font-bold text-gray-800 mb-0.5">
+                Foto Profil Pelatih <span className="text-gray-400 font-normal">(Opsional)</span>
+              </label>
+              <p className="text-[11px] text-gray-500 mb-2.5">
+                Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> instruktur dan sistem <strong>Barcode</strong> kehadiran.
+              </p>
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {photoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium cursor-pointer"
+                  >
+                    Hapus Foto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
             {/* KOLOM KIRI: DATA PRIBADI & LEGAL */}
@@ -485,12 +632,12 @@ export default function CoachModal({
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan...</span>
+                  <span>{photoFile ? 'Menyimpan data & mengunggah foto...' : 'Menyimpan data...'}</span>
                 </>
               ) : (
                 <>
                   <Check className="w-4 h-4" />
-                  <span>Simpan Pelatih</span>
+                  <span>{isEditing ? 'Simpan Perubahan Pelatih' : 'Simpan Pelatih'}</span>
                 </>
               )}
             </button>
