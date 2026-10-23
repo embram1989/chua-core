@@ -16,22 +16,30 @@ import { getStudentInitials } from '../../utils/helpers';
 
 export default function PortalDashboard() {
   const navigate = useNavigate();
-  const studentId = sessionStorage.getItem('portal_student_id') || 'STUDENT-DOC-ID';
-  const parentPhone = sessionStorage.getItem('portal_parent_phone') || '';
-  const [studentData, setStudentData] = useState(null);
+  const [studentData, setStudentData] = useState(() => {
+    try {
+      const stored = localStorage.getItem('activeStudent') || sessionStorage.getItem('portal_student_data');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const studentId = studentData?.id || sessionStorage.getItem('portal_student_id') || 'STUDENT-DOC-ID';
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem('portal_student_data');
-      if (raw) {
-        setStudentData(JSON.parse(raw));
+      const stored = localStorage.getItem('activeStudent') || sessionStorage.getItem('portal_student_data');
+      if (stored) {
+        setStudentData(JSON.parse(stored));
       }
     } catch (e) {
-      console.warn('Error parsing cached student data:', e);
+      console.warn('Error reading activeStudent data:', e);
     }
   }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem('activeStudent');
     sessionStorage.removeItem('portal_student_id');
     sessionStorage.removeItem('portal_parent_phone');
     sessionStorage.removeItem('portal_student_data');
