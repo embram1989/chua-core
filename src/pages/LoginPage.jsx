@@ -61,57 +61,6 @@ export default function LoginPage({ onLoginSuccess }) {
     }
   };
 
-  const handleDemoSignIn = (role = 'owner') => {
-    if (role === 'pelatih') {
-      onLoginSuccess({
-        uid: 'demo-pelatih-123',
-        displayName: 'Coach Agus (Pelatih Demo)',
-        email: 'pelatih@chuasport.com',
-        role: 'pelatih',
-        tenantId: 'demo-gor-center',
-        tenant: {
-          id: 'demo-gor-center',
-          name: 'Wates Sport Center',
-          address: 'Jl. Wates Km. 5, Yogyakarta',
-          courtsCount: 6,
-          sports: ['Badminton', 'Futsal']
-        },
-        isStaff: true
-      });
-    } else if (role === 'admin') {
-      onLoginSuccess({
-        uid: 'demo-admin-123',
-        displayName: 'Budi (Admin Staf Demo)',
-        email: 'admin@chuasport.com',
-        role: 'admin',
-        tenantId: 'demo-gor-center',
-        tenant: {
-          id: 'demo-gor-center',
-          name: 'Wates Sport Center',
-          address: 'Jl. Wates Km. 5, Yogyakarta',
-          courtsCount: 6,
-          sports: ['Badminton', 'Futsal']
-        },
-        isStaff: true
-      });
-    } else {
-      onLoginSuccess({
-        uid: 'demo-tenant-user-123',
-        displayName: 'Coach Hendra (Owner Demo)',
-        email: 'demo@chuasport.com',
-        role: 'owner',
-        tenantId: 'demo-gor-center',
-        tenant: {
-          id: 'demo-gor-center',
-          name: 'Wates Sport Center',
-          address: 'Jl. Wates Km. 5, Yogyakarta',
-          courtsCount: 6,
-          sports: ['Badminton', 'Futsal']
-        },
-        isStaff: false
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-sans selection:bg-blue-600 selection:text-white">
@@ -132,7 +81,7 @@ export default function LoginPage({ onLoginSuccess }) {
             Selamat Datang
           </h1>
           <p className="text-slate-500 mb-6 text-center text-xs">
-            Portal Otentikasi Staf &amp; Manajemen CHUA SPORT CORE
+            Portal Otentikasi Staff &amp; Management Sport Arena
           </p>
 
           {/* Segmented Control / Tab Switcher */}
@@ -270,33 +219,7 @@ export default function LoginPage({ onLoginSuccess }) {
             </div>
           )}
 
-          {/* Opsi Akses Demo Cepat untuk Pengujian */}
-          <div className="mt-8 pt-4 border-t border-slate-100 w-full text-center">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Akses Cepat Pengujian Role (Demo)</p>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoSignIn('owner')}
-                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
-              >
-                Owner
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoSignIn('admin')}
-                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
-              >
-                Admin Staf
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoSignIn('pelatih')}
-                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
-              >
-                Pelatih Akademi
-              </button>
-            </div>
-          </div>
+
 
           {/* Tautan ke Portal Wali Murid & Atlet */}
           <div className="mt-5 pt-4 border-t border-slate-100 w-full text-center">
