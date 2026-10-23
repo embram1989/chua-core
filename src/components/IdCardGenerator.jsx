@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { 
   X, 
   Download, 
@@ -59,21 +59,12 @@ export default function IdCardGenerator({
       // Jeda sejenak untuk memastikan render gambar stabil
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const renderPromise = html2canvas(cardRef.current, {
-        useCORS: true,
-        scale: 2,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        style: { margin: 0 }
       });
 
-      // Timeout 12 detik sebagai pengaman
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Waktu proses gambar habis. Silakan coba lagi.')), 12000)
-      );
-
-      const canvas = await Promise.race([renderPromise, timeoutPromise]);
-      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       const safeName = fullName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
       link.download = `ID_CARD_${role}_${safeName}.png`;
