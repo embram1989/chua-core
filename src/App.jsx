@@ -19,6 +19,9 @@ import EventDetailPage from './pages/EventDetailPage';
 import FinancePage from './pages/FinancePage';
 import IntelligencePage from './pages/IntelligencePage';
 import PengaturanPage from './pages/PengaturanPage';
+import PortalLayout from './layouts/PortalLayout';
+import PortalLogin from './pages/Portal/PortalLogin';
+import PortalDashboard from './pages/Portal/PortalDashboard';
 
 function EventDetailWrapper({ userProfile }) {
   const { eventId } = useParams();
@@ -101,6 +104,12 @@ export default function App() {
               )
             }
           />
+
+          {/* Portal Wali Murid (Isolated Mobile-First Unified Routing) */}
+          <Route element={<PortalLayout />}>
+            <Route path="/portal" element={<PortalLogin />} />
+            <Route path="/portal/dashboard" element={<PortalDashboard />} />
+          </Route>
 
           {/* Super Admin Protected Route */}
           <Route
