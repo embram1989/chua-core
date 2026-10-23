@@ -190,7 +190,7 @@ export async function onRequestPost(context) {
     // 1. Ekstrak kredensial dari environment Cloudflare
     const projectId = env.FIREBASE_PROJECT_ID || 'ai-studio-chuasportcorespo-a3f4ecd8-7371-486a-9e89-d74d93ce6065';
     const clientEmail = env.FIREBASE_CLIENT_EMAIL || '';
-    const privateKey = env.FIREBASE_PRIVATE_KEY || '';
+    const privateKey = env.FIREBASE_PRIVATE_KEY ? env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '';
 
     // 2. Ekstrak request body
     const body = await request.json().catch(() => ({}));
@@ -249,21 +249,16 @@ export async function onRequestPost(context) {
       const queryResults = await firestoreResponse.json();
       const documents = (Array.isArray(queryResults) ? queryResults : []).filter((item) => item.document);
 
-      // Filter di dalam kode Cloudflare untuk memastikan Document ID diawali dengan input studentId
+      // Filter di dalam kode Cloudflare untuk memastikan Document ID diawali dengan input studentId (case-insensitive)
       for (const item of documents) {
         const docName = item.document.name || '';
         const docId = docName.split('/').pop() || '';
         const fields = parseFirestoreFields(item.document.fields);
+        const doc = { id: docId, ...fields };
 
-        // Pencocokan Document ID (diawali dengan studentId atau persis sama)
-        if (
-          docId.toLowerCase().startsWith(cleanStudentId.toLowerCase()) ||
-          cleanStudentId.toLowerCase() === docId.toLowerCase()
-        ) {
-          matchedStudent = {
-            id: docId,
-            ...fields
-          };
+        // Pencocokan Document ID case-insensitive
+        if (doc.id.toLowerCase().startsWith(studentId.toLowerCase())) {
+          matchedStudent = doc;
           break;
         }
       }
@@ -287,8 +282,13 @@ export async function onRequestPost(context) {
           const fields = parseFirestoreFields(docData.fields);
           const docPhone = String(fields.parentPhone || '').replace(/\D/g, '');
 
-          // Cocokkan digit nomor HP
-          if (docPhone && inputDigits && (docPhone.endsWith(inputDigits) || inputDigits.endsWith(docPhone))) {
+          // Cocokkan digit nomor HP dan kecocokan ID case-insensitive
+          if (
+            docId.toLowerCase().startsWith(studentId.toLowerCase()) &&
+            docPhone &&
+            inputDigits &&
+            (docPhone.endsWith(inputDigits) || inputDigits.endsWith(docPhone))
+          ) {
             matchedStudent = {
               id: docId,
               ...fields
