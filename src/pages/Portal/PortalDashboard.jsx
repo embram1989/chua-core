@@ -18,9 +18,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Copy,
-  Download,
+  Receipt,
   Loader2,
-  Receipt
+  ListOrdered
 } from 'lucide-react';
 import { getStudentInitials, calculateAge } from '../../utils/helpers';
 
@@ -89,32 +89,64 @@ export default function PortalDashboard() {
       // Dev-mode fallback jika Pages functions endpoint belum aktif di preview lokal
       try {
         const tenantId = student.tenantId;
+        let tData = {};
         if (tenantId) {
           const tDoc = await getDoc(doc(db, 'tenants', tenantId));
-          if (tDoc.exists() && isMounted) {
-            const tData = tDoc.data();
-            const currentMonth = new Date().toISOString().slice(0, 7);
-            const isPaid = student.lastPaidMonth === currentMonth;
-            setBillingData({
-              success: true,
-              tenant: {
-                id: tenantId,
-                name: tData.name || student.academyName || 'Sports Arena',
-                qrisUrl: tData.qrisUrl || tData.qrisImageUrl || tData.qrisImageBase64 || null,
-                bankName: tData.bankName || tData.bank || '',
-                bankAccount: tData.bankAccount || tData.noRekening || '',
-                accountHolder: tData.accountHolder || tData.atasNama || ''
-              },
-              billing: {
-                monthlyFee: student.monthlyFee || 350000,
-                currentMonth,
-                lastPaidMonth: student.lastPaidMonth || '',
-                isPaidThisMonth: isPaid,
-                statusText: isPaid ? 'LUNAS BULAN INI' : 'MENUNGGU PEMBAYARAN'
-              },
-              paymentHistory: []
-            });
+          if (tDoc.exists()) {
+            tData = tDoc.data();
           }
+        }
+
+        // Ambil data fresh dari database Firestore
+        let freshStudent = student;
+        if (student.id) {
+          const sDoc = await getDoc(doc(db, 'students', student.id));
+          if (sDoc.exists()) {
+            freshStudent = { id: sDoc.id, ...sDoc.data() };
+          }
+        }
+
+        const isRegPaid = Boolean(freshStudent.registrationFeePaid || freshStudent.isRegistrationFeePaid);
+        const regFee = Number(freshStudent.registrationFee || freshStudent.entryFee || 0);
+        const sppFee = Number(freshStudent.monthlyFee || 0);
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const lastPaid = freshStudent.lastPaidMonth || '';
+
+        const localDetails = [];
+        let localTotal = 0;
+
+        if (!isRegPaid && regFee > 0) {
+          localDetails.push({ name: 'Biaya Pendaftaran / Registrasi', amount: regFee });
+          localTotal += regFee;
+        }
+
+        if (lastPaid !== currentMonth && sppFee > 0) {
+          localDetails.push({ name: `Iuran SPP Bulan Ini`, amount: sppFee });
+          localTotal += sppFee;
+        }
+
+        if (isMounted) {
+          setBillingData({
+            success: true,
+            tenant: {
+              id: tenantId || '',
+              name: tData.name || student.academyName || 'Sports Arena',
+              qrisUrl: tData.qrisUrl || tData.qrisImageUrl || tData.qrisImageBase64 || null,
+              bankName: tData.bankName || tData.bank || '',
+              bankAccount: tData.bankAccount || tData.noRekening || '',
+              accountHolder: tData.accountHolder || tData.atasNama || ''
+            },
+            billing: {
+              totalAmount: localTotal,
+              details: localDetails,
+              monthlyFee: sppFee,
+              currentMonth,
+              lastPaidMonth: lastPaid,
+              isPaidThisMonth: localTotal === 0,
+              statusText: localTotal === 0 ? 'LUNAS BULAN INI' : 'MENUNGGU PEMBAYARAN'
+            },
+            paymentHistory: []
+          });
         }
       } catch (fbErr) {
         console.warn('Firestore fallback billing fetch error:', fbErr);
@@ -149,12 +181,27 @@ export default function PortalDashboard() {
   const sportCategory = student.sportCategory || 'Badminton';
   const className = student.className || 'Reguler';
   const coachName = student.coachName || 'Instruktur Utama';
-  const monthlyFee = billingData?.billing?.monthlyFee || student.monthlyFee || 350000;
   const age = calculateAge(student.birthDate);
 
-  // Status pembayaran bulan ini
+  // Status dan nominal tagihan riil dari API
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const isPaid = billingData?.billing?.isPaidThisMonth ?? (student.lastPaidMonth === currentMonth);
+  const totalAmount = billingData?.billing?.totalAmount ?? (
+    ((!student.registrationFeePaid && !student.isRegistrationFeePaid) ? Number(student.registrationFee || student.entryFee || 0) : 0) +
+    ((student.lastPaidMonth !== currentMonth) ? Number(student.monthlyFee || 0) : 0)
+  );
+
+  const billingDetails = billingData?.billing?.details || (
+    [
+      ...((!student.registrationFeePaid && !student.isRegistrationFeePaid && Number(student.registrationFee || student.entryFee || 0) > 0)
+        ? [{ name: 'Biaya Pendaftaran / Registrasi', amount: Number(student.registrationFee || student.entryFee || 0) }]
+        : []),
+      ...((student.lastPaidMonth !== currentMonth && Number(student.monthlyFee || 0) > 0)
+        ? [{ name: `Iuran SPP Bulan Ini`, amount: Number(student.monthlyFee || 0) }]
+        : [])
+    ]
+  );
+
+  const isPaid = billingData?.billing?.isPaidThisMonth ?? (totalAmount === 0);
   const qrisUrl = billingData?.tenant?.qrisUrl || null;
   const bankName = billingData?.tenant?.bankName || '';
   const bankAccount = billingData?.tenant?.bankAccount || '';
@@ -265,7 +312,7 @@ export default function PortalDashboard() {
           </div>
         </div>
 
-        {/* 3. SEKSI ADMINISTRASI SPP & STATUS REAL-TIME */}
+        {/* 3. SEKSI ADMINISTRASI SPP DENGAN TOTAL TAGIHAN RIIL */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -274,10 +321,10 @@ export default function PortalDashboard() {
               </div>
               <div>
                 <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Administrasi Iuran SPP
+                  Administrasi Iuran &amp; Tagihan
                 </h3>
                 <p className="text-[11px] text-slate-400">
-                  Iuran bulanan pembinaan atlet
+                  Tagihan riil pembinaan atlet
                 </p>
               </div>
             </div>
@@ -290,39 +337,59 @@ export default function PortalDashboard() {
             ) : (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold border border-amber-200 animate-pulse">
                 <Clock className="w-3 h-3 text-amber-600" />
-                <span>BELUM BAYAR</span>
+                <span>BELUM LUNAS</span>
               </span>
             )}
           </div>
 
-          {/* Informasi Nominal SPP */}
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                Nominal Iuran Dasar
-              </p>
-              <p className="text-base font-black text-slate-900 mt-0.5">
-                {formatRupiah(monthlyFee)}
-                <span className="text-xs font-medium text-slate-400"> / bulan</span>
-              </p>
+          {/* Kotak Ringkasan Total Tagihan Riil */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  Total Tagihan Belum Lunas
+                </p>
+                <p className="text-xl font-black text-slate-900 mt-0.5">
+                  {formatRupiah(totalAmount)}
+                </p>
+              </div>
+
+              <div className="text-right">
+                {isLoadingBilling ? (
+                  <div className="flex items-center space-x-1.5 text-slate-400 text-xs">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menghitung...</span>
+                  </div>
+                ) : isPaid ? (
+                  <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-lg border border-emerald-200">
+                    Semua Lunas
+                  </span>
+                ) : (
+                  <span className="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-lg border border-amber-200/80">
+                    {billingDetails.length} Tagihan Aktif
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="text-right">
-              {isLoadingBilling ? (
-                <div className="flex items-center space-x-1.5 text-slate-400 text-xs">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Memeriksa...</span>
+            {/* Rincian Komponen Tagihan (Pendaftaran + SPP) */}
+            {!isPaid && billingDetails.length > 0 && (
+              <div className="pt-2.5 border-t border-slate-200/70 space-y-1.5 text-xs">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Rincian Biaya Belum Dibayar:
+                </p>
+                <div className="space-y-1">
+                  {billingDetails.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-slate-700 text-xs">
+                      <span className="truncate pr-2 font-medium">{item.name}</span>
+                      <span className="font-bold text-slate-900 shrink-0 font-mono">
+                        {formatRupiah(item.amount)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ) : isPaid ? (
-                <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-lg border border-emerald-200">
-                  Bulan Ini Lunas
-                </span>
-              ) : (
-                <span className="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-lg border border-amber-200/80">
-                  Siap Dibayar
-                </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Tombol Lihat QRIS / Bayar (Memicu Modal Pop-up) */}
@@ -337,7 +404,7 @@ export default function PortalDashboard() {
           </button>
 
           <p className="text-[10px] text-slate-400 text-center leading-normal">
-            Pembayaran iuran dapat dilakukan melalui scan QRIS resmi atau transfer rekening bank.
+            Pembayaran dapat dilakukan melalui scan QRIS resmi atau transfer rekening bank.
           </p>
         </div>
 
@@ -365,7 +432,7 @@ export default function PortalDashboard() {
                       {item.monthPaid ? `Bulan: ${item.monthPaid}` : 'Pembayaran Terverifikasi'} &bull; {item.paymentMethod || 'QRIS'}
                     </p>
                   </div>
-                  <span className="font-bold text-emerald-600">
+                  <span className="font-bold text-emerald-600 font-mono">
                     {formatRupiah(item.amount)}
                   </span>
                 </div>
@@ -414,7 +481,7 @@ export default function PortalDashboard() {
         <p>CHUA SPORT CORE &bull; Sistem Terpadu Manajemen Akademi</p>
       </footer>
 
-      {/* 6. MODAL QRIS PEMBAYARAN (MOBILE-FRIENDLY & THEMED TAILWIND) */}
+      {/* 6. MODAL QRIS PEMBAYARAN DENGAN RINCIAN BIAYA RIIL */}
       {showQrisModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
@@ -425,7 +492,7 @@ export default function PortalDashboard() {
                   <QrCode className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm leading-tight">QRIS Pembayaran SPP</h3>
+                  <h3 className="font-bold text-sm leading-tight">QRIS Pembayaran</h3>
                   <p className="text-[10px] text-blue-100">{academyName}</p>
                 </div>
               </div>
@@ -441,19 +508,44 @@ export default function PortalDashboard() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-4">
+            <div className="p-5 overflow-y-auto space-y-3.5">
               {/* Total Tagihan Box */}
               <div className="bg-slate-800/70 p-3.5 rounded-2xl border border-slate-700/60 text-center">
                 <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  Total Tagihan Iuran
+                  Total Tagihan Riil
                 </p>
-                <p className="text-2xl font-black text-amber-300 mt-0.5">
-                  {formatRupiah(monthlyFee)}
+                <p className="text-2xl font-black text-amber-300 mt-0.5 font-mono">
+                  {formatRupiah(totalAmount)}
                 </p>
                 <p className="text-[11px] text-slate-300 mt-1">
                   Untuk Siswa: <strong className="text-white">{studentName}</strong>
                 </p>
               </div>
+
+              {/* Rincian Komponen Biaya (array details) */}
+              {billingDetails && billingDetails.length > 0 && (
+                <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700/70 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      Rincian Biaya:
+                    </p>
+                    <span className="text-[9px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">
+                      {billingDetails.length} Item
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 divide-y divide-slate-700/50">
+                    {billingDetails.map((item, idx) => (
+                      <div key={idx} className="pt-1.5 first:pt-0 flex items-center justify-between text-slate-200">
+                        <span className="truncate pr-2 text-[11px] font-medium">{item.name}</span>
+                        <span className="font-mono font-bold text-amber-300 shrink-0 text-xs">
+                          {formatRupiah(item.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* QRIS Image Area */}
               <div className="bg-white p-4 rounded-2xl shadow-inner flex flex-col items-center justify-center">
@@ -463,7 +555,7 @@ export default function PortalDashboard() {
                       src={qrisUrl}
                       alt="QRIS Pembayaran Resmi"
                       crossOrigin="anonymous"
-                      className="w-full max-h-60 object-contain rounded-lg"
+                      className="w-full max-h-56 object-contain rounded-lg"
                     />
                     <div className="mt-3 flex items-center gap-1.5 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -471,9 +563,9 @@ export default function PortalDashboard() {
                     </div>
                   </>
                 ) : (
-                  <div className="py-8 px-4 text-center flex flex-col items-center justify-center text-slate-600">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
-                      <QrCode className="w-8 h-8" />
+                  <div className="py-7 px-4 text-center flex flex-col items-center justify-center text-slate-600">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5">
+                      <QrCode className="w-6 h-6" />
                     </div>
                     <p className="text-xs font-bold text-slate-800">
                       QRIS Sedang Disiapkan

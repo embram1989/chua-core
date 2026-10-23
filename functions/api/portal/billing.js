@@ -191,18 +191,20 @@ export async function onRequestPost(context) {
 
     let studentData = null;
 
-    // 2. Jika tenantId belum ada di request, baca langsung dokumen student
-    if (!tenantId && studentId) {
+    // 2. Baca dokumen student untuk mendapatkan data riil biaya dan status
+    if (studentId) {
       try {
         const studentUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/students/${encodeURIComponent(String(studentId).trim())}`;
         const studentResp = await fetch(studentUrl, { method: 'GET', headers: reqHeaders });
         if (studentResp.ok) {
           const studentDoc = await studentResp.json();
           studentData = parseFirestoreFields(studentDoc.fields);
-          tenantId = studentData.tenantId;
+          if (!tenantId && studentData.tenantId) {
+            tenantId = studentData.tenantId;
+          }
         }
       } catch (err) {
-        console.warn('Gagal membaca data siswa untuk tenantId:', err);
+        console.warn('Gagal membaca data siswa:', err);
       }
     }
 
@@ -237,11 +239,24 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 4. Kueri Histori Pembayaran Siswa dari koleksi 'spp_payments' dan 'transactions'
+    // 4. Kueri tagihan riil siswa & koleksi spp_payments
+    const details = [];
+    let totalAmount = 0;
     let paymentHistory = [];
+
+    const monthNamesIndo = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthIdx = now.getMonth(); // 0-11
+    const currentMonth = `${currentYear}-${String(currentMonthIdx + 1).padStart(2, '0')}`;
+    const currentMonthLabel = `${monthNamesIndo[currentMonthIdx]} ${currentYear}`;
+
     if (studentId) {
+      // A. Kueri semua dokumen spp_payments milik studentId
       try {
-        // Coba kueri spp_payments
         const sppQueryPayload = {
           structuredQuery: {
             from: [{ collectionId: 'spp_payments' }],
@@ -252,7 +267,7 @@ export async function onRequestPost(context) {
                 value: { stringValue: String(studentId).trim() }
               }
             },
-            limit: 10
+            limit: 20
           }
         };
 
@@ -266,64 +281,114 @@ export async function onRequestPost(context) {
         if (sppResp.ok) {
           const sppResults = await sppResp.json();
           const docs = (Array.isArray(sppResults) ? sppResults : []).filter((item) => item.document);
-          paymentHistory = docs.map((d) => {
+
+          for (const d of docs) {
             const id = (d.document.name || '').split('/').pop();
             const f = parseFirestoreFields(d.document.fields);
-            return { id, ...f };
-          });
-        }
+            const status = String(f.status || '').toLowerCase();
+            const itemAmount = Number(f.amount || f.totalAmount || f.nominal || 0);
 
-        // Jika spp_payments kosong, periksa riwayat di koleksi transactions
-        if (paymentHistory.length === 0) {
-          const txQueryPayload = {
-            structuredQuery: {
-              from: [{ collectionId: 'transactions' }],
-              where: {
-                fieldFilter: {
-                  field: { fieldPath: 'studentId' },
-                  op: 'EQUAL',
-                  value: { stringValue: String(studentId).trim() }
-                }
-              },
-              limit: 10
+            // Jika berstatus belum lunas / pending / unpaid
+            if (
+              status.includes('pending') ||
+              status.includes('belum') ||
+              status.includes('unpaid') ||
+              status.includes('menunggak')
+            ) {
+              if (itemAmount > 0) {
+                details.push({
+                  id,
+                  name: f.itemName || f.description || `Tagihan SPP ${f.month || ''}`,
+                  amount: itemAmount
+                });
+                totalAmount += itemAmount;
+              }
+            } else {
+              // Masuk ke paymentHistory jika berstatus lunas
+              paymentHistory.push({ id, ...f });
             }
-          };
-
-          const txResp = await fetch(sppQueryUrl, {
-            method: 'POST',
-            headers: reqHeaders,
-            body: JSON.stringify(txQueryPayload)
-          });
-
-          if (txResp.ok) {
-            const txResults = await txResp.json();
-            const docs = (Array.isArray(txResults) ? txResults : []).filter((item) => item.document);
-            paymentHistory = docs.map((d) => {
-              const id = (d.document.name || '').split('/').pop();
-              const f = parseFirestoreFields(d.document.fields);
-              return { id, ...f };
-            });
           }
         }
       } catch (err) {
-        console.warn('Gagal membaca riwayat pembayaran:', err);
+        console.warn('Gagal membaca spp_payments:', err);
+      }
+
+      // B. Kueri koleksi transactions untuk paymentHistory tambahan jika ada
+      try {
+        const txQueryPayload = {
+          structuredQuery: {
+            from: [{ collectionId: 'transactions' }],
+            where: {
+              fieldFilter: {
+                field: { fieldPath: 'studentId' },
+                op: 'EQUAL',
+                value: { stringValue: String(studentId).trim() }
+              }
+            },
+            limit: 10
+          }
+        };
+
+        const txQueryUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents:runQuery`;
+        const txResp = await fetch(txQueryUrl, {
+          method: 'POST',
+          headers: reqHeaders,
+          body: JSON.stringify(txQueryPayload)
+        });
+
+        if (txResp.ok) {
+          const txResults = await txResp.json();
+          const docs = (Array.isArray(txResults) ? txResults : []).filter((item) => item.document);
+          for (const d of docs) {
+            const id = (d.document.name || '').split('/').pop();
+            const f = parseFirestoreFields(d.document.fields);
+            paymentHistory.push({ id, ...f });
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal membaca transactions:', err);
+      }
+
+      // C. Jika belum ada tagihan pending dari dokumen spp_payments, hitung tagihan riil dari data siswa
+      if (details.length === 0 && studentData) {
+        // 1) Tagihan Pendaftaran
+        const isRegPaid = Boolean(studentData.registrationFeePaid || studentData.isRegistrationFeePaid);
+        const regAmount = Number(studentData.registrationFee || studentData.entryFee || 0);
+        if (!isRegPaid && regAmount > 0) {
+          details.push({
+            name: 'Biaya Pendaftaran / Registrasi',
+            amount: regAmount
+          });
+          totalAmount += regAmount;
+        }
+
+        // 2) Tagihan SPP Bulan Berjalan
+        const lastPaid = studentData.lastPaidMonth || '';
+        const sppAmount = Number(studentData.monthlyFee || 0);
+        if (lastPaid !== currentMonth && sppAmount > 0) {
+          details.push({
+            name: `Iuran SPP ${currentMonthLabel}`,
+            amount: sppAmount
+          });
+          totalAmount += sppAmount;
+        }
       }
     }
 
-    // 5. Hitung status tagihan bulan ini
-    const currentMonth = new Date().toISOString().slice(0, 7); // Format "YYYY-MM"
-    const lastPaidMonth = studentData?.lastPaidMonth || '';
-    const isPaidThisMonth = lastPaidMonth === currentMonth;
+    // Status: Lunas bulan ini jika tidak ada tagihan tertunggak (totalAmount === 0)
+    const isPaidThisMonth = totalAmount === 0;
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Data penagihan berhasil dimuat',
+        message: 'Data penagihan riil berhasil dimuat',
         tenant: tenantInfo,
         billing: {
-          monthlyFee: studentData?.monthlyFee || 350000,
+          totalAmount,
+          details,
+          monthlyFee: Number(studentData?.monthlyFee || 0),
           currentMonth,
-          lastPaidMonth,
+          lastPaidMonth: studentData?.lastPaidMonth || '',
           isPaidThisMonth,
           statusText: isPaidThisMonth ? 'LUNAS BULAN INI' : 'MENUNGGU PEMBAYARAN'
         },
