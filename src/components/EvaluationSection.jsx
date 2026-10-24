@@ -912,37 +912,6 @@ function FutsalAssessmentView({
                         </RadarChart>
                       </ResponsiveContainer>
                     </div>
-
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800">
-                      <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
-                        <span className="text-rose-300 block text-[8px] uppercase font-black truncate">1. Fisik</span>
-                        <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
-                        <span className="text-blue-300 block text-[8px] uppercase font-black truncate">2. Teknik</span>
-                        <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
-                        <span className="text-purple-300 block text-[8px] uppercase font-black truncate">3. Taktik</span>
-                        <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
-                        <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">4. Mental</span>
-                        <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
-                        <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">5. Dev.</span>
-                        <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
-                        <span className="text-amber-300 block text-[8px] uppercase font-black truncate">6. Kom.</span>
-                        <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
-                      </div>
-                      <div className="p-1.5 rounded-xl bg-indigo-950/70 border border-indigo-800/60 col-span-2 sm:col-span-1">
-                        <span className="text-indigo-300 block text-[8px] uppercase font-black truncate">7. Posisi</span>
-                        <span className="font-black text-indigo-200 text-xs">{axisScores.khususPosisi}</span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* KONFIGURASI POSISI & PERAN */}
@@ -988,7 +957,7 @@ function FutsalAssessmentView({
                             >
                               {FUTSAL_PLAYING_STYLES.map((st) => (
                                 <option key={st.code} value={st.code}>
-                                  {st.code} — {st.name} ({st.desc})
+                                  {st.code} &mdash; {st.name} ({st.desc})
                                 </option>
                               ))}
                             </select>
@@ -1047,6 +1016,43 @@ function FutsalAssessmentView({
                       </div>
                     </div>
 
+                  </div>
+                </div>
+
+                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs w-full">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <BarChart2 className="w-4 h-4 text-orange-600" />
+                      <span>Ringkasan Skor Kategori</span>
+                    </span>
+                    <span className="text-xs font-bold text-slate-600">
+                      Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                    {[
+                      { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
+                      { label: 'Kemampuan Teknik', score: axisScores.teknik, dot: 'bg-blue-500' },
+                      { label: 'Pemahaman Taktik', score: axisScores.taktik, dot: 'bg-purple-500' },
+                      { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
+                      { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
+                      { label: 'Komunikasi Lapangan', score: axisScores.komunikasi, dot: 'bg-amber-500' },
+                      { label: `Khusus (${currentPosIndicatorsConfig.shortLabel || 'Posisi'})`, score: axisScores.khususPosisi, dot: 'bg-indigo-500' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                          <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-900 shrink-0">
+                          {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1903,7 +1909,8 @@ function BadmintonAssessmentView({
 
             {/* 2. PANEL ATAS: SCOUTING RADAR & KONFIGURASI NOMOR */}
             {selectedStudent && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* RADAR CHART */}
                 <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1932,216 +1939,221 @@ function BadmintonAssessmentView({
                       </RadarChart>
                     </ResponsiveContainer>
                   </div>
-
-                  <div className={`grid ${isDoubles && activeBadmintonTier >= 2 ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-3 sm:grid-cols-6'} gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800`}>
-                    <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
-                      <span className="text-rose-300 block text-[8px] uppercase font-black truncate">Fisik</span>
-                      <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
-                      <span className="text-blue-300 block text-[8px] uppercase font-black truncate">Teknik</span>
-                      <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
-                      <span className="text-purple-300 block text-[8px] uppercase font-black truncate">Taktik</span>
-                      <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
-                      <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">Mental</span>
-                      <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
-                    </div>
-                    <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
-                      <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">Dev.</span>
-                      <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
-                    </div>
-                    {isDoubles && activeBadmintonTier >= 2 && (
-                      <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
-                        <span className="text-amber-300 block text-[8px] uppercase font-black truncate">Komun.</span>
-                        <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
-                      </div>
-                    )}
-                    <div className="p-1.5 rounded-xl bg-teal-950/70 border border-teal-800/60 col-span-2 sm:col-span-1">
-                      <span className="text-teal-300 block text-[8px] uppercase font-black truncate">Nomor</span>
-                      <span className="font-black text-teal-200 text-xs">{axisScores.khususNomor}</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* KONFIGURASI NOMOR & PERAN + HEALTH PANEL */}
-                <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                        <Layers className="w-4 h-4 text-teal-600" />
-                        <span>Konfigurasi Nomor &amp; Peran</span>
-                      </span>
-                      <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full font-bold">
-                        {eventConfig.shortLabel}
-                      </span>
+                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                          <Layers className="w-4 h-4 text-teal-600" />
+                          <span>Konfigurasi Nomor &amp; Peran</span>
+                        </span>
+                        <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full font-bold">
+                          {eventConfig.shortLabel}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {/* NOMOR PERTANDINGAN */}
+                        <div>
+                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            1. Nomor Pertandingan
+                          </label>
+                          <select
+                            value={eventCode}
+                            onChange={(e) => setEventCode(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                          >
+                            {availableEvents.map((ev) => (
+                              <option key={ev.code} value={ev.code}>
+                                {ev.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* STY DROPDOWN - RENDER ONLY IF UNLOCKED */}
+                        {isStyleUnlocked && (
+                          <div>
+                            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                              2. Profil Gaya Bermain (STY)
+                            </label>
+                            <select
+                              value={styleCode}
+                              onChange={(e) => setStyleCode(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                            >
+                              {BADMINTON_PLAYING_STYLES.map((st) => (
+                                <option key={st.code} value={st.code}>
+                                  {st.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* SPESIALISASI GANDA - RENDER ONLY IF DOUBLES & UNLOCKED */}
+                        {isDoubles && isDoublesSpecUnlocked && (
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                              3. Spesialisasi Nomor Ganda
+                            </label>
+                            <select
+                              value={doublesSpecCode}
+                              onChange={(e) => setDoublesSpecCode(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                            >
+                              {BADMINTON_DOUBLES_SPECS.map((sp) => (
+                                <option key={sp.code} value={sp.code}>
+                                  {sp.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* HEALTH & RECOVERY PANEL */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+                        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-1.5">
+                          <Activity className="w-4 h-4 text-teal-600" />
+                          <h4 className="text-xs font-extrabold text-slate-800">
+                            Catatan Fisik &amp; Pemulihan (Non-Skor)
+                          </h4>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-1">Kesiapan Fisik:</label>
+                            <select
+                              value={healthPhysicalReadiness}
+                              onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                            >
+                              <option value="Fit 100%">Fit 100% (Prima)</option>
+                              <option value="Sangat Fit">Sangat Fit</option>
+                              <option value="Kelelahan Ringan">Kelelahan Ringan</option>
+                              <option value="Kelelahan Sedang">Kelelahan Sedang</option>
+                              <option value="Perlu Istirahat">Perlu Istirahat / Rest</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-1">Riwayat Cedera:</label>
+                            <input
+                              type="text"
+                              value={healthInjuryNotes}
+                              onChange={(e) => setHealthInjuryNotes(e.target.value)}
+                              placeholder="Misal: Nyeri lutut ringan..."
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-1">Kualitas Tidur:</label>
+                            <select
+                              value={healthRecoveryQuality}
+                              onChange={(e) => setHealthRecoveryQuality(e.target.value)}
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                            >
+                              <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
+                              <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
+                              <option value="Kurang (<6 Jam)">Kurang (&lt;6 Jam)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      {/* NOMOR PERTANDINGAN */}
-                      <div>
-                        <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                          1. Nomor Pertandingan
-                        </label>
-                        <select
-                          value={eventCode}
-                          onChange={(e) => setEventCode(e.target.value)}
-                          className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                    {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                        <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                        <span>Preset Nilai Cepat:</span>
+                      </span>
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(0)}
+                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                          title="Reset semua indikator ke 0"
                         >
-                          {availableEvents.map((ev) => (
-                            <option key={ev.code} value={ev.code}>
-                              {ev.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* STY DROPDOWN - RENDER ONLY IF UNLOCKED */}
-                      {isStyleUnlocked && (
-                        <div>
-                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                            2. Profil Gaya Bermain (STY)
-                          </label>
-                          <select
-                            value={styleCode}
-                            onChange={(e) => setStyleCode(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
-                          >
-                            {BADMINTON_PLAYING_STYLES.map((st) => (
-                              <option key={st.code} value={st.code}>
-                                {st.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-
-                      {/* SPESIALISASI GANDA - RENDER ONLY IF DOUBLES & UNLOCKED */}
-                      {isDoubles && isDoublesSpecUnlocked && (
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                            3. Spesialisasi Nomor Ganda
-                          </label>
-                          <select
-                            value={doublesSpecCode}
-                            onChange={(e) => setDoublesSpecCode(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
-                          >
-                            {BADMINTON_DOUBLES_SPECS.map((sp) => (
-                              <option key={sp.code} value={sp.code}>
-                                {sp.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* HEALTH & RECOVERY PANEL */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
-                      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-1.5">
-                        <Activity className="w-4 h-4 text-teal-600" />
-                        <h4 className="text-xs font-extrabold text-slate-800">
-                          Catatan Fisik &amp; Pemulihan (Non-Skor)
-                        </h4>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Kesiapan Fisik:</label>
-                          <select
-                            value={healthPhysicalReadiness}
-                            onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
-                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
-                          >
-                            <option value="Fit 100%">Fit 100% (Prima)</option>
-                            <option value="Sangat Fit">Sangat Fit</option>
-                            <option value="Kelelahan Ringan">Kelelahan Ringan</option>
-                            <option value="Kelelahan Sedang">Kelelahan Sedang</option>
-                            <option value="Perlu Istirahat">Perlu Istirahat / Rest</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Riwayat Cedera:</label>
-                          <input
-                            type="text"
-                            value={healthInjuryNotes}
-                            onChange={(e) => setHealthInjuryNotes(e.target.value)}
-                            placeholder="Misal: Nyeri lutut ringan..."
-                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Kualitas Tidur:</label>
-                          <select
-                            value={healthRecoveryQuality}
-                            onChange={(e) => setHealthRecoveryQuality(e.target.value)}
-                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
-                          >
-                            <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
-                            <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
-                            <option value="Kurang (<6 Jam)">Kurang (&lt;6 Jam)</option>
-                          </select>
-                        </div>
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Reset (0)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(50)}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Standard (50)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(75)}
+                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Good (75)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(90)}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Elite (90)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSmartProFill}
+                          className="px-2.5 py-1 bg-teal-600 text-white hover:bg-teal-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                          title="Muat riwayat atau baseline 75"
+                        >
+                          <Sparkles className="w-3 h-3 text-teal-200" />
+                          <span>Smart Pro-Fill</span>
+                        </button>
                       </div>
                     </div>
+
                   </div>
+                </div>
 
-                  {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
-                      <Sliders className="w-3.5 h-3.5 text-teal-600" />
-                      <span>Preset Nilai Cepat:</span>
+                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs w-full">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <BarChart2 className="w-4 h-4 text-teal-600" />
+                      <span>Ringkasan Skor Kategori</span>
                     </span>
-
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleSetAllGlobalValue(0)}
-                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
-                        title="Reset semua indikator ke 0"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Reset (0)</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetAllGlobalValue(50)}
-                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
-                      >
-                        Standard (50)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetAllGlobalValue(75)}
-                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
-                      >
-                        Good (75)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetAllGlobalValue(90)}
-                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
-                      >
-                        Elite (90)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSmartProFill}
-                        className="px-2.5 py-1 bg-teal-600 text-white hover:bg-teal-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
-                        title="Muat riwayat atau baseline 75"
-                      >
-                        <Sparkles className="w-3 h-3 text-teal-200" />
-                        <span>Smart Pro-Fill</span>
-                      </button>
-                    </div>
+                    <span className="text-xs font-bold text-slate-600">
+                      Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
+                    </span>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                    {[
+                      { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
+                      { label: 'Teknik & Footwork', score: axisScores.teknik, dot: 'bg-blue-500' },
+                      { label: 'Taktik Reli', score: axisScores.taktik, dot: 'bg-purple-500' },
+                      { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
+                      { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
+                      ...(isDoubles && activeBadmintonTier >= 2 ? [{ label: 'Komunikasi Ganda', score: axisScores.komunikasi || 0, dot: 'bg-amber-500' }] : []),
+                      { label: `Khusus (${eventSpecificConfig.shortLabel || 'Nomor'})`, score: axisScores.khususNomor, dot: 'bg-teal-500' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                          <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-900 shrink-0">
+                          {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -2572,6 +2584,15 @@ function FootballAssessmentView({
 
   const sportName = selectedClass?.sport || activeAcademy?.sport || 'SepakBola / Minisoccer';
 
+  // Dynamic sport name (SepakBola vs Minisoccer)
+  const detectedSport = useMemo(() => {
+    const raw = (selectedClass?.sport || activeAcademy?.sport || activeAcademy?.category || selectedClass?.category || activeAcademy?.name || '').toLowerCase();
+    if (raw.includes('mini') || raw.includes('soccer')) {
+      return 'Minisoccer';
+    }
+    return 'SepakBola';
+  }, [selectedClass, activeAcademy]);
+
   // Available positions based on activeTier
   const availablePositions = useMemo(() => {
     return getAvailablePositionsForTier(activeTier);
@@ -2925,7 +2946,7 @@ function FootballAssessmentView({
                 </h2>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
                   <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>SepakBola &amp; Minisoccer</span>
+                  <span>{detectedSport}</span>
                 </span>
               </div>
             </div>
@@ -3069,37 +3090,6 @@ function FootballAssessmentView({
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800">
-                <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
-                  <span className="text-rose-300 block text-[8px] uppercase font-black truncate">1. Fisik</span>
-                  <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
-                  <span className="text-blue-300 block text-[8px] uppercase font-black truncate">2. Teknik</span>
-                  <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
-                  <span className="text-purple-300 block text-[8px] uppercase font-black truncate">3. Taktik</span>
-                  <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
-                  <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">4. Mental</span>
-                  <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
-                  <span className="text-amber-300 block text-[8px] uppercase font-black truncate">5. Kom.</span>
-                  <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
-                  <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">6. Dev.</span>
-                  <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
-                </div>
-                <div className="p-1.5 rounded-xl bg-indigo-950/70 border border-indigo-800/60 col-span-2 sm:col-span-1">
-                  <span className="text-indigo-300 block text-[8px] uppercase font-black truncate">7. Posisi</span>
-                  <span className="font-black text-indigo-200 text-xs">{axisScores.khususPosisi}</span>
-                </div>
-              </div>
             </div>
 
             {/* TAKTIS SEPAKBOLA */}
@@ -3229,6 +3219,43 @@ function FootballAssessmentView({
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
+          <div className="w-full bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <BarChart2 className="w-4 h-4 text-emerald-600" />
+                <span>Ringkasan Skor Kategori</span>
+              </span>
+              <span className="text-xs font-bold text-slate-600">
+                Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+              {[
+                { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
+                { label: 'Kemampuan Teknik', score: axisScores.teknik, dot: 'bg-blue-500' },
+                { label: 'Pemahaman Taktik', score: axisScores.taktik, dot: 'bg-purple-500' },
+                { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
+                { label: 'Komunikasi Lapangan', score: axisScores.komunikasi, dot: 'bg-amber-500' },
+                { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
+                { label: `Khusus (${currentPosIndicatorsConfig.shortLabel || selectedPosition})`, score: axisScores.khususPosisi, dot: 'bg-indigo-500' },
+              ].map((item, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                    <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
+                      {item.label}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-900 shrink-0">
+                    {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -3805,17 +3832,62 @@ function Standard4PillarView({
         {selectedStudent && (
           <form onSubmit={handleSaveEvaluation} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-slate-900 rounded-2xl p-4 text-white space-y-3">
-                <span className="text-xs font-bold uppercase text-indigo-400">Scouting Radar</span>
-                <div className="h-56 w-full">
-                  <ResponsiveContainer width="100%" height={220}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="#334155" />
-                      <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" />
-                      <Radar name="Skor" dataKey="A" stroke="#818cf8" fill="#6366f1" fillOpacity={0.5} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+              <div className="space-y-4">
+                <div className="bg-slate-900 rounded-2xl p-4 text-white space-y-3">
+                  <span className="text-xs font-bold uppercase text-indigo-400">Scouting Radar</span>
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <RadarChart data={radarData}>
+                        <PolarGrid stroke="#334155" />
+                        <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" />
+                        <Radar name="Skor" dataKey="A" stroke="#818cf8" fill="#6366f1" fillOpacity={0.5} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* PANEL RINGKASAN SKOR KATEGORI (CLEAN CARD LAYOUT) */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <BarChart2 className="w-4 h-4 text-indigo-600" />
+                      <span>Ringkasan Skor Kategori</span>
+                    </span>
+                    <span className="text-xs font-bold text-slate-600">
+                      Rata-Rata: <strong className="text-slate-900 font-black">{pillarScores.overall} / 100</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {[
+                      { label: 'Kondisi Fisik', score: pillarScores.fisik, dot: 'bg-rose-500', bar: 'bg-rose-500' },
+                      { label: 'Kemampuan Teknik', score: pillarScores.teknik, dot: 'bg-blue-500', bar: 'bg-blue-500' },
+                      { label: 'Pemahaman Taktik', score: pillarScores.taktik, dot: 'bg-purple-500', bar: 'bg-purple-500' },
+                      { label: 'Mentalitas', score: pillarScores.mental, dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
+                      { label: `Spesifik Posisi (${playerRole || 'Peran'})`, score: pillarScores.position, dot: 'bg-indigo-500', bar: 'bg-indigo-500' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs space-y-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} />
+                            <span className="text-xs font-bold text-slate-800 truncate" title={item.label}>
+                              {item.label}
+                            </span>
+                          </div>
+                          <span className="text-xs font-black text-slate-900 shrink-0 ml-1">
+                            {item.score} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-300 ${item.bar}`} 
+                            style={{ width: `${Math.min(100, Math.max(0, item.score))}%` }} 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 

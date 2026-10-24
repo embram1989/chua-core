@@ -220,42 +220,39 @@ export default function AcademyDashboard({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* =============================================================== */}
       {/* HEADER BANNER AKADEMI SPESIFIK & SIKLUS PENAGIHAN               */}
       {/* =============================================================== */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-5 border border-slate-700/60">
-        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-36 -top-10 w-44 h-44 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex items-center space-x-4 z-10 min-w-0">
-          <div className="w-13 h-13 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center shadow-inner shrink-0 p-2">
-            <Akademi3DIcon className="w-9 h-9" />
+      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-3.5 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-3">
+        <div className="flex items-center space-x-3 z-10 min-w-0">
+          <div className="w-10 h-10 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1.5 text-[#1e3a8a]">
+            <Akademi3DIcon className="w-7 h-7" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight truncate">
+            <div className="flex items-center space-x-2 flex-wrap gap-y-0.5">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
                 Dasbor BI &amp; Analytics &bull; {activeAcademy.name}
               </h2>
-              <span className="px-2.5 py-0.5 bg-blue-500/30 text-blue-200 border border-blue-400/30 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="px-2 py-0.5 bg-blue-50 text-[#1e3a8a] border border-blue-200/80 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                 {activeAcademy.categoryLabel || activeAcademy.category || 'Akademi'}
               </span>
             </div>
-            <p className="text-xs text-slate-300 mt-1 flex items-center space-x-2 flex-wrap gap-y-1">
-              <span>Siklus Tagihan: Mulai Tgl <strong>{sppBillingStartDay}</strong></span>
-              <span>&bull;</span>
-              <span>Jatuh Tempo: Tgl <strong>{sppDueDay}</strong></span>
-              <span>&bull;</span>
-              <span className="text-emerald-300 font-semibold">{activeClasses.length} Kelas Terdaftar</span>
+            <p className="text-[11px] text-slate-600 mt-0.5 flex items-center space-x-2 flex-wrap gap-y-0.5">
+              <span>Siklus Tagihan: Tgl <strong className="text-slate-800">{sppBillingStartDay}</strong></span>
+              <span className="text-slate-300">&bull;</span>
+              <span>Jatuh Tempo: Tgl <strong className="text-slate-800">{sppDueDay}</strong></span>
+              <span className="text-slate-300">&bull;</span>
+              <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-md text-[10px] font-semibold">{activeClasses.length} Kelas Terdaftar</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 z-10 shrink-0 w-full md:w-auto">
+        <div className="flex items-center space-x-2 z-10 shrink-0">
           {onAddStudent && (
             <button
               onClick={onAddStudent}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="bg-white hover:bg-slate-50 text-[#1e3a8a] border border-[#1e3a8a]/30 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Daftar Siswa</span>
@@ -264,7 +261,7 @@ export default function AcademyDashboard({
           {onAddClass && (
             <button
               onClick={onAddClass}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 backdrop-blur-md transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="bg-[#1e3a8a] hover:bg-blue-800 text-white px-3.5 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center space-x-1.5 cursor-pointer"
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Buat Kelas</span>
@@ -278,49 +275,49 @@ export default function AcademyDashboard({
       {/* =============================================================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* CARD 1: TOTAL SISWA AKTIF */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-1 min-w-0">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Siswa Aktif</p>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalStudents}</span>
-              <span className="text-xs text-slate-400 font-semibold">Atlet</span>
+        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Siswa Aktif</p>
+            <div className="flex items-baseline space-x-1.5">
+              <span className="text-xl font-bold tracking-tight text-slate-900">{totalStudents}</span>
+              <span className="text-[11px] text-slate-400 font-semibold">Atlet</span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p className="text-[10px] text-slate-400 truncate">
               {activeClasses.length} Kelas &bull; {activeCoaches.length} Pelatih
             </p>
           </div>
-          <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
-            <GraduationCap className="w-6 h-6" />
+          <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
+            <GraduationCap className="w-5 h-5" />
           </div>
         </div>
 
         {/* CARD 2: TINGKAT PELUNASAN SPP (%) */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
-            <div className="space-y-1 min-w-0">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tingkat Pelunasan</p>
-              <div className="flex items-baseline space-x-2">
-                <span className={`text-2xl sm:text-3xl font-black ${
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tingkat Pelunasan</p>
+              <div className="flex items-baseline space-x-1.5">
+                <span className={`text-xl font-bold tracking-tight ${
                   collectionRate >= 80 ? 'text-emerald-600' : collectionRate >= 50 ? 'text-amber-600' : 'text-rose-600'
                 }`}>
                   {collectionRate}%
                 </span>
-                <span className="text-xs text-slate-400 font-semibold">Bulan Ini</span>
+                <span className="text-[11px] text-slate-400 font-semibold">Bulan Ini</span>
               </div>
             </div>
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs border ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-2xs border ${
               collectionRate >= 80
                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                 : collectionRate >= 50
                 ? 'bg-amber-50 text-amber-600 border-amber-100'
                 : 'bg-rose-50 text-rose-600 border-rose-100'
             }`}>
-              <TrendingUp className="w-6 h-6" />
+              <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           {/* Progress Bar Visual */}
-          <div className="space-y-1">
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div className="space-y-0.5">
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
                   collectionRate >= 80 ? 'bg-emerald-500' : collectionRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'
@@ -336,34 +333,34 @@ export default function AcademyDashboard({
         </div>
 
         {/* CARD 3: PENDAPATAN AKTUAL SPP */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-1 min-w-0">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pendapatan SPP Masuk</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-600 truncate">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pendapatan SPP Masuk</p>
+            <p className="text-xl font-bold tracking-tight text-emerald-600 truncate">
               {formatRupiah(actualRevenue)}
             </p>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p className="text-[10px] text-slate-400 truncate">
               Potensi: <span className="font-bold text-slate-700">{formatRupiah(potentialRevenue)}</span>
             </p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs">
-            <Keuangan3DIcon className="w-6 h-6" />
+          <div className="w-9 h-9 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs">
+            <Keuangan3DIcon className="w-5 h-5" />
           </div>
         </div>
 
         {/* CARD 4: TOTAL TUNGGAKAN SPP */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-1 min-w-0">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Tunggakan</p>
-            <p className="text-xl sm:text-2xl font-black text-rose-600 truncate">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Tunggakan</p>
+            <p className="text-xl font-bold tracking-tight text-rose-600 truncate">
               {formatRupiah(unpaidRevenue)}
             </p>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p className="text-[10px] text-slate-400 truncate">
               <span className="font-bold text-rose-600">{unpaidStudentsCount} Siswa</span> Belum Lunas
             </p>
           </div>
-          <div className="w-12 h-12 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center text-rose-600 shrink-0 shadow-2xs">
-            <AlertCircle className="w-6 h-6" />
+          <div className="w-9 h-9 bg-rose-50 border border-rose-100 rounded-lg flex items-center justify-center text-rose-600 shrink-0 shadow-2xs">
+            <AlertCircle className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -371,24 +368,24 @@ export default function AcademyDashboard({
       {/* =============================================================== */}
       {/* 2. BAGIAN TENGAH (CHARTS: DONUT SPP & BAR KELAS)                 */}
       {/* =============================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* CHART 1: DONUT CHART PROPORSI SPP (5 COLS) */}
-        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center space-x-2">
-              <CreditCard className="w-4.5 h-4.5 text-blue-600" />
-              <span>Proporsi Status SPP Bulan Ini</span>
+        <div className="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-h-[260px]">
+          <div className="border-b border-slate-100 pb-2.5">
+            <h3 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
+              <CreditCard className="w-4 h-4 text-blue-600" />
+              <span>Proporsi SPP Bulan Ini</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-400 mt-0.5">
               Rasio siswa lunas vs menunggak pada siklus aktif
             </p>
           </div>
 
           {/* Donut Chart with Center Text */}
-          <div className="h-60 w-full relative flex items-center justify-center">
+          <div className="h-48 w-full relative flex items-center justify-center">
             {totalStudents === 0 ? (
               <div className="text-center p-4">
-                <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <Users className="w-8 h-8 text-slate-300 mx-auto mb-1" />
                 <p className="text-xs text-slate-400">Belum ada siswa di akademi ini</p>
               </div>
             ) : (
@@ -399,8 +396,8 @@ export default function AcademyDashboard({
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={85}
+                      innerRadius={50}
+                      outerRadius={72}
                       paddingAngle={4}
                       dataKey="value"
                     >
@@ -413,13 +410,13 @@ export default function AcademyDashboard({
                 </ResponsiveContainer>
                 {/* Center Circle Content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
                     Pelunasan
                   </span>
-                  <span className="text-xl font-black text-slate-900">
+                  <span className="text-lg font-black text-slate-900">
                     {collectionRate}%
                   </span>
-                  <span className="text-[10px] font-bold text-slate-500">
+                  <span className="text-[9px] font-bold text-slate-500">
                     {paidStudentsCount}/{totalStudents} Siswa
                   </span>
                 </div>
@@ -428,62 +425,62 @@ export default function AcademyDashboard({
           </div>
 
           {/* Legend Details */}
-          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100/70">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
+            <div className="p-2 rounded-lg bg-emerald-50/60 border border-emerald-100/70">
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
                 <span className="font-bold text-slate-800">SPP Lunas</span>
               </div>
-              <div className="text-right">
-                <span className="font-extrabold text-emerald-700 block">{formatRupiah(actualRevenue)}</span>
-                <span className="text-[10px] text-slate-500 font-bold">{paidStudentsCount} Siswa ({collectionRate}%)</span>
+              <div className="mt-1">
+                <span className="font-extrabold text-emerald-700 block text-xs">{formatRupiah(actualRevenue)}</span>
+                <span className="text-[10px] text-slate-500 font-medium">{paidStudentsCount} Siswa ({collectionRate}%)</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-rose-50/60 border border-rose-100/70">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500 shrink-0" />
+            <div className="p-2 rounded-lg bg-rose-50/60 border border-rose-100/70">
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
                 <span className="font-bold text-slate-800">SPP Menunggak</span>
               </div>
-              <div className="text-right">
-                <span className="font-extrabold text-rose-700 block">{formatRupiah(unpaidRevenue)}</span>
-                <span className="text-[10px] text-slate-500 font-bold">{unpaidStudentsCount} Siswa ({totalStudents > 0 ? 100 - collectionRate : 0}%)</span>
+              <div className="mt-1">
+                <span className="font-extrabold text-rose-700 block text-xs">{formatRupiah(unpaidRevenue)}</span>
+                <span className="text-[10px] text-slate-500 font-medium">{unpaidStudentsCount} Siswa ({totalStudents > 0 ? 100 - collectionRate : 0}%)</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* CHART 2: BAR CHART DISTRIBUSI SISWA PER KELAS (7 COLS) */}
-        <div className="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <div className="lg:col-span-7 bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-h-[260px]">
+          <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
             <div>
-              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center space-x-2">
-                <BookOpen className="w-4.5 h-4.5 text-indigo-600" />
-                <span>Distribusi Siswa per Kelas / Kelompok</span>
+              <h3 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
+                <BookOpen className="w-4 h-4 text-indigo-600" />
+                <span>Distribusi Siswa per Kelas</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 Kapasitas dan populasi siswa antar kelas di {activeAcademy.name}
               </p>
             </div>
-            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-100">
+            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
               {activeClasses.length} Kelas
             </span>
           </div>
 
-          <div className="h-64 w-full pt-2">
+          <div className="h-48 w-full pt-1">
             {classDistributionData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center">
-                <BookOpen className="w-8 h-8 text-slate-300 mb-2" />
+              <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-4 text-center">
+                <BookOpen className="w-7 h-7 text-slate-300 mb-1" />
                 <p className="text-xs font-bold text-slate-600">Belum ada kelas dibuat</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[10px] text-slate-400 mt-0.5">
                   Tambahkan kelompok atau kelas latihan untuk melihat sebaran atlet.
                 </p>
                 {onAddClass && (
                   <button
                     onClick={onAddClass}
-                    className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                    className="mt-2 px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                   >
-                    + Buat Kelas Sekarang
+                    + Buat Kelas
                   </button>
                 )}
               </div>
@@ -511,7 +508,7 @@ export default function AcademyDashboard({
                     dataKey="count"
                     name="Siswa"
                     fill="#3b82f6"
-                    radius={[8, 8, 0, 0]}
+                    radius={[6, 6, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -519,7 +516,7 @@ export default function AcademyDashboard({
           </div>
 
           {/* Catatan Ringkas */}
-          <div className="text-[11px] text-slate-400 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
+          <div className="text-[10px] text-slate-400 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center justify-between">
             <span>Rata-rata siswa per kelas: <strong>{activeClasses.length > 0 ? (totalStudents / activeClasses.length).toFixed(1) : 0} Siswa</strong></span>
             <span>Total Pelatih: <strong>{activeCoaches.length} Orang</strong></span>
           </div>
@@ -529,42 +526,42 @@ export default function AcademyDashboard({
       {/* =============================================================== */}
       {/* 3. BAGIAN BAWAH (QUICK ACTION: SISWA MENUNGGAK SPP BULAN INI)   */}
       {/* =============================================================== */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
-              <AlertCircle className="w-5 h-5" />
+      <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2.5">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+              <AlertCircle className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                <h3 className="font-bold text-sm text-slate-900">
                   Daftar Siswa Menunggak SPP Bulan Ini
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 border border-rose-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
                   {unpaidStudents.length} Siswa
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 Kirim pesan tagihan otomatis via WhatsApp untuk mempercepat arus kas akademi
               </p>
             </div>
           </div>
 
           <div className="text-right">
-            <span className="text-[11px] text-slate-400 font-bold block">Total Belum Tertagih:</span>
-            <span className="text-sm font-black text-rose-600">{formatRupiah(unpaidRevenue)}</span>
+            <span className="text-[10px] text-slate-400 font-bold block">Total Belum Tertagih:</span>
+            <span className="text-xs font-extrabold text-rose-600">{formatRupiah(unpaidRevenue)}</span>
           </div>
         </div>
 
         {unpaidStudents.length === 0 ? (
-          <div className="py-10 border-2 border-dashed border-emerald-200 bg-emerald-50/30 rounded-2xl text-center flex flex-col items-center justify-center p-6">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2 shadow-xs">
-              <CheckCircle2 className="w-7 h-7" />
+          <div className="py-8 border-2 border-dashed border-emerald-200 bg-emerald-50/30 rounded-xl text-center flex flex-col items-center justify-center p-5">
+            <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2 shadow-xs">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
-            <p className="text-sm font-extrabold text-emerald-800">
+            <p className="text-xs font-extrabold text-emerald-800">
               Luar Biasa! Semua Siswa Telah Lunas
             </p>
-            <p className="text-xs text-emerald-600 max-w-md mt-1">
+            <p className="text-[11px] text-emerald-600 max-w-md mt-0.5">
               Tidak ada tagihan SPP yang menunggak untuk akademi {activeAcademy.name} pada periode siklus bulan ini.
             </p>
           </div>
@@ -572,13 +569,13 @@ export default function AcademyDashboard({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px] tracking-wider">
-                  <th className="py-3 px-3">Nama Siswa</th>
-                  <th className="py-3 px-3">Kelas &amp; Pelatih</th>
-                  <th className="py-3 px-3">Kontak Wali</th>
-                  <th className="py-3 px-3">Status Tunggakan</th>
-                  <th className="py-3 px-3 text-right">Nominal SPP</th>
-                  <th className="py-3 px-3 text-center">Aksi Cepat</th>
+                <tr className="border-b border-slate-200 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3">Nama Siswa</th>
+                  <th className="py-2.5 px-3">Kelas &amp; Pelatih</th>
+                  <th className="py-2.5 px-3">Kontak Wali</th>
+                  <th className="py-2.5 px-3">Status Tunggakan</th>
+                  <th className="py-2.5 px-3 text-right">Nominal SPP</th>
+                  <th className="py-2.5 px-3 text-center">Aksi Cepat</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -591,8 +588,8 @@ export default function AcademyDashboard({
                       onClick={() => onViewStudentDetail && onViewStudentDetail(st)}
                     >
                       {/* Nama Siswa */}
-                      <td className="py-3.5 px-3">
-                        <p className="font-extrabold text-slate-800 hover:text-blue-600 transition-colors">
+                      <td className="py-2.5 px-3">
+                        <p className="font-bold text-slate-800 hover:text-blue-600 transition-colors">
                           {st.studentName || st.name}
                         </p>
                         {st.nikKk && (
@@ -601,7 +598,7 @@ export default function AcademyDashboard({
                       </td>
 
                       {/* Kelas & Pelatih */}
-                      <td className="py-3.5 px-3">
+                      <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-md inline-block">
                           {st.className || 'Reguler'}
                         </span>
@@ -613,7 +610,7 @@ export default function AcademyDashboard({
                       </td>
 
                       {/* Kontak Wali */}
-                      <td className="py-3.5 px-3">
+                      <td className="py-2.5 px-3">
                         <p className="font-bold text-slate-700">{st.parentName || 'Orang Tua'}</p>
                         <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                           {st.parentPhone || st.phone || '-'}
@@ -621,28 +618,28 @@ export default function AcademyDashboard({
                       </td>
 
                       {/* Status Tunggakan */}
-                      <td className="py-3.5 px-3">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase inline-block ${sppInfo.badgeClass || 'bg-rose-100 text-rose-800'}`}>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-block ${sppInfo.badgeClass || 'bg-rose-100 text-rose-800'}`}>
                           {sppInfo.statusText || 'MENUNGGAK'}
                         </span>
                       </td>
 
                       {/* Nominal SPP */}
-                      <td className="py-3.5 px-3 text-right">
-                        <span className="font-black text-rose-600 block">
+                      <td className="py-2.5 px-3 text-right">
+                        <span className="font-bold text-rose-600 block">
                           {formatRupiah(st.monthlyFee || st.tuitionFee)}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase">Per Bulan</span>
+                        <span className="text-[9px] text-slate-400 font-medium uppercase">Per Bulan</span>
                       </td>
 
                       {/* Aksi Cepat: Tagih via WA & Bayar */}
-                      <td className="py-3.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center space-x-1.5">
                           {/* TOMBOL TAGIH VIA WHATSAPP */}
                           <button
                             type="button"
                             onClick={() => handleSendWABilling(st, activeAcademy?.name)}
-                            className="flex items-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1.5 rounded-xl text-xs font-bold border border-green-200 transition-colors cursor-pointer shadow-2xs"
+                            className="flex items-center gap-1 bg-green-50 text-green-700 hover:bg-green-100 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-green-200 transition-colors cursor-pointer shadow-2xs"
                             title="Kirim Tagihan SPP via WhatsApp"
                           >
                             <MessageCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
@@ -654,7 +651,7 @@ export default function AcademyDashboard({
                             <button
                               type="button"
                               onClick={() => onPaySpp(st)}
-                              className="px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold border border-blue-200 transition-colors cursor-pointer shadow-2xs"
+                              className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-[11px] font-bold border border-blue-200 transition-colors cursor-pointer shadow-2xs"
                               title="Bayar SPP Sekarang"
                             >
                               Bayar

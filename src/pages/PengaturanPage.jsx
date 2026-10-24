@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
+import { logoutUser } from '../services/authService';
 import { 
   registerStaffByOwner, 
   getStaffListByTenant, 
@@ -29,9 +31,10 @@ import {
   Lock,
   UserPlus,
   Users,
-  ShieldCheck
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
-import { Pengaturan3DIcon, Keuangan3DIcon, Akademi3DIcon, RegulasiDokumen3DIcon } from '../components/icons/App3DIcons';
+import { Pengaturan3DIcon } from '../components/icons/App3DIcons';
 import { uploadToCloudinary } from '../services/uploadService';
 
 const SUPPORTED_SPORTS = [
@@ -51,11 +54,41 @@ const SUPPORTED_SPORTS = [
 ];
 
 export default function PengaturanPage({ userProfile, onTenantUpdated }) {
+  const navigate = useNavigate();
   const { tenantProfile, courts, isLoading } = useArenaData(userProfile);
   const tenant = tenantProfile || userProfile?.tenant;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = ['profil', 'pembayaran', 'spp_struk', 'tarif', 'master_pricing', 'staf'];
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam && validTabs.includes(tabParam)) ? tabParam : 'profil';
 
-  // Tab Navigation State
-  const [activeTab, setActiveTab] = useState('profil');
+  // Tab Navigation State (Synced with Sidebar and URL)
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Sync activeTab when URL tab parameter changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    if (currentTab && validTabs.includes(currentTab)) {
+      setActiveTab(currentTab);
+    } else if (!currentTab) {
+      setActiveTab('profil');
+    }
+  }, [searchParams]);
+
+  const roleDisplay = 
+    userProfile?.role === 'superadmin' ? 'Super Admin' :
+    userProfile?.role === 'owner' ? 'Owner GOR' :
+    userProfile?.role === 'admin' ? 'Admin Staf' :
+    userProfile?.role === 'pelatih' ? 'Pelatih Akademi' : 'Owner / Pengelola';
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   // Multi-Bank Accounts State & Handlers
   const [bankAccounts, setBankAccounts] = useState([
@@ -434,95 +467,53 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto text-[#333333]">
+    <div className="space-y-4 max-w-4xl mx-auto text-[#333333]">
       
       {/* HEADER */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex items-center gap-4">
         <Pengaturan3DIcon className="w-14 h-14 shrink-0 drop-shadow-2xs" />
         <div>
-          <h1 className="text-xl font-bold text-[#333333]">Pengaturan GOR, QRIS &amp; Tarif</h1>
+          <h1 className="text-xl font-bold text-[#333333]">Pengaturan</h1>
           <p className="text-xs text-gray-500 mt-0.5">Kelola profil arena, gambar Kode QRIS, rekening bank, dan tarif per jam lapangan</p>
         </div>
       </div>
 
-      {/* 4-TAB NAVIGATION BAR (SEGMENTED CONTROL) */}
-      <div className="bg-white rounded-2xl p-2 shadow-xs border border-gray-200 flex flex-wrap gap-1.5 items-center">
-        <button
-          type="button"
-          onClick={() => setActiveTab('profil')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'profil'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <Akademi3DIcon className="w-5 h-5 shrink-0" />
-          <span>Profil Identitas GOR</span>
-        </button>
+      {/* KARTU INFORMASI AKUN & LOGOUT */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          {userProfile?.photoURL ? (
+            <img 
+              src={userProfile.photoURL} 
+              alt="Avatar" 
+              className="w-11 h-11 rounded-full border border-slate-200 object-cover shrink-0" 
+            />
+          ) : (
+            <div className="w-11 h-11 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-base shrink-0 shadow-2xs">
+              {(userProfile?.displayName || 'Najwa Sheinara').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-sm sm:text-base text-slate-800 truncate">
+                {userProfile?.displayName || 'Najwa Sheinara'}
+              </h3>
+              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/80 rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0">
+                {roleDisplay}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 truncate mt-0.5">
+              {userProfile?.email || 'sheinaranajwa0@gmail.com'}
+            </p>
+          </div>
+        </div>
 
         <button
           type="button"
-          onClick={() => setActiveTab('pembayaran')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'pembayaran'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
+          onClick={handleLogout}
+          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-lg px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer self-start sm:self-auto shrink-0"
         >
-          <Keuangan3DIcon className="w-5 h-5 shrink-0" />
-          <span>Rekening &amp; QRIS</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('spp_struk')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'spp_struk'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <RegulasiDokumen3DIcon className="w-5 h-5 shrink-0" />
-          <span>Tagihan SPP &amp; Struk</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('tarif')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'tarif'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <DollarSign className="w-4 h-4 shrink-0" />
-          <span>Tarif Lapangan</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('master_pricing')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'master_pricing'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <GraduationCap className="w-4 h-4 shrink-0" />
-          <span>Master Tarif Akademi</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('staf')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-            activeTab === 'staf'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <Users className="w-4 h-4 shrink-0" />
-          <span>Kelola Staf &amp; Pelatih</span>
+          <LogOut className="w-4 h-4" />
+          <span>Keluar Sistem</span>
         </button>
       </div>
 
@@ -540,7 +531,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
       )}
 
       {/* TAB CONTENT CONTAINER */}
-      <form onSubmit={handleUpdateTenant}>
+      <form onSubmit={handleUpdateTenant} className="mt-4">
         
         {/* TAB 1: PROFIL IDENTITAS GOR */}
         {activeTab === 'profil' && (
@@ -1032,7 +1023,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
 
       {/* TAB 4: TARIF LAPANGAN */}
       {activeTab === 'tarif' && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5 text-left animate-fadeIn">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5 text-left animate-fadeIn mt-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h2 className="font-bold text-base text-[#333333] flex items-center space-x-2">
               <DollarSign className="w-4 h-4 text-green-600" />
@@ -1108,7 +1099,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
 
       {/* TAB 5: MASTER DATA TARIF AKADEMI */}
       {activeTab === 'master_pricing' && (
-        <form onSubmit={handleUpdateTenant} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-6 text-left animate-fadeIn">
+        <form onSubmit={handleUpdateTenant} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-6 text-left animate-fadeIn mt-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <div>
               <h2 className="font-bold text-base text-[#333333] flex items-center space-x-2">
@@ -1269,7 +1260,7 @@ export default function PengaturanPage({ userProfile, onTenantUpdated }) {
 
       {/* TAB 6: KELOLA STAF & PELATIH (CLIENT-SIDE RBAC) */}
       {activeTab === 'staf' && (
-        <div className="space-y-6 text-left animate-fadeIn">
+        <div className="space-y-6 text-left animate-fadeIn mt-4">
           {/* CARD 1: FORM PENDAFTARAN STAF (SECONDARY FIREBASE APP) */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">

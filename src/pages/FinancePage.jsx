@@ -88,24 +88,24 @@ export default function FinancePage({ userProfile }) {
   }
 
   return (
-    <div className="space-y-6 text-[#333333]">
+    <div className="space-y-4 text-[#333333]">
       
       {/* HEADER BANNER */}
-      <div className="bg-[#333333] text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+          <div className="flex items-center space-x-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
             <Keuangan3DIcon className="w-5 h-5 shrink-0" />
-            <span className="text-emerald-400">Laporan Arus Kas Terpadu (General Ledger)</span>
+            <span>Laporan Arus Kas Terpadu (General Ledger)</span>
           </div>
-          <p className="text-xs text-gray-300 mt-1">Total Pendapatan Kotor Seluruh Operasional Arena</p>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Total Pendapatan Kotor Seluruh Operasional Arena</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
             Rp {totalGrossRevenue.toLocaleString('id-ID')}
           </h1>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 text-right space-y-0.5">
-          <p className="text-[10px] uppercase tracking-wider text-gray-300 font-bold">Total Transaksi</p>
-          <p className="text-lg font-black text-white">{mergedLedger.length} Transaksi</p>
+        <div className="bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-center sm:text-right shrink-0">
+          <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Total Transaksi</p>
+          <p className="text-sm font-bold text-slate-800">{mergedLedger.length} Transaksi</p>
         </div>
       </div>
 
@@ -118,51 +118,51 @@ export default function FinancePage({ userProfile }) {
       />
 
       {/* 3 KPI SUMMARY CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         
         {/* a. Pendapatan Sewa Lapangan */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-2">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sewa Lapangan</span>
-            <Booking3DIcon className="w-8 h-8 shrink-0 drop-shadow-2xs" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Sewa Lapangan</span>
+            <Booking3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
           </div>
           <div>
-            <p className="text-xl font-extrabold text-[#333333]">
+            <p className="text-xl font-bold tracking-tight text-slate-900">
               Rp {bookingRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-gray-400 mt-0.5">
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
               {filteredBookings.length} Reservasi Terkonfirmasi
             </p>
           </div>
         </div>
 
         {/* b. Pendapatan Kasir POS */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-2">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Kasir POS (Retail &amp; F&amp;B)</span>
-            <Kasir3DIcon className="w-8 h-8 shrink-0 drop-shadow-2xs" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kasir POS (Retail &amp; F&amp;B)</span>
+            <Kasir3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
           </div>
           <div>
-            <p className="text-xl font-extrabold text-[#333333]">
+            <p className="text-xl font-bold tracking-tight text-slate-900">
               Rp {posRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-gray-400 mt-0.5">
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
               {filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length} Penjualan Retail &amp; F&amp;B
             </p>
           </div>
         </div>
 
         {/* c. Pendapatan SPP Akademi */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-2">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Akademi (SPP)</span>
-            <Akademi3DIcon className="w-8 h-8 shrink-0 drop-shadow-2xs" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Akademi (SPP)</span>
+            <Akademi3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
           </div>
           <div>
-            <p className="text-xl font-extrabold text-[#333333]">
+            <p className="text-xl font-bold tracking-tight text-slate-900">
               Rp {sppRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-gray-400 mt-0.5">
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
               {filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length} Pembayaran Iuran Siswa
             </p>
           </div>
@@ -171,7 +171,7 @@ export default function FinancePage({ userProfile }) {
       </div>
 
       {/* INTEGRATED TRANSACTIONS HISTORY LEDGER */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-200 space-y-4">
+      <div className="bg-white rounded-xl p-4 sm:p-5 shadow-2xs border border-slate-200/80 space-y-3.5">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <div>

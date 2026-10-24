@@ -129,68 +129,71 @@ export default function FootballEvaluationGrid({
         </div>
       </div>
 
-      {/* 2-COLUMN GRID */}
+      {/* 1. Profil Atlet / 7-Axis Scouting Radar */}
+      <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3 w-full">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <BarChart2 className="w-4 h-4 text-emerald-400" />
+            <span>Profil Atlet / 7-Axis Scouting Radar ({tierConfig.shortBadge})</span>
+          </span>
+          <span className="text-[10px] text-slate-400 font-semibold">Kurikulum LTAD Modern</span>
+        </div>
+
+        {/* Recharts Container */}
+        <div className="h-64 w-full flex items-center justify-center">
+          <ResponsiveContainer width="100%" height={250}>
+            <RadarChart data={radarData} margin={{ top: 10, right: 25, bottom: 10, left: 25 }}>
+              <PolarGrid stroke="#334155" />
+              <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }} />
+              <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
+              <Radar name="Skor Atlet" dataKey="A" stroke="#10b981" fill="#059669" fillOpacity={0.45} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 2. PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs w-full">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+            <BarChart2 className="w-4 h-4 text-emerald-600" />
+            <span>Ringkasan Skor Kategori</span>
+          </span>
+          <span className="text-xs font-bold text-slate-600">
+            Rata-Rata Performa: <strong className="text-slate-900 font-bold">{(footballScores.overall || 0)} / 100</strong>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          {[
+            { label: 'Kondisi Fisik', score: footballScores.fisik, dot: 'bg-rose-500' },
+            { label: 'Kemampuan Teknik', score: footballScores.teknik, dot: 'bg-blue-500' },
+            { label: 'Pemahaman Taktik', score: footballScores.taktik, dot: 'bg-purple-500' },
+            { label: 'Mentalitas', score: footballScores.mental, dot: 'bg-emerald-500' },
+            { label: 'Kerja Sama Tim', score: footballScores.teamwork, dot: 'bg-amber-500' },
+            { label: 'Kesehatan & Dev.', score: footballScores.health, dot: 'bg-teal-500' },
+            { label: `Khusus (${footballScores.shortPosPill || 'Posisi'})`, score: footballScores.position, dot: 'bg-indigo-500' },
+          ].map((item, idx) => (
+            <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
+                  {item.label}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-slate-900 shrink-0">
+                {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 2-COLUMN GRID UNTUK DETAIL SLIDER */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
-        {/* =================================================================== */}
-        {/* KOLOM KIRI (Radar, Physical, Technical, Health) */}
-        {/* =================================================================== */}
+        {/* KOLOM KIRI (Physical, Technical) */}
         <div className="space-y-6">
-          
-          {/* 1. Profil Atlet / 7-Axis Scouting Radar */}
-          <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                <BarChart2 className="w-4 h-4 text-emerald-400" />
-                <span>Profil Atlet / 7-Axis Scouting Radar ({tierConfig.shortBadge})</span>
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold">Kurikulum LTAD Modern</span>
-            </div>
-
-            {/* Recharts Container */}
-            <div className="h-64 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={250}>
-                <RadarChart data={radarData} margin={{ top: 10, right: 25, bottom: 10, left: 25 }}>
-                  <PolarGrid stroke="#334155" />
-                  <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
-                  <Radar name="Skor Atlet" dataKey="A" stroke="#10b981" fill="#059669" fillOpacity={0.45} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* 7-Axis Breakdown Pills */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 text-xs pt-1 border-t border-slate-800/80">
-              <div className="p-1.5 rounded-xl bg-rose-950/60 border border-rose-800/60 text-center">
-                <span className="text-rose-300 block text-[8px] font-bold uppercase truncate">1. Fisik</span>
-                <span className="font-black text-rose-200 text-xs">{footballScores.fisik}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-blue-950/60 border border-blue-800/60 text-center">
-                <span className="text-blue-300 block text-[8px] font-bold uppercase truncate">2. Teknik</span>
-                <span className="font-black text-blue-200 text-xs">{footballScores.teknik}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-purple-950/60 border border-purple-800/60 text-center">
-                <span className="text-purple-300 block text-[8px] font-bold uppercase truncate">3. Taktik</span>
-                <span className="font-black text-purple-200 text-xs">{footballScores.taktik}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-center">
-                <span className="text-emerald-300 block text-[8px] font-bold uppercase truncate">4. Mental</span>
-                <span className="font-black text-emerald-200 text-xs">{footballScores.mental}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-amber-950/60 border border-amber-800/60 text-center">
-                <span className="text-amber-300 block text-[8px] font-bold uppercase truncate">5. Tim</span>
-                <span className="font-black text-amber-200 text-xs">{footballScores.teamwork}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-teal-950/60 border border-teal-800/60 text-center">
-                <span className="text-teal-300 block text-[8px] font-bold uppercase truncate">6. Health</span>
-                <span className="font-black text-teal-200 text-xs">{footballScores.health}</span>
-              </div>
-              <div className="p-1.5 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-center col-span-2 sm:col-span-2 lg:col-span-1">
-                <span className="text-indigo-300 block text-[8px] font-bold uppercase truncate">{footballScores.shortPosPill || 'Posisi'}</span>
-                <span className="font-black text-indigo-200 text-xs">{footballScores.position}</span>
-              </div>
-            </div>
-          </div>
 
           {/* 2. Pilar 1: Physical — Kondisi Fisik */}
           <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 space-y-3">

@@ -637,8 +637,8 @@ export default function DashboardPage({ userProfile }) {
       
       {/* =============================================================== */}
       {/* HEADER PROFIL & EXECUTIVE SUMMARY BANNER                        */}
-      {/* HERO HEADER BANNER TENANT (LIGHT MODE WITH NAVY BORDER) */}
-      <div className="bg-white border-2 border-[#1e3a8a] border-l-4 shadow-sm rounded-xl px-5 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* HERO HEADER BANNER TENANT */}
+      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         
         <div className="flex items-center space-x-3.5 min-w-0">
           {tenantProfile?.logoUrl ? (
@@ -701,49 +701,49 @@ export default function DashboardPage({ userProfile }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           <Link
             to="/booking"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-orange-50/70 hover:bg-orange-100/80 text-orange-800 rounded-lg text-xs font-medium transition-all border border-orange-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Booking3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Booking</span>
           </Link>
           <Link
             to="/kasir"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 rounded-lg text-xs font-medium transition-all border border-emerald-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Kasir3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Kasir POS</span>
           </Link>
           <Link
             to="/akademi"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-50/70 hover:bg-purple-100/80 text-purple-800 rounded-lg text-xs font-medium transition-all border border-purple-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Akademi3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Akademi</span>
           </Link>
           <Link
             to="/events"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-amber-50/70 hover:bg-amber-100/80 text-amber-800 rounded-lg text-xs font-medium transition-all border border-amber-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Event3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Event</span>
           </Link>
           <Link
             to="/keuangan"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-teal-50/70 hover:bg-teal-100/80 text-teal-800 rounded-lg text-xs font-medium transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Keuangan3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Keuangan</span>
           </Link>
           <Link
             to="/intelligence"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-800 rounded-lg text-xs font-medium transition-all border border-indigo-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <AIInsight3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">AI Insight</span>
           </Link>
           <Link
             to="/pengaturan"
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg text-xs font-medium transition-all border border-slate-200 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1 shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1 shrink-0"
           >
             <Pengaturan3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Profil GOR</span>
@@ -769,8 +769,8 @@ export default function DashboardPage({ userProfile }) {
             {formatRupiah(financialSummary.grossRevenueThisMonth)}
           </p>
           <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Status:</span>
-            <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md text-[10px]">
+            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               {financialSummary.totalTransactionsCount} Transaksi Sukses
             </span>
           </div>
@@ -790,8 +790,8 @@ export default function DashboardPage({ userProfile }) {
             {formatRupiah(financialSummary.courtRevMonth)}
           </p>
           <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Status:</span>
-            <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-[10px]">
+            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               Okupansi: {occupancyPercentage}% ({totalBookingsCount} Sesi)
             </span>
           </div>
@@ -811,8 +811,8 @@ export default function DashboardPage({ userProfile }) {
             {formatRupiah(financialSummary.posRevMonth)}
           </p>
           <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Status:</span>
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md text-[10px]">
+            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               F&amp;B &amp; Sewa
             </span>
           </div>
@@ -832,8 +832,8 @@ export default function DashboardPage({ userProfile }) {
             {formatRupiah(financialSummary.sppRevMonth)}
           </p>
           <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Status:</span>
-            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md text-[10px]">
+            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               SPP Terdata
             </span>
           </div>
@@ -853,8 +853,8 @@ export default function DashboardPage({ userProfile }) {
             {formatRupiah(financialSummary.sponsorRevMonth || 0)}
           </p>
           <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Status:</span>
-            <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
+            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               Termin B2B Cair
             </span>
           </div>
@@ -997,7 +997,7 @@ export default function DashboardPage({ userProfile }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* CHART 1: TREN ARUS KAS HARIAN (BAR / AREA CHART - 8 COLS) */}
-        <div className="lg:col-span-8 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
+        <div className="lg:col-span-8 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
             <div>
               <h2 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
@@ -1033,7 +1033,7 @@ export default function DashboardPage({ userProfile }) {
           </div>
 
           {/* RECHARTS AREA / BAR CHART */}
-          <div className="h-72 w-full pt-2">
+          <div className="w-full flex-1 min-h-[300px] pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyTrendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>

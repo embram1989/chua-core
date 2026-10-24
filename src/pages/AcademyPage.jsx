@@ -9,7 +9,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
-import { calculateAge, getStudentInitials } from '../utils/helpers';
+import { calculateAge, getStudentInitials, parseScheduleItems } from '../utils/helpers';
 import useArenaData from '../hooks/useArenaData';
 
 import SppPaymentModal from '../components/SppPaymentModal';
@@ -1287,38 +1287,88 @@ export default function AcademyPage({ userProfile }) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredClasses.map((cls) => (
-                <div key={cls.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-blue-500 transition-all space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[9px] rounded-md uppercase">
-                      {cls.sport || 'Sports'}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400">Aktif</span>
-                  </div>
+              {filteredClasses.map((cls) => {
+                const scheduleItems = parseScheduleItems(cls);
+                return (
+                  <div key={cls.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2.5">
+                      {/* Header Kelas */}
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-md uppercase border border-blue-100/80">
+                          {cls.sport || 'Sports'}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">Aktif</span>
+                      </div>
 
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-800">{cls.className}</h4>
-                    <p className="text-xs text-slate-600 font-semibold mt-0.5">
-                      Pelatih: <strong className="text-slate-800">{cls.coachName || 'Utama'}</strong>
-                    </p>
-                  </div>
+                      {/* Judul & Pelatih */}
+                      <div>
+                        <h4 className="font-bold text-base text-slate-900 tracking-tight">{cls.className}</h4>
+                        <p className="text-xs text-slate-600 font-medium mt-0.5 flex items-center gap-1">
+                          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>Pelatih: <strong className="text-slate-800">{cls.coachName || 'Pelatih Utama'}</strong></span>
+                        </p>
+                      </div>
 
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-500 flex items-center space-x-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>Jadwal: <strong>{cls.schedule || '-'}</strong></span>
+                      {/* Daftar Jadwal Per Hari (Vertical List) */}
+                      <div className="pt-2 border-t border-slate-200/70 space-y-2">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span>Jadwal Latihan Rutin</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {scheduleItems.length} Sesi/Minggu
+                          </span>
+                        </div>
+
+                        {scheduleItems.length === 0 ? (
+                          <div className="text-[11px] text-slate-400 italic bg-white p-2.5 rounded-lg border border-slate-200/80">
+                            Belum ada jadwal
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {scheduleItems.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-xs"
+                              >
+                                <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+                                  <span className="text-blue-600 font-bold text-xs shrink-0">📅 {item.day}</span>
+                                  {item.time && (
+                                    <>
+                                      <span className="text-slate-300 font-bold text-[10px] hidden sm:inline">&bull;</span>
+                                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono text-[11px] font-semibold border border-slate-200/60 shrink-0">
+                                        {item.time}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                                {item.court && (
+                                  <span className="text-[11px] text-slate-500 font-medium truncate bg-slate-50 px-2 py-0.5 rounded border border-slate-100 text-right shrink-0">
+                                    ({item.court})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setGenerateModalClass(cls)}
-                      className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] rounded-lg transition-colors cursor-pointer flex items-center space-x-1 border border-blue-200 shrink-0"
-                    >
-                      <Lock className="w-3 h-3" />
-                      <span>Kunci Jadwal</span>
-                    </button>
+
+                    {/* Tombol Kunci Jadwal */}
+                    <div className="pt-2.5 border-t border-slate-200/70">
+                      <button
+                        type="button"
+                        onClick={() => setGenerateModalClass(cls)}
+                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1.5 border border-blue-200/80 shadow-2xs"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Kunci Jadwal Lapangan</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -1327,28 +1377,63 @@ export default function AcademyPage({ userProfile }) {
       {/* TAB 5: PRESENSI & EVALUASI */}
       {activeAcademyTab === 'presensi' && (
         <div className="space-y-6 text-left">
-          {/* GERBANG UTAMA: PEMILIHAN KELAS */}
+          {/* GERBANG UTAMA: PEMILIHAN KELAS & NAVIGASI UTAMA */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
-                  <ClipboardCheck className="w-5 h-5 text-blue-600" />
-                  <span>Presensi &amp; Evaluasi Performa Atlet</span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Pilih kelas / kelompok latihan untuk mencatat rekap kehadiran atau kartu evaluasi siswa
-                </p>
+            
+            {/* BARIS KONTROL ATAS: TAB UTAMA (PRIMARY TABS) + FILTER DROPDOWN KELAS GLOBAL */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-2 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+              
+              {/* 1. PRIMARY NAVIGATION TABS (PILL / BUTTON ELEGANT STYLE) */}
+              <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setAttendanceSubTab('presensi')}
+                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                    attendanceSubTab === 'presensi'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-100/70'
+                  }`}
+                >
+                  <ClipboardCheck className="w-4 h-4" />
+                  <span>Presensi</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAttendanceSubTab('evaluasi')}
+                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                    attendanceSubTab === 'evaluasi'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-100/70'
+                  }`}
+                >
+                  <Award className="w-4 h-4" />
+                  <span>Evaluasi Atlet</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAttendanceSubTab('antropometri')}
+                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                    attendanceSubTab === 'antropometri'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-100/70'
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Growth Tracker &amp; AI Sport Nutrition</span>
+                </button>
               </div>
 
-              {/* DROPDOWN PEMILIHAN KELAS SANGAT JELAS */}
-              <div className="w-full md:w-80 shrink-0">
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Pilih Kelas / Kelompok Latihan <span className="text-blue-600">*</span>
+              {/* 2. DROPDOWN KELAS SEBAGAI FILTER GLOBAL */}
+              <div className="flex items-center gap-2.5 shrink-0 w-full xl:w-80">
+                <label className="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">
+                  Kelas:
                 </label>
                 <select
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-extrabold text-slate-800 cursor-pointer"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-xs font-bold text-slate-800 cursor-pointer shadow-2xs"
                 >
                   <option value="">-- Pilih Kelas Latihan --</option>
                   {filteredClasses.map((cls) => (
@@ -1360,19 +1445,20 @@ export default function AcademyPage({ userProfile }) {
               </div>
             </div>
 
+            {/* RENDER CONTENT SESUAI KELAS TERPILIH & MODE TAB AKTIF */}
             {!selectedClassId ? (
               /* EMPTY STATE: BELUM MEMILIH KELAS */
-              <div className="py-12 border-2 border-dashed border-slate-200 rounded-xl text-center flex flex-col items-center justify-center p-6">
+              <div className="py-12 border-2 border-dashed border-slate-200 rounded-xl text-center flex flex-col items-center justify-center p-6 bg-slate-50/50">
                 <ClipboardCheck className="w-12 h-12 text-slate-300 mb-3" />
                 <p className="text-sm font-semibold text-slate-700">
                   {filteredClasses.length === 0
                     ? 'Belum ada kelas/kelompok latihan terdaftar.'
-                    : 'Pilih kelas terlebih dahulu untuk mulai mencatat presensi atau evaluasi.'}
+                    : 'Pilih kelas terlebih dahulu untuk mulai mencatat presensi, evaluasi, atau growth tracking.'}
                 </p>
                 <p className="text-xs text-slate-400 max-w-sm mt-1 mb-4">
                   {filteredClasses.length === 0
                     ? 'Buat kelas latihan terlebih dahulu di tab "Kelas & Kelompok" untuk mulai mengelola presensi.'
-                    : 'Pilih salah satu kelas pada dropdown di atas untuk membuka formulir presensi & evaluasi atlet.'}
+                    : 'Pilih salah satu kelas pada dropdown filter di atas untuk membuka lembar kerja.'}
                 </p>
                 {filteredClasses.length === 0 && (
                   <button
@@ -1384,93 +1470,48 @@ export default function AcademyPage({ userProfile }) {
                 )}
               </div>
             ) : (
-              /* JIKA KELAS DIPILIH: RINCIAN KELAS RINGKAS & TOGGLE SUB-MENU */
+              /* KELAS DIPILIH: RINCIAN KELAS RINGKAS & BERSIH (TANPA DUPLIKASI TOMBOL TAB) */
               <div className="space-y-4">
                 {(() => {
                   const currentClass = filteredClasses.find((c) => c.id === selectedClassId);
                   if (!currentClass) return null;
 
                   return (
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 sm:p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
-                      {/* LAYOUT FLEXBOX PADAT KARTU KELAS */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-xl">
                       <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="font-bold text-sm sm:text-base text-slate-800 tracking-tight">
+                        <h3 className="font-bold text-sm text-slate-800 tracking-tight">
                           {currentClass.className}
                         </h3>
 
-                        {/* CHIP / BADGES BERWARNA LEMBUT */}
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-medium text-xs rounded-full border border-blue-100/80">
+                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-medium text-[11px] rounded-full border border-blue-100/80">
                             {currentClass.sport || 'Sports'}
                           </span>
                           {currentClass.ageGroup && (
-                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-medium text-xs rounded-full border border-emerald-100/80">
+                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-medium text-[11px] rounded-full border border-emerald-100/80">
                               {currentClass.ageGroup}
                             </span>
                           )}
                         </div>
 
-                        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+                        <div className="h-3.5 w-px bg-slate-300 hidden sm:block" />
 
-                        {/* INFORMASI DENGAN IKON (TANPA TEKS PANJANG) */}
                         <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
-                          <span className="flex items-center gap-1.5" title="Pelatih">
+                          <span className="flex items-center gap-1" title="Pelatih">
                             <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span className="font-medium text-slate-700">{currentClass.coachName || 'Instruktur'}</span>
                           </span>
-                          <span className="flex items-center gap-1.5" title="Jadwal Latihan">
+                          <span className="flex items-center gap-1" title="Jadwal Latihan">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span className="font-medium text-slate-700">{currentClass.schedule || '-'}</span>
                           </span>
                         </div>
                       </div>
-
-                      {/* SUB-MENU TOGGLE BUTTONS */}
-                      <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 shrink-0 self-start lg:self-auto">
-                        <button
-                          type="button"
-                          onClick={() => setAttendanceSubTab('presensi')}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                            attendanceSubTab === 'presensi'
-                              ? 'bg-blue-600 text-white shadow-2xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          <ClipboardCheck className="w-3.5 h-3.5" />
-                          <span>Presensi</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setAttendanceSubTab('evaluasi')}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                            attendanceSubTab === 'evaluasi'
-                              ? 'bg-blue-600 text-white shadow-2xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          <Award className="w-3.5 h-3.5" />
-                          <span>Evaluasi Atlet</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setAttendanceSubTab('antropometri')}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                            attendanceSubTab === 'antropometri'
-                              ? 'bg-blue-600 text-white shadow-2xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          <TrendingUp className="w-3.5 h-3.5" />
-                          <span>Growth &amp; Gizi</span>
-                        </button>
-                      </div>
                     </div>
                   );
                 })()}
 
-                {/* SUB-TAB RENDER CONTENT */}
+                {/* MEMANGGIL KONTEN UTAMA SECARA LANGSUNG BERDASARKAN FILTER GLOBAL KELAS */}
                 {(() => {
                   const currentClass = filteredClasses.find((c) => c.id === selectedClassId);
                   if (!currentClass) return null;

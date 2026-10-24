@@ -49,12 +49,23 @@ export default function Layout({ userProfile }) {
   const [isAkademiOpen, setIsAkademiOpen] = useState(true);
   const [academyCounts, setAcademyCounts] = useState({ students: 0, coaches: 0, classes: 0 });
 
+  const isProfilActive = location.pathname.startsWith('/pengaturan');
+  const currentProfileTab = new URLSearchParams(location.search).get('tab') || 'profil';
+  const [isProfilOpen, setIsProfilOpen] = useState(true);
+
   // Auto-expand Akademi accordion when navigating to /akademi
   useEffect(() => {
     if (isAkademiActive) {
       setIsAkademiOpen(true);
     }
   }, [isAkademiActive]);
+
+  // Auto-expand Profil accordion when navigating to /pengaturan
+  useEffect(() => {
+    if (isProfilActive) {
+      setIsProfilOpen(true);
+    }
+  }, [isProfilActive]);
 
   // Listen to accurate counts emitted by AcademyPage
   useEffect(() => {
@@ -124,6 +135,15 @@ export default function Layout({ userProfile }) {
     { id: 'presensi', label: 'Presensi & Evaluasi', path: '/akademi?tab=presensi', count: null },
   ];
 
+  const profileSubMenuItems = [
+    { id: 'profil', label: 'Profil Identitas GOR', path: '/pengaturan?tab=profil' },
+    { id: 'pembayaran', label: 'Rekening & QRIS', path: '/pengaturan?tab=pembayaran' },
+    { id: 'spp_struk', label: 'Tagihan SPP & Struk', path: '/pengaturan?tab=spp_struk' },
+    { id: 'tarif', label: 'Tarif Lapangan', path: '/pengaturan?tab=tarif' },
+    { id: 'master_pricing', label: 'Master Tarif Akademi', path: '/pengaturan?tab=master_pricing' },
+    { id: 'staf', label: 'Kelola Staf & Pelatih', path: '/pengaturan?tab=staf' },
+  ];
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -158,21 +178,26 @@ export default function Layout({ userProfile }) {
       {/* DESKTOP SIDEBAR (>= 1024px) */}
       <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-white border-r border-slate-200 fixed top-0 bottom-0 left-0 z-30 shadow-sm transition-all duration-300 select-none`}>
         {/* Sidebar Header with Toggle */}
-        <div className={`py-3.5 border-b border-slate-100 flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'flex-col gap-2 px-2 justify-center' : 'px-4 justify-between'}`}>
-          {!isSidebarCollapsed ? (
-            <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="w-32 h-auto object-contain" />
-          ) : (
-            <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="w-9 h-9 object-contain mx-auto" />
-          )}
+        <div className="relative border-b border-slate-100">
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shrink-0"
+            className="absolute right-2 top-2 z-10 p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shrink-0"
             title={isSidebarCollapsed ? "Perluas Sidebar" : "Perkecil Sidebar"}
             aria-label="Toggle Sidebar"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
+
+          <div className="flex flex-col items-center justify-center text-center w-full px-4 py-5">
+            {!isSidebarCollapsed ? (
+              <div className="flex flex-col items-center justify-center text-center mx-auto">
+                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-32 h-auto object-contain mx-auto" />
+              </div>
+            ) : (
+              <img src="/logo_2.jpg" alt="CHUVATOR" className="w-9 h-9 object-contain mx-auto" />
+            )}
+          </div>
         </div>
 
         {/* Sidebar Navigation */}
@@ -275,6 +300,98 @@ export default function Layout({ userProfile }) {
               );
             }
 
+            // SPECIAL ACCORDION FOR PROFIL
+            if (item.path === '/pengaturan') {
+              if (isSidebarCollapsed) {
+                return (
+                  <NavLink
+                    key={item.path}
+                    to="/pengaturan?tab=profil"
+                    title={item.label}
+                    className={({ isActive }) =>
+                      `flex items-center justify-center px-2 py-2.5 rounded-xl text-xs transition-all duration-150 ${
+                        isActive || isProfilActive
+                          ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs ring-2 ring-blue-500/20'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                  </NavLink>
+                );
+              }
+
+              return (
+                <div key={item.path} className="space-y-1">
+                  <div
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 cursor-pointer ${
+                      isProfilActive
+                        ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs border-r-4 border-blue-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
+                    }`}
+                    onClick={() => {
+                      if (!isProfilActive) {
+                        navigate('/pengaturan?tab=profil');
+                        setIsProfilOpen(true);
+                      } else {
+                        setIsProfilOpen(!isProfilOpen);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-3 truncate">
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsProfilOpen(!isProfilOpen);
+                      }}
+                      className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
+                      aria-label="Toggle submenu"
+                    >
+                      {isProfilOpen ? (
+                        <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Expandable Sub-Menu (Accordion) */}
+                  {isProfilOpen && (
+                    <div className="border-l-2 border-slate-200 ml-5 pl-2.5 space-y-1 my-1">
+                      {profileSubMenuItems.map((sub) => {
+                        const isSubActive = isProfilActive && currentProfileTab === sub.id;
+                        return (
+                          <Link
+                            key={sub.id}
+                            to={sub.path}
+                            className={`rounded-lg px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
+                              isSubActive
+                                ? 'bg-blue-50 text-blue-700 font-semibold'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                          >
+                            <span className="truncate">{sub.label}</span>
+                          </Link>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
+                      >
+                        <LogOut className="w-3.5 h-3.5 shrink-0" />
+                        <span>Keluar Sistem</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <NavLink
                 key={item.path}
@@ -294,52 +411,6 @@ export default function Layout({ userProfile }) {
             );
           })}
         </nav>
-
-        {/* User Footer & Logout */}
-        <div className={`p-3 border-t border-slate-100 bg-slate-50/70 transition-all duration-300 ${isSidebarCollapsed ? 'flex flex-col items-center gap-2' : ''}`}>
-          {!isSidebarCollapsed ? (
-            <>
-              <div className="flex items-center space-x-2.5 overflow-hidden mb-2.5">
-                {userProfile?.photoURL ? (
-                  <img src={userProfile.photoURL} alt="Avatar" className="w-7 h-7 rounded-full border border-slate-200 shrink-0" />
-                ) : (
-                  <div className="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {userProfile?.displayName?.charAt(0) || 'U'}
-                  </div>
-                )}
-                <div className="overflow-hidden flex-1">
-                  <p className="text-xs font-bold text-slate-800 truncate">{userProfile?.displayName}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{userProfile?.email}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Keluar Sistem</span>
-              </button>
-            </>
-          ) : (
-            <>
-              {userProfile?.photoURL ? (
-                <img src={userProfile.photoURL} alt="Avatar" title={userProfile?.displayName} className="w-8 h-8 rounded-full border border-slate-200 shrink-0" />
-              ) : (
-                <div title={userProfile?.displayName} className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                  {userProfile?.displayName?.charAt(0) || 'U'}
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                title="Keluar Sistem"
-                className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-lg transition-colors cursor-pointer"
-                aria-label="Keluar Sistem"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </>
-          )}
-        </div>
       </aside>
 
       {/* MOBILE HEADER (< 1024px) */}
@@ -403,10 +474,14 @@ export default function Layout({ userProfile }) {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
                     {navItems.map((item) => {
                       const Icon = item.icon;
+                      const targetPath = item.path === '/pengaturan' 
+                        ? '/pengaturan?tab=profil' 
+                        : (item.path === '/akademi' ? '/akademi?tab=dasbor' : item.path);
+
                       return (
                         <NavLink
                           key={item.path}
-                          to={item.path}
+                          to={targetPath}
                           onClick={() => setMobileMenuOpen(false)}
                           className={({ isActive }) =>
                             `flex flex-col items-center justify-center p-4 rounded-2xl bg-white border shadow-sm text-center transition-all ${
@@ -424,6 +499,76 @@ export default function Layout({ userProfile }) {
                       );
                     })}
                   </div>
+
+                  {/* Profil Sub-Menu in Mobile Drawer */}
+                  {isProfilActive && (
+                    <div className="mt-4 p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Sub-Menu Profil</p>
+                      <div className="space-y-1">
+                        {profileSubMenuItems.map((sub) => {
+                          const isSubActive = currentProfileTab === sub.id;
+                          return (
+                            <Link
+                              key={sub.id}
+                              to={sub.path}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`rounded-lg px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                                isSubActive
+                                  ? 'bg-blue-50 text-blue-700 font-semibold'
+                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                              }`}
+                            >
+                              <span className="truncate">{sub.label}</span>
+                            </Link>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
+                        >
+                          <LogOut className="w-4 h-4 shrink-0" />
+                          <span>Keluar Sistem</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Akademi Sub-Menu in Mobile Drawer */}
+                  {isAkademiActive && (
+                    <div className="mt-4 p-3 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Sub-Menu Akademi</p>
+                      <div className="space-y-1">
+                        {academySubMenuItems.map((sub) => {
+                          const isSubActive = currentTab === sub.id;
+                          return (
+                            <Link
+                              key={sub.id}
+                              to={sub.path}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`rounded-lg px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                                isSubActive
+                                  ? 'bg-blue-50 text-blue-700 font-semibold'
+                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                              }`}
+                            >
+                              <span className="truncate">{sub.label}</span>
+                              {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
+                                  isSubActive ? 'bg-blue-200/80 text-blue-800' : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {sub.count}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

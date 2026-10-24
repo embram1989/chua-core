@@ -217,7 +217,7 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
             </div>
             <div>
               <h3 className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Modul Antropometri (Growth Tracker) & AI Sports Nutrition</span>
+                <span>Growth Tracker & AI Sport Nutrition</span>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200">
                   Fase 12 Part 6
                 </span>
