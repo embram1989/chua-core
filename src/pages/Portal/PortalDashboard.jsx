@@ -32,7 +32,9 @@ import {
   Target,
   TrendingUp,
   Quote,
-  Home
+  Home,
+  Users,
+  HeartPulse
 } from 'lucide-react';
 import { getStudentInitials, calculateAge } from '../../utils/helpers';
 
@@ -516,8 +518,14 @@ export default function PortalDashboard() {
                 fisik: Math.round(fisikScore),
                 mental: Math.round(mentalScore),
                 taktik: Math.round(taktikScore),
+                teamwork: typeof pScores.teamwork === 'number' ? Math.round(pScores.teamwork) : null,
+                health: typeof pScores.health === 'number' ? Math.round(pScores.health) : null,
                 position: pScores.position ? Math.round(pScores.position) : null
               },
+              mainPosition: data.mainPosition || null,
+              subPosition: data.subPosition || null,
+              playingRole: data.playingRole || null,
+              secondaryPosition: data.secondaryPosition || null,
               coachNote: data.coachNote || data.notes || 'Perkembangan atlet menunjukkan konsistensi dan determinasi yang baik.',
               scores: data.scores || {}
             });
@@ -1335,6 +1343,8 @@ export default function PortalDashboard() {
                         </p>
                         <p className="text-[10px] text-slate-500">
                           {evaluationData.latestEvaluation.className || className} &bull; {evaluationData.latestEvaluation.sport || sportCategory}
+                          {evaluationData.latestEvaluation.subPosition ? ` • Posisi: ${evaluationData.latestEvaluation.subPosition}` : (evaluationData.latestEvaluation.playerRole ? ` • ${evaluationData.latestEvaluation.playerRole}` : '')}
+                          {evaluationData.latestEvaluation.playingRole ? ` (${evaluationData.latestEvaluation.playingRole})` : ''}
                         </p>
                       </div>
 
@@ -1354,7 +1364,7 @@ export default function PortalDashboard() {
                       })()}
                     </div>
 
-                    {/* 4 Pilar Evaluasi: Teknik, Fisik, Mental, Taktik */}
+                    {/* Pilar-Pilar Evaluasi: Teknik, Fisik, Mental, Taktik, Teamwork, Health */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       {/* Teknik */}
                       <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
@@ -1431,6 +1441,48 @@ export default function PortalDashboard() {
                           />
                         </div>
                       </div>
+
+                      {/* Kerja Sama (Jika Ada) */}
+                      {evaluationData.latestEvaluation.pillarScores?.teamwork != null && (
+                        <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-slate-600 flex items-center gap-1">
+                              <Users className="w-3 h-3 text-emerald-500" />
+                              Kerja Sama
+                            </span>
+                            <span className="font-mono font-bold text-slate-800">
+                              {evaluationData.latestEvaluation.pillarScores.teamwork}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores.teamwork))}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Kesehatan & Dev (Jika Ada) */}
+                      {evaluationData.latestEvaluation.pillarScores?.health != null && (
+                        <div className="bg-white p-2.5 rounded-lg border border-slate-100 shadow-2xs space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-slate-600 flex items-center gap-1">
+                              <HeartPulse className="w-3 h-3 text-teal-500" />
+                              Kesehatan
+                            </span>
+                            <span className="font-mono font-bold text-slate-800">
+                              {evaluationData.latestEvaluation.pillarScores.health}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-teal-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(100, Math.max(10, evaluationData.latestEvaluation.pillarScores.health))}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Catatan Pelatih */}

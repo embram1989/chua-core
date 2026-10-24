@@ -633,20 +633,16 @@ export default function DashboardPage({ userProfile }) {
   }
 
   return (
-    <div className="space-y-6 text-[#333333]">
+    <div className="space-y-3.5 text-[#333333]">
       
       {/* =============================================================== */}
       {/* HEADER PROFIL & EXECUTIVE SUMMARY BANNER                        */}
-      {/* =============================================================== */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-5 border border-slate-700/50">
+      {/* HERO HEADER BANNER TENANT (LIGHT MODE WITH NAVY BORDER) */}
+      <div className="bg-white border-2 border-[#1e3a8a] border-l-4 shadow-sm rounded-xl px-5 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         
-        {/* Glow decoration */}
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-40 -top-10 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex items-start sm:items-center space-x-4 min-w-0 z-10">
+        <div className="flex items-center space-x-3.5 min-w-0">
           {tenantProfile?.logoUrl ? (
-            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm shrink-0 border border-white/20">
+            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-slate-200/80 bg-white flex items-center justify-center shrink-0">
               <img
                 src={tenantProfile.logoUrl}
                 alt={tenantProfile?.name || 'Logo GOR'}
@@ -654,34 +650,32 @@ export default function DashboardPage({ userProfile }) {
               />
             </div>
           ) : (
-            <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 text-white font-black rounded-xl flex items-center justify-center text-2xl shadow-inner shrink-0">
+            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-slate-200/80 bg-blue-50 text-[#1e3a8a] font-black flex items-center justify-center text-xl shrink-0">
               {tenantProfile?.name?.trim() ? tenantProfile.name.trim().charAt(0).toUpperCase() : 'G'}
             </div>
           )}
           <div className="min-w-0">
-            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                {tenantProfile?.name || 'GOR Arena Sports'}
-              </h1>
-            </div>
-            <p className="text-xs text-blue-100/80 mt-1">
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight truncate">
+              {tenantProfile?.name || 'GOR Arena Sports'}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
               Buku Besar Global (Multi-Division Cash Flow &bull; Court, POS Retail &amp; Akademi SIMAK)
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-2.5 w-full md:w-auto shrink-0 z-10">
+        <div className="flex items-center space-x-2 w-full md:w-auto shrink-0">
           <Link
             to="/booking"
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/30 transition-all font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+            className="flex-1 sm:flex-none bg-white hover:bg-slate-50 text-[#1e3a8a] border border-[#1e3a8a]/30 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs flex items-center justify-center space-x-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Booking Baru</span>
           </Link>
           <Link
             to="/kasir"
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white transition-all font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 cursor-pointer shadow-md shadow-emerald-950/20"
+            className="flex-1 sm:flex-none bg-[#1e3a8a] hover:bg-blue-800 text-white px-3.5 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
           >
             <Kasir3DIcon className="w-4 h-4 shrink-0" />
             <span>Buka Kasir POS</span>
@@ -700,167 +694,167 @@ export default function DashboardPage({ userProfile }) {
       {/* =============================================================== */}
       {/* MENU AKSES CEPAT (7 ICON NAVIGASI)                              */}
       {/* =============================================================== */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200 shadow-xs">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 px-1">
+      <div className="bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-2xs space-y-1.5">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-0.5">
           Menu Akses Cepat Arena
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           <Link
             to="/booking"
-            className="flex items-center space-x-2 px-3 py-2 bg-orange-50/70 hover:bg-orange-100/80 text-orange-800 rounded-xl text-xs font-bold transition-all border border-orange-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-orange-50/70 hover:bg-orange-100/80 text-orange-800 rounded-lg text-xs font-medium transition-all border border-orange-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <Booking3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Jadwal Booking</span>
+            <Booking3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Booking</span>
           </Link>
           <Link
             to="/kasir"
-            className="flex items-center space-x-2 px-3 py-2 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 rounded-xl text-xs font-bold transition-all border border-emerald-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 rounded-lg text-xs font-medium transition-all border border-emerald-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <Kasir3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Kasir POS</span>
+            <Kasir3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Kasir POS</span>
           </Link>
           <Link
             to="/akademi"
-            className="flex items-center space-x-2 px-3 py-2 bg-purple-50/70 hover:bg-purple-100/80 text-purple-800 rounded-xl text-xs font-bold transition-all border border-purple-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-50/70 hover:bg-purple-100/80 text-purple-800 rounded-lg text-xs font-medium transition-all border border-purple-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <Akademi3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Akademi SIMAK</span>
+            <Akademi3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Akademi</span>
           </Link>
           <Link
             to="/events"
-            className="flex items-center space-x-2 px-3 py-2 bg-amber-50/70 hover:bg-amber-100/80 text-amber-800 rounded-xl text-xs font-bold transition-all border border-amber-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-amber-50/70 hover:bg-amber-100/80 text-amber-800 rounded-lg text-xs font-medium transition-all border border-amber-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <Event3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Event &amp; Turnamen</span>
+            <Event3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Event</span>
           </Link>
           <Link
             to="/keuangan"
-            className="flex items-center space-x-2 px-3 py-2 bg-teal-50/70 hover:bg-teal-100/80 text-teal-800 rounded-xl text-xs font-bold transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-teal-50/70 hover:bg-teal-100/80 text-teal-800 rounded-lg text-xs font-medium transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <Keuangan3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Keuangan</span>
+            <Keuangan3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Keuangan</span>
           </Link>
           <Link
             to="/intelligence"
-            className="flex items-center space-x-2 px-3 py-2 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-800 rounded-xl text-xs font-bold transition-all border border-indigo-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-800 rounded-lg text-xs font-medium transition-all border border-indigo-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
-            <AIInsight3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">AI Insight</span>
+            <AIInsight3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">AI Insight</span>
           </Link>
           <Link
             to="/pengaturan"
-            className="flex items-center space-x-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-bold transition-all border border-slate-200 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg text-xs font-medium transition-all border border-slate-200 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1 shrink-0"
           >
-            <Pengaturan3DIcon className="w-5 h-5 shrink-0" />
-            <span className="truncate">Profil GOR</span>
+            <Pengaturan3DIcon className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Profil GOR</span>
           </Link>
         </div>
       </div>
 
       {/* =============================================================== */}
       {/* 5 KARTU EKSEKUTIF KPI KEUANGAN (TERMASUK B2B SPONSORSHIP) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         
         {/* KARTU 1: GROSS REVENUE BULAN INI */}
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all space-y-2 relative overflow-hidden">
+        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-              Gross Revenue Bulan Ini
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider leading-tight">
+              GROSS REVENUE BULAN INI
             </span>
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <DollarSign className="w-4 h-4" />
+            <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+              <DollarSign className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <p className="text-xl font-bold text-slate-900 tracking-tight my-1.5">
             {formatRupiah(financialSummary.grossRevenueThisMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Transaksi Sukses:</span>
-            <span className="font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-              {financialSummary.totalTransactionsCount} Transaksi
+          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md text-[10px]">
+              {financialSummary.totalTransactionsCount} Transaksi Sukses
             </span>
           </div>
         </div>
 
         {/* KARTU 2: DIVISI SEWA LAPANGAN */}
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all space-y-2">
+        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">
-              Divisi Sewa Lapangan
+            <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider leading-tight">
+              DIVISI SEWA LAPANGAN
             </span>
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <Booking3DIcon className="w-5 h-5 shrink-0" />
+            <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+              <Booking3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-blue-600 tracking-tight">
+          <p className="text-xl font-bold text-blue-600 tracking-tight my-1.5">
             {formatRupiah(financialSummary.courtRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Okupansi Jam:</span>
-            <span className="font-extrabold text-slate-700">
-              {occupancyPercentage}% ({totalBookingsCount} Sesi)
+          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-[10px]">
+              Okupansi: {occupancyPercentage}% ({totalBookingsCount} Sesi)
             </span>
           </div>
         </div>
 
         {/* KARTU 3: DIVISI KASIR RETAIL (POS) */}
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all space-y-2">
+        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">
-              Divisi POS &amp; Retail F&amp;B
+            <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider leading-tight">
+              DIVISI POS &amp; RETAIL
             </span>
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Kasir3DIcon className="w-5 h-5 shrink-0" />
+            <div className="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+              <Kasir3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
+          <p className="text-xl font-bold text-emerald-600 tracking-tight my-1.5">
             {formatRupiah(financialSummary.posRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">F&amp;B &amp; Rental:</span>
-            <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-              Habis Pakai &amp; Sewa
+          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md text-[10px]">
+              F&amp;B &amp; Sewa
             </span>
           </div>
         </div>
 
         {/* KARTU 4: DIVISI AKADEMI SPP */}
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all space-y-2">
+        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider">
-              Divisi Akademi SIMAK
+            <span className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider leading-tight">
+              DIVISI AKADEMI SPP
             </span>
-            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
-              <Akademi3DIcon className="w-5 h-5 shrink-0" />
+            <div className="w-7 h-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center shrink-0">
+              <Akademi3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-purple-700 tracking-tight">
+          <p className="text-xl font-bold text-purple-700 tracking-tight my-1.5">
             {formatRupiah(financialSummary.sppRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Pembayaran SPP:</span>
-            <span className="font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-              Pelunasan Terdata
+          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md text-[10px]">
+              SPP Terdata
             </span>
           </div>
         </div>
 
         {/* KARTU 5: DIVISI SPONSORSHIP (B2B) */}
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all space-y-2 col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1 col-span-1 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">
-              Sponsorship (B2B)
+            <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider leading-tight">
+              SPONSORSHIP (B2B)
             </span>
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
-              <DanaSponsor3DIcon className="w-5 h-5 shrink-0" />
+            <div className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
+              <DanaSponsor3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-amber-600 tracking-tight">
+          <p className="text-xl font-bold text-amber-600 tracking-tight my-1.5">
             {formatRupiah(financialSummary.sponsorRevMonth || 0)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <span className="text-slate-500 font-medium">Dana Masuk:</span>
-            <span className="font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
               Termin B2B Cair
             </span>
           </div>
@@ -871,73 +865,75 @@ export default function DashboardPage({ userProfile }) {
       {/* =============================================================== */}
       {/* 2. PANEL REKONSILIASI BILYET GIRO & TRANSAKSI PENDING (FASE 12 PART 4) */}
       {/* =============================================================== */}
-      <div className="bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-amber-100/60 rounded-3xl p-5 sm:p-6 border border-amber-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-3.5">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-600/20 shrink-0">
-              <Landmark className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="font-extrabold text-sm sm:text-base text-amber-950">
-                  Menunggu Kliring / Pending Giro B2B
-                </h2>
-                <span className="px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full text-[10px] font-black uppercase tracking-wider">
-                  {pendingTransactions.length} Pending
-                </span>
-              </div>
-              <p className="text-xs text-amber-800/80 mt-0.5">
-                Instrumen Cek / Bilyet Giro yang belum dikliringkan bank &bull; Total Potensial: <strong className="text-amber-950 font-black">{formatRupiah(totalPendingAmount)}</strong>
-              </p>
-            </div>
+      {pendingTransactions.length === 0 ? (
+        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="text-xs font-bold text-slate-800">Menunggu Kliring / Pending Giro B2B</span>
+            <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+              0 Pending (Rp 0)
+            </span>
           </div>
+          <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+            Semua Giro &amp; Transaksi B2B telah kliring sukses.
+          </span>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-amber-100/60 rounded-xl p-4 border border-amber-200/90 shadow-2xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-2.5">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-2xs shrink-0">
+                <Landmark className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="font-extrabold text-xs sm:text-sm text-amber-950">
+                    Menunggu Kliring / Pending Giro B2B
+                  </h2>
+                  <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    {pendingTransactions.length} Pending
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800/80">
+                  Total Potensial: <strong className="text-amber-950 font-bold">{formatRupiah(totalPendingAmount)}</strong>
+                </p>
+              </div>
+            </div>
 
-          {pendingTransactions.length > 0 && (
-            <div className="text-xs text-amber-800 font-bold bg-amber-200/60 px-3 py-1.5 rounded-xl border border-amber-300 self-start sm:self-auto">
+            <div className="text-xs text-amber-800 font-semibold bg-amber-200/60 px-2.5 py-1 rounded-lg border border-amber-300 self-start sm:self-auto">
               Klik &quot;Tandai Cair&quot; setelah dana efektif diterima di rekening GOR
             </div>
+          </div>
+
+          {reconcileNotice && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-xs text-emerald-800 font-bold">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+              <span>{reconcileNotice}</span>
+            </div>
           )}
-        </div>
 
-        {reconcileNotice && (
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center space-x-2 text-xs text-emerald-800 font-bold animate-in fade-in duration-200">
-            <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-emerald-600" />
-            <span>{reconcileNotice}</span>
-          </div>
-        )}
+          {reconcileError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-2 text-xs text-red-700 font-bold">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{reconcileError}</span>
+            </div>
+          )}
 
-        {reconcileError && (
-          <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-center space-x-2 text-xs text-red-700 font-bold">
-            <AlertCircle className="w-4.5 h-4.5 shrink-0" />
-            <span>{reconcileError}</span>
-          </div>
-        )}
-
-        {pendingTransactions.length === 0 ? (
-          <div className="py-8 bg-white/60 backdrop-blur-xs rounded-2xl border border-amber-200/60 text-center flex flex-col items-center justify-center p-6">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
-            <p className="text-sm font-bold text-slate-800">Semua Giro &amp; Transaksi Sudah Kliring</p>
-            <p className="text-xs text-slate-500 max-w-sm mt-0.5">
-              Tidak ada instrumen Bilyet Giro atau pembayaran B2B yang tertunda saat ini. Seluruh arus kas tercatat sukses di buku besar.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto bg-white/80 backdrop-blur-xs rounded-2xl border border-amber-200/70 shadow-2xs">
+          <div className="overflow-x-auto bg-white/80 backdrop-blur-xs rounded-xl border border-amber-200/70 shadow-2xs">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-amber-200/70 text-amber-900 uppercase font-extrabold text-[10px] tracking-wider bg-amber-100/50">
-                  <th className="py-3 px-3.5">Tanggal Jatuh Tempo</th>
-                  <th className="py-3 px-3.5">Referensi / Perusahaan</th>
-                  <th className="py-3 px-3.5">Bank Penerbit</th>
-                  <th className="py-3 px-3.5 text-right">Nominal Pending</th>
-                  <th className="py-3 px-3.5 text-center">Aksi Kliring</th>
+                <tr className="border-b border-amber-200/70 text-amber-900 uppercase font-bold text-[10px] tracking-wider bg-amber-100/50">
+                  <th className="py-2.5 px-3">Tanggal Jatuh Tempo</th>
+                  <th className="py-2.5 px-3">Referensi / Perusahaan</th>
+                  <th className="py-2.5 px-3">Bank Penerbit</th>
+                  <th className="py-2.5 px-3 text-right">Nominal Pending</th>
+                  <th className="py-2.5 px-3 text-center">Aksi Kliring</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-amber-100 text-xs">
                 {pendingTransactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-amber-50/60 transition-colors">
-                    {/* Tanggal Jatuh Tempo */}
-                    <td className="py-3.5 px-3.5">
+                    <td className="py-2.5 px-3">
                       <div className="flex items-center space-x-1.5 text-amber-950 font-bold">
                         <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>{tx.dueDateFormatted}</span>
@@ -992,8 +988,8 @@ export default function DashboardPage({ userProfile }) {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* =============================================================== */}
       {/* 2 VISUALISASI CHARTING RECHARTS (INTRUKSI 2)                     */}

@@ -313,8 +313,17 @@ export async function onRequestPost(context) {
           fisik: Math.round(fisikScore),
           mental: Math.round(mentalScore),
           taktik: Math.round(taktikScore),
-          position: pScores.position ? Math.round(pScores.position) : null
+          teamwork: typeof pScores.teamwork === 'number' ? Math.round(pScores.teamwork) : null,
+          health: typeof pScores.health === 'number' ? Math.round(pScores.health) : null,
+          position: pScores.position ? Math.round(pScores.position) : null,
+          universalHybrid: typeof pScores.universalHybrid === 'number' ? Math.round(pScores.universalHybrid) : null
         },
+        mainPosition: ev.mainPosition || null,
+        subPosition: ev.subPosition || null,
+        playingRole: ev.playingRole || null,
+        secondaryPosition: ev.secondaryPosition || null,
+        situationalRole: ev.situationalRole || null,
+        isUniversalHybrid: !!ev.isUniversalHybrid,
         coachNote: ev.coachNote || ev.notes || ev.feedback || 'Perkembangan atlet menunjukkan konsistensi yang baik.',
         scores: ev.scores || {},
         createdAt: ev.createdAt || null

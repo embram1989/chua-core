@@ -158,27 +158,24 @@ export default function DateRangeFilter({
   ];
 
   return (
-    <div className={`bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-gray-200 transition-all ${className}`}>
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+    <div className={`bg-white rounded-xl px-4 py-2.5 shadow-2xs border border-gray-200 transition-all ${className}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         
         {/* Left: Filter Label & Active Range Summary */}
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200 shrink-0">
-            <Filter className="w-4 h-4" />
+        <div className="flex items-center space-x-2">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200 shrink-0">
+            <Filter className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Periode Analitik</span>
-              <span className="text-[10px] text-gray-400 font-medium">({getActiveDateRangeLabel(timeFilter, customDate)})</span>
-            </div>
-            <p className="text-[11px] text-gray-500">Sesuaikan rentang waktu untuk filter metrik keuangan &amp; booking.</p>
+          <div className="flex items-center space-x-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Periode Analitik</span>
+            <span className="text-[11px] text-gray-500 font-medium">({getActiveDateRangeLabel(timeFilter, customDate)})</span>
           </div>
         </div>
 
         {/* Right: Pill Buttons & Custom Date Range Inputs */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Segmented Control iOS Style */}
-          <div className="bg-slate-100 p-1 rounded-xl inline-flex w-full sm:w-auto overflow-x-auto gap-1 border border-slate-200/60">
+          <div className="bg-slate-100 p-0.5 rounded-lg inline-flex overflow-x-auto gap-0.5 border border-slate-200/60">
             {filterOptions.map((opt) => {
               const isActive = timeFilter === opt.id;
               return (
@@ -186,10 +183,10 @@ export default function DateRangeFilter({
                   key={opt.id}
                   type="button"
                   onClick={() => setTimeFilter(opt.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer select-none font-bold text-center shrink-0 ${
+                  className={`px-3 py-1 rounded-md text-xs transition-all cursor-pointer select-none font-semibold text-center shrink-0 ${
                     isActive
-                      ? 'bg-white text-slate-800 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800 bg-transparent font-semibold'
+                      ? 'bg-white text-slate-800 shadow-2xs font-bold'
+                      : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >
                   {opt.label}
@@ -200,25 +197,23 @@ export default function DateRangeFilter({
 
           {/* Custom Date Pickers (Shown when timeFilter === 'custom') */}
           {timeFilter === 'custom' && (
-            <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 animate-fade-in shrink-0">
+            <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs shrink-0">
               <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <div className="flex items-center space-x-1.5 text-xs">
-                <input
-                  type="date"
-                  value={customDate.start || ''}
-                  onChange={(e) => setCustomDate((prev) => ({ ...prev, start: e.target.value }))}
-                  className="bg-transparent text-xs font-semibold text-[#333333] focus:outline-none cursor-pointer"
-                  placeholder="Mulai"
-                />
-                <span className="text-gray-400 font-bold text-[10px]">s/d</span>
-                <input
-                  type="date"
-                  value={customDate.end || ''}
-                  onChange={(e) => setCustomDate((prev) => ({ ...prev, end: e.target.value }))}
-                  className="bg-transparent text-xs font-semibold text-[#333333] focus:outline-none cursor-pointer"
-                  placeholder="Sampai"
-                />
-              </div>
+              <input
+                type="date"
+                value={customDate.start || ''}
+                onChange={(e) => setCustomDate((prev) => ({ ...prev, start: e.target.value }))}
+                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+                placeholder="Mulai"
+              />
+              <span className="text-gray-400 font-bold text-[10px]">s/d</span>
+              <input
+                type="date"
+                value={customDate.end || ''}
+                onChange={(e) => setCustomDate((prev) => ({ ...prev, end: e.target.value }))}
+                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+                placeholder="Sampai"
+              />
             </div>
           )}
         </div>

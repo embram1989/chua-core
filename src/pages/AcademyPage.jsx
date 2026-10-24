@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   collection, 
   query, 
@@ -173,8 +174,28 @@ export default function AcademyPage({ userProfile }) {
   const [newAcademyDescription, setNewAcademyDescription] = useState('');
   const [isSavingAcademy, setIsSavingAcademy] = useState(false);
 
-  // Active Internal Tab: 'dasbor' | 'siswa' | 'pelatih' | 'kelas' | 'presensi'
-  const [activeAcademyTab, setActiveAcademyTab] = useState('siswa');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = ['dasbor', 'siswa', 'pelatih', 'kelas', 'presensi'];
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam && validTabs.includes(tabParam)) ? tabParam : 'dasbor';
+
+  // Active Internal Tab: 'dasbor' | 'siswa' | 'pelatih' | 'kelas' | 'presensi' (Defaults to 'dasbor')
+  const [activeAcademyTab, setActiveAcademyTab] = useState(initialTab);
+
+  // Sync activeAcademyTab when URL tab parameter changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    if (currentTab && validTabs.includes(currentTab)) {
+      setActiveAcademyTab(currentTab);
+    } else if (!currentTab) {
+      setActiveAcademyTab('dasbor');
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab) => {
+    setActiveAcademyTab(tab);
+    setSearchParams({ tab });
+  };
 
   // Smart Collapsible Card State for Student List
   const [expandedStudentId, setExpandedStudentId] = useState(null);
@@ -206,6 +227,19 @@ export default function AcademyPage({ userProfile }) {
   const filteredStudents = activeStudents;
   const filteredCoaches = activeCoaches;
   const filteredClasses = activeClasses;
+
+  // Emit counts to window so sidebar badges stay in exact real-time sync
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('simak_academy_counts', {
+        detail: {
+          students: filteredStudents.length,
+          coaches: filteredCoaches.length,
+          classes: filteredClasses.length,
+        },
+      })
+    );
+  }, [filteredStudents.length, filteredCoaches.length, filteredClasses.length]);
 
   // Auto-reset / default selectedClassId when switching active workspace academy
   useEffect(() => {
@@ -861,159 +895,10 @@ export default function AcademyPage({ userProfile }) {
       )}
 
       {/* ==================================================== */}
-      {/* 3. TAB OPERASIONAL & AKSI (HANYA MUNCUL JIKA ADA AKADEMI) */}
+      {/* 3. TAB OPERASIONAL (KONTEN TAB AKTIF) */}
       {/* ==================================================== */}
       {academies.length > 0 && (
-        <>
-          {/* ROMBAK MENU TAB MENJADI DROPDOWN (KHUSUS MOBILE) & MOBILE ACTION BUTTON */}
-          <div className="flex md:hidden items-center gap-2 mb-4">
-            <select
-              value={activeAcademyTab}
-              onChange={(e) => setActiveAcademyTab(e.target.value)}
-              className="w-full bg-white border border-slate-200 text-slate-700 rounded-xl px-4 py-3 shadow-sm focus:ring-blue-500 font-medium text-xs font-bold cursor-pointer"
-            >
-              <option value="dasbor">Dasbor &amp; Laporan</option>
-              <option value="siswa">Siswa &amp; SPP ({filteredStudents.length})</option>
-              <option value="pelatih">Pelatih ({filteredCoaches.length})</option>
-              <option value="kelas">Kelas &amp; Kelompok ({filteredClasses.length})</option>
-              <option value="presensi">Presensi &amp; Evaluasi</option>
-            </select>
-            {activeAcademyTab === 'siswa' && (
-              <button
-                onClick={() => {
-                  setEditingStudent(null);
-                  setShowAddModal(true);
-                }}
-                className="px-3.5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                title="Tambah Siswa Baru"
-              >
-                <UserPlus className="w-4 h-4" />
-              </button>
-            )}
-            {activeAcademyTab === 'pelatih' && (
-              <button
-                onClick={() => {
-                  setEditingCoach(null);
-                  setShowCoachModal(true);
-                }}
-                className="px-3.5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                title="Tambah Pelatih"
-              >
-                <UserPlus className="w-4 h-4" />
-              </button>
-            )}
-            {activeAcademyTab === 'kelas' && (
-              <button
-                onClick={() => setShowClassModal(true)}
-                className="px-3.5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                title="Buat Kelas"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          {/* HORIZONTAL TAB NAVIGATION MENU (PILLS - DESKTOP) & CONTEXTUAL ACTION BUTTON */}
-          <div className="hidden md:flex items-center justify-between border-b border-slate-200 pb-2 gap-4">
-            <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
-            
-            <button
-              onClick={() => setActiveAcademyTab('dasbor')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeAcademyTab === 'dasbor'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Dashboard3DIcon className="w-5 h-5 shrink-0" />
-              <span>Dasbor &amp; Laporan</span>
-            </button>
-
-            <button
-              onClick={() => setActiveAcademyTab('siswa')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeAcademyTab === 'siswa'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Akademi3DIcon className="w-5 h-5 shrink-0" />
-              <span>Siswa &amp; SPP ({filteredStudents.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveAcademyTab('pelatih')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeAcademyTab === 'pelatih'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Booking3DIcon className="w-5 h-5 shrink-0" />
-              <span>Pelatih ({filteredCoaches.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveAcademyTab('kelas')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeAcademyTab === 'kelas'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <Akademi3DIcon className="w-5 h-5 shrink-0" />
-              <span>Kelas &amp; Kelompok ({filteredClasses.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveAcademyTab('presensi')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                activeAcademyTab === 'presensi'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <AIInsight3DIcon className="w-5 h-5 shrink-0" />
-              <span>Presensi &amp; Evaluasi</span>
-            </button>
-            </div>
-            <div className="shrink-0 pb-1">
-              {activeAcademyTab === 'siswa' && (
-                <button
-                  onClick={() => {
-                    setEditingStudent(null);
-                    setShowAddModal(true);
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Siswa Baru</span>
-                </button>
-              )}
-              {activeAcademyTab === 'pelatih' && (
-                <button
-                  onClick={() => {
-                    setEditingCoach(null);
-                    setShowCoachModal(true);
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>+ Tambah Pelatih</span>
-                </button>
-              )}
-              {activeAcademyTab === 'kelas' && (
-                <button
-                  onClick={() => setShowClassModal(true)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Buat Kelas</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* TAB AREA CONTENT RENDER */}
+        <div className="mt-4">
 
       {/* TAB 1: DASBOR & LAPORAN (BI & ANALYTICS) */}
       {activeAcademyTab === 'dasbor' && (
@@ -1036,15 +921,29 @@ export default function AcademyPage({ userProfile }) {
       {/* TAB 2: SISWA & SPP */}
       {activeAcademyTab === 'siswa' && (
         <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-            <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
-              <GraduationCap className="w-4 h-4 text-blue-600" />
-              <span>Daftar Siswa Terdaftar ({filteredStudents.length})</span>
-            </h2>
-            <div className="flex items-center space-x-2 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-              <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Siklus Tagihan: <strong>Tgl {sppBillingStartDay}</strong> &bull; Jatuh Tempo: <strong>Tgl {sppDueDay}</strong></span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
+                <GraduationCap className="w-4 h-4 text-blue-600" />
+                <span>Daftar Siswa Terdaftar ({filteredStudents.length})</span>
+              </h2>
+              <div className="flex items-center space-x-2 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Siklus Tagihan: <strong>Tgl {sppBillingStartDay}</strong> &bull; Jatuh Tempo: <strong>Tgl {sppDueDay}</strong></span>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEditingStudent(null);
+                setShowAddModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 self-start sm:self-auto shrink-0"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Siswa Baru</span>
+            </button>
           </div>
 
           {loadingStudents ? (
@@ -1606,7 +1505,7 @@ export default function AcademyPage({ userProfile }) {
           </div>
         </div>
       )}
-        </>
+        </div>
       )}
 
       {/* MODAL 1: PENDAFTARAN & EDIT SISWA AKADEMI (RELASIONAL) */}

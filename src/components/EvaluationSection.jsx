@@ -26,7 +26,6 @@ import {
   Filter,
   UserCheck,
   Loader2,
-  ChevronRight,
   Target,
   Layers,
   Zap,
@@ -38,8 +37,20 @@ import {
   BarChart2,
   Lock,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Plus,
+  Minus,
+  Sliders,
+  SlidersHorizontal,
+  Compass,
+  LayoutGrid,
+  Radio,
+  History,
+  RotateCcw,
+  GraduationCap,
+  Flame
 } from 'lucide-react';
+
 import {
   Radar,
   RadarChart,
@@ -49,8 +60,58 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+import {
+  FOOTBALL_POSITIONS,
+  FOOTBALL_PLAYING_STYLES,
+  FOOTBALL_CORE_CATEGORIES,
+  TIER_CONFIGS,
+  detectTierFromAge,
+  getFilteredIndicatorsForCategory,
+  getPositionIndicatorsForTier,
+  getAvailablePositionsForTier,
+  isFootballOrMinisoccer,
+  getPositionConfig,
+  getStyleConfig
+} from '../config/footballAssessmentData';
+
+import {
+  FUTSAL_POSITIONS,
+  FUTSAL_PLAYING_STYLES,
+  FUTSAL_CORE_CATEGORIES,
+  FUTSAL_TIER_CONFIGS,
+  detectFutsalTierFromAge,
+  getFilteredFutsalIndicatorsForCategory,
+  getAvailableFutsalPositionsForTier,
+  getFutsalPositionIndicatorsForTier,
+  isFutsalSport,
+  getFutsalPositionConfig,
+  getFutsalStyleConfig
+} from '../config/futsalAssessmentData';
+
+import {
+  BADMINTON_EVENT_TYPES,
+  BADMINTON_PLAYING_STYLES,
+  BADMINTON_DOUBLES_SPECS,
+  BADMINTON_CORE_CATEGORIES,
+  BADMINTON_EVENT_INDICATORS,
+  BADMINTON_TIER_CONFIGS,
+  PBSI_AGE_LEVELS,
+  isBadmintonSport,
+  isDoublesEvent,
+  getBadmintonEventConfig,
+  getBadmintonStyleConfig,
+  getBadmintonDoublesSpecConfig,
+  detectBadmintonTierFromAge,
+  detectPbsiLevelFromAge,
+  getAvailableBadmintonEventsForTier,
+  getFilteredBadmintonIndicatorsForCategory,
+  getBadmintonEventSpecificConfigForTier,
+  isStyleUnlockedForTier,
+  isDoublesSpecUnlockedForTier
+} from '../config/badmintonAssessmentData';
+
 // =====================================================================
-// 1. RESTRUKTURISASI MATRIKS KPI 4-PILAR SPORTS SCIENCE + POSISI SPESIFIK
+// RESTRUKTURISASI MATRIKS KPI 4-PILAR UNTUK CABANG OLAHRAGA LAIN
 // =====================================================================
 export const SPORT_KPI_MATRIX = {
   'racket': {
@@ -64,7 +125,7 @@ export const SPORT_KPI_MATRIX = {
     roles: ['Singles Specialist', 'Doubles Front Court', 'Doubles Rear Court']
   },
   'field': {
-    label: 'Field & Team Sports (Sepakbola, Mini Soccer, Futsal)',
+    label: 'Field & Team Sports (Olahraga Lapangan Lain)',
     pillars: {
       fisik: ['VO2 Max (Kardio)', 'Sprint & Acceleration', 'Body Balance'],
       teknik: ['Passing Accuracy', 'Dribbling & First Touch', 'Shooting / Finishing', 'Tackling / Intercepting'],
@@ -97,16 +158,10 @@ export const SPORT_KPI_MATRIX = {
 
 export const CATEGORY_KPI_DICTIONARY = SPORT_KPI_MATRIX;
 
-// =====================================================================
-// 2. PARAMETER SPESIFIK BERDASARKAN POSISI ATLET
-// =====================================================================
 export const ROLE_SPECIFIC_KPIS = {
-  // Racket Sports Roles
   'Singles Specialist': ['Court Coverage', 'Patience & Rally Construction'],
   'Doubles Front Court': ['Interception Reflex', 'Quick Tap & Drive'],
   'Doubles Rear Court': ['Jump Smash Power', 'Backcourt Defense Rotation'],
-
-  // Field & Team Sports Roles
   'Goalkeeper': ['Shot Stopping & Reflex', 'Distribution & Throw-in'],
   'Goalkeeper / Keeper': ['Shot Stopping & Reflex', 'Distribution & Throw-in'],
   'Anchor / Defender': ['Tackling / Intercept', 'Defensive Positioning'],
@@ -117,21 +172,14 @@ export const ROLE_SPECIFIC_KPIS = {
   'Forward / Pivot': ['Finishing / Target Hold', 'First Touch Under Pressure'],
   'Pivot / Striker': ['Finishing / Target Hold', 'First Touch Under Pressure'],
   'Attacker / Pivot': ['Finishing / Target Hold', 'First Touch Under Pressure'],
-
-  // Court Team Sports Roles
   'Point Guard': ['Court Vision & Assist', 'Pace & Ball Control'],
   'Shooting Guard / Wing': ['3-Point Accuracy', 'Perimeter Defense'],
   'Center / Big Man': ['Post Moves & Hook', 'Rim Protection / Blocks'],
-
-  // Net Team Sports Roles
   'Setter': ['Set Precision & Deception', 'Second Ball Attack'],
   'Smasher / Open Spiker': ['Vertical Jump & Spike Angle', 'Tooling the Block'],
   'Libero / Defender': ['Dig Reflex & Diving', 'Free Ball Reception Quality']
 };
 
-/**
- * Resolves the sport category key ('racket' | 'field' | 'court' | 'net')
- */
 export function resolveSportCategoryKey(selectedClass, activeAcademy) {
   if (selectedClass?.sportCategory && SPORT_KPI_MATRIX[selectedClass.sportCategory]) {
     return selectedClass.sportCategory;
@@ -150,148 +198,46 @@ export function resolveSportCategoryKey(selectedClass, activeAcademy) {
   if (['voli', 'volleyball', 'takraw'].some((s) => sportName.includes(s))) {
     return 'net';
   }
-  if (['futsal', 'sepakbola', 'soccer', 'mini soccer'].some((s) => sportName.includes(s))) {
-    return 'field';
-  }
   return 'field';
 }
 
-function getCategoryVisuals(catKey) {
-  switch (catKey) {
-    case 'racket':
-      return {
-        badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        badgePill: 'bg-emerald-500 text-white',
-        border: 'border-emerald-200',
-        cardBg: 'bg-emerald-50/40',
-        textAccent: 'text-emerald-700',
-        sliderAccent: 'accent-emerald-600'
-      };
-    case 'court':
-      return {
-        badge: 'bg-amber-50 text-amber-800 border-amber-200',
-        badgePill: 'bg-amber-500 text-white',
-        border: 'border-amber-200',
-        cardBg: 'bg-amber-50/40',
-        textAccent: 'text-amber-700',
-        sliderAccent: 'accent-amber-600'
-      };
-    case 'net':
-      return {
-        badge: 'bg-purple-50 text-purple-800 border-purple-200',
-        badgePill: 'bg-purple-500 text-white',
-        border: 'border-purple-200',
-        cardBg: 'bg-purple-50/40',
-        textAccent: 'text-purple-700',
-        sliderAccent: 'accent-purple-600'
-      };
-    case 'field':
-    default:
-      return {
-        badge: 'bg-blue-50 text-blue-800 border-blue-200',
-        badgePill: 'bg-blue-600 text-white',
-        border: 'border-blue-200',
-        cardBg: 'bg-blue-50/40',
-        textAccent: 'text-blue-700',
-        sliderAccent: 'accent-blue-600'
-      };
-  }
+function getScoreGrade(score) {
+  if (score >= 85) return { grade: 'A (Sangat Baik)', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+  if (score >= 75) return { grade: 'B (Baik)', badge: 'bg-blue-100 text-blue-800 border-blue-300' };
+  if (score >= 60) return { grade: 'C (Cukup)', badge: 'bg-amber-100 text-amber-800 border-amber-300' };
+  return { grade: 'D (Perlu Bimbingan)', badge: 'bg-rose-100 text-rose-800 border-rose-300' };
 }
 
+function formatDateIndonesian(dateStr) {
+  if (!dateStr) return '-';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return dateStr;
+}
+
+// =====================================================================
+// MAIN COMPONENT EXPORT
+// =====================================================================
 export default function EvaluationSection({ selectedClass, students = [], tenantId, activeAcademy }) {
-  // 1. FILTER SISWA YANG TERDAFTAR DI KELAS AKTIF
+  // Filter students in current active class
   const classStudents = useMemo(() => {
     return students.filter((s) => s.classId === selectedClass?.id);
   }, [students, selectedClass?.id]);
 
-  // 2. DETEKSI SISWA AKTIF DENGAN ID
-  const [selectedStudentId, setSelectedStudentId] = useState('');
-
-  const selectedStudent = useMemo(() => {
-    if (classStudents.length === 0) return null;
-    return classStudents.find((s) => s.id === selectedStudentId) || classStudents[0];
-  }, [classStudents, selectedStudentId]);
-
-  // 3. DETEKSI RUMPUN OLAHRAGA AKTIF
-  const sportCategoryKey = useMemo(() => {
-    return resolveSportCategoryKey(selectedClass, activeAcademy);
-  }, [selectedClass?.sportCategory, selectedClass?.sport, activeAcademy?.category, activeAcademy?.sportCategory, activeAcademy?.sport]);
-
-  const categoryConfig = SPORT_KPI_MATRIX[sportCategoryKey] || SPORT_KPI_MATRIX['field'];
-  const sportName = selectedClass?.sport || activeAcademy?.sport || categoryConfig.label;
-  const theme = getCategoryVisuals(sportCategoryKey);
-
-  // 4. POSISI / PERAN SISWA TERKUNCI (LOCKED FROM STUDENT PROFILE)
-  const playerRole = selectedStudent?.playerRole || selectedStudent?.position || '';
-
-  // MUTASI POSISI MODAL STATE
-  const [showMutationModal, setShowMutationModal] = useState(false);
-  const [newRole, setNewRole] = useState('');
-  const [mutationReason, setMutationReason] = useState('');
-  const [isMutating, setIsMutating] = useState(false);
-
-  // 5. PARAMETER PILAR SPORTS SCIENCE
-  const pillars = categoryConfig.pillars || {
-    fisik: [],
-    teknik: [],
-    taktik: [],
-    mental: []
-  };
-
-  const roleKPIs = useMemo(() => {
-    return (playerRole && ROLE_SPECIFIC_KPIS[playerRole]) || [];
-  }, [playerRole]);
-
-  // 6. SCORES & FORM STATE
-  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [scores, setScores] = useState({});
-  const [coachNote, setCoachNote] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-
-  // 7. KALKULASI SUB-SKOR PER PILAR (USEMEMO)
-  const pillarScores = useMemo(() => {
-    const computeAvg = (kpiList) => {
-      if (!kpiList || kpiList.length === 0) return 0;
-      const total = kpiList.reduce((sum, kpi) => {
-        const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-        return sum + val;
-      }, 0);
-      return Math.round(total / kpiList.length);
-    };
-
-    const fisik = computeAvg(pillars.fisik);
-    const teknik = computeAvg(pillars.teknik);
-    const taktik = computeAvg(pillars.taktik);
-    const mental = computeAvg(pillars.mental);
-    const position = computeAvg(roleKPIs);
-
-    const overall = Math.round((fisik + teknik + taktik + mental + position) / 5);
-
-    const allActiveKPIs = Array.from(new Set([
-      ...(pillars.fisik || []),
-      ...(pillars.teknik || []),
-      ...(pillars.taktik || []),
-      ...(pillars.mental || []),
-      ...roleKPIs
-    ]));
-
-    return { fisik, teknik, taktik, mental, position, overall, allActiveKPIs };
-  }, [pillars, roleKPIs, scores]);
-
-  const overallScore = pillarScores.overall;
-
-  // Radar chart data for recharts
-  const radarData = useMemo(() => [
-    { subject: 'Fisik', A: pillarScores.fisik, fullMark: 100 },
-    { subject: 'Teknik', A: pillarScores.teknik, fullMark: 100 },
-    { subject: 'Taktik', A: pillarScores.taktik, fullMark: 100 },
-    { subject: 'Mental', A: pillarScores.mental, fullMark: 100 },
-    { subject: 'Posisi', A: pillarScores.position, fullMark: 100 }
-  ], [pillarScores]);
-
-  // 8. FIRESTORE REAL-TIME EVALUATION HISTORY
+  // Firestore real-time evaluation history
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [filterStudentId, setFilterStudentId] = useState('ALL');
@@ -313,7 +259,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
       q,
       (snapshot) => {
         const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-        list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        list.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
         setHistory(list);
         setLoadingHistory(false);
       },
@@ -327,118 +273,387 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
     return () => unsub();
   }, [tenantId, selectedClass?.id]);
 
-  // 9. DETEKSI EVALUASI TERAKHIR SISWA UNTUK AUTO PRE-FILL SLIDER
-  const lastStudentEvaluation = useMemo(() => {
-    if (!selectedStudent?.id || history.length === 0) return null;
-    return history.find((h) => h.studentId === selectedStudent.id) || null;
-  }, [selectedStudent?.id, history]);
-
-  // PRE-FILL STATE SCORES DARI HISTORI TERAKHIR ATLET
-  useEffect(() => {
-    if (lastStudentEvaluation && lastStudentEvaluation.scores && Object.keys(lastStudentEvaluation.scores).length > 0) {
-      setScores(lastStudentEvaluation.scores);
-    } else {
-      setScores({});
+  const handleDeleteEvaluation = async (id, studentName) => {
+    if (!window.confirm(`Hapus data rapor evaluasi untuk ${studentName}?`)) return;
+    try {
+      await deleteDoc(doc(db, 'academy_evaluations', id));
+    } catch (err) {
+      console.error('Failed to delete evaluation:', err);
+      handleFirestoreError(err, 'delete', 'academy_evaluations');
     }
-  }, [selectedStudent?.id, lastStudentEvaluation]);
-
-  // Handler pergantian siswa
-  const handleSelectStudent = (student) => {
-    setSelectedStudentId(student.id);
-    setErrorMsg(null);
-    setSuccessMsg(null);
   };
 
-  // Handler slider nilai
-  const handleScoreChange = (kpiName, value) => {
+  const isFootball = useMemo(() => {
+    return isFootballOrMinisoccer(selectedClass, activeAcademy);
+  }, [selectedClass, activeAcademy]);
+
+  const isFutsal = useMemo(() => {
+    return isFutsalSport(selectedClass, activeAcademy);
+  }, [selectedClass, activeAcademy]);
+
+  const isBadminton = useMemo(() => {
+    return isBadmintonSport(selectedClass, activeAcademy);
+  }, [selectedClass, activeAcademy]);
+
+  if (isBadminton) {
+    return (
+      <BadmintonAssessmentView
+        selectedClass={selectedClass}
+        students={classStudents}
+        tenantId={tenantId}
+        activeAcademy={activeAcademy}
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        onDeleteEvaluation={handleDeleteEvaluation}
+      />
+    );
+  }
+
+  if (isFutsal) {
+    return (
+      <FutsalAssessmentView
+        selectedClass={selectedClass}
+        students={classStudents}
+        tenantId={tenantId}
+        activeAcademy={activeAcademy}
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        onDeleteEvaluation={handleDeleteEvaluation}
+      />
+    );
+  }
+
+  if (isFootball) {
+    return (
+      <FootballAssessmentView
+        selectedClass={selectedClass}
+        students={classStudents}
+        tenantId={tenantId}
+        activeAcademy={activeAcademy}
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        onDeleteEvaluation={handleDeleteEvaluation}
+      />
+    );
+  }
+
+  return (
+    <Standard4PillarView
+      selectedClass={selectedClass}
+      classStudents={classStudents}
+      tenantId={tenantId}
+      activeAcademy={activeAcademy}
+      history={history}
+      loadingHistory={loadingHistory}
+      filterStudentId={filterStudentId}
+      setFilterStudentId={setFilterStudentId}
+      onDeleteEvaluation={handleDeleteEvaluation}
+    />
+  );
+}
+
+// =====================================================================
+// COMPONENT 1: ATHLETE DEVELOPMENT ASSESSMENT KHUSUS FUTSAL (4-TIER LTAD)
+// =====================================================================
+function FutsalAssessmentView({
+  selectedClass,
+  students,
+  tenantId,
+  activeAcademy,
+  history,
+  loadingHistory,
+  filterStudentId,
+  setFilterStudentId,
+  onDeleteEvaluation
+}) {
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const selectedStudent = useMemo(() => {
+    if (students.length === 0) return null;
+    return students.find((s) => s.id === selectedStudentId) || students[0];
+  }, [students, selectedStudentId]);
+
+  // DETEKSI OTOMATIS TIER FUTSAL DARI USIA + OVERRIDE DROPDOWN
+  const [overrideFutsalTier, setOverrideFutsalTier] = useState('AUTO');
+
+  const studentAge = useMemo(() => {
+    if (!selectedStudent) return 0;
+    if (selectedStudent.birthDate) {
+      const calculated = calculateAge(selectedStudent.birthDate);
+      if (calculated !== '-') {
+        const num = parseInt(String(calculated).replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > 0) return num;
+      }
+    }
+    const rawAge = selectedStudent.age || selectedStudent.umur;
+    if (rawAge) {
+      const num = parseInt(String(rawAge).replace(/\D/g, ''), 10);
+      if (!isNaN(num) && num > 0) return num;
+    }
+    return 10;
+  }, [selectedStudent]);
+
+  const detectedFutsalTier = useMemo(() => {
+    return detectFutsalTierFromAge(studentAge);
+  }, [studentAge]);
+
+  const activeFutsalTier = useMemo(() => {
+    if (overrideFutsalTier && overrideFutsalTier !== 'AUTO') {
+      return parseInt(overrideFutsalTier, 10);
+    }
+    return detectedFutsalTier;
+  }, [overrideFutsalTier, detectedFutsalTier]);
+
+  const futsalTierConfig = FUTSAL_TIER_CONFIGS[activeFutsalTier] || FUTSAL_TIER_CONFIGS[1];
+
+  // Position, Specialization, StyleCode for Futsal
+  const [selectedPosition, setSelectedPosition] = useState('FIXO');
+  const [selectedStyleCode, setSelectedStyleCode] = useState('STY01');
+
+  // Active Category Tab
+  const [activeTab, setActiveTab] = useState('fisik');
+  const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+
+  // Scores state: { [indicatorName]: number }
+  const [scores, setScores] = useState({});
+  const [coachNote, setCoachNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Status indicator loading state
+  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
+  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+
+  const sportName = selectedClass?.sport || activeAcademy?.sport || 'Futsal';
+
+  // Available positions depending on activeFutsalTier
+  const availablePositions = useMemo(() => {
+    return getAvailableFutsalPositionsForTier(activeFutsalTier);
+  }, [activeFutsalTier]);
+
+  // Position-Specific Indicators Config for Futsal depending on activeFutsalTier
+  const currentPosIndicatorsConfig = useMemo(() => {
+    return getFutsalPositionIndicatorsForTier(selectedPosition, activeFutsalTier);
+  }, [selectedPosition, activeFutsalTier]);
+
+  // Ensure selectedPosition is valid for activeFutsalTier
+  useEffect(() => {
+    if (activeFutsalTier === 1) {
+      if (!['COURT_DASAR', 'GK_DASAR'].includes(selectedPosition)) {
+        setSelectedPosition('COURT_DASAR');
+      }
+    } else if (activeFutsalTier === 2) {
+      if (!['GK', 'FIXO', 'ALA', 'PIVOT'].includes(selectedPosition)) {
+        setSelectedPosition('FIXO');
+      }
+    } else {
+      if (['COURT_DASAR', 'GK_DASAR'].includes(selectedPosition)) {
+        setSelectedPosition(selectedStudent?.playerRole || selectedStudent?.position || 'FIXO');
+      }
+    }
+  }, [activeFutsalTier, selectedStudent]);
+
+  // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA BERUBAH
+  useEffect(() => {
+    if (!selectedStudent?.id) {
+      setLatestEvalDoc(null);
+      setScores({});
+      setFetchingStudentHistory(false);
+      return;
+    }
+
+    setFetchingStudentHistory(true);
+    setScores({});
+    setCoachNote('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    // Cari riwayat Futsal terbaru
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+
+    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
+
+    if (latest) {
+      setLatestEvalDoc(latest);
+      setScores(latest.scores || {});
+
+      const posCode = latest.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeFutsalTier === 1 ? 'COURT_DASAR' : 'FIXO');
+      setSelectedPosition(posCode);
+
+      const styleVal = latest.styleCode || selectedStudent.styleCode || 'STY01';
+      setSelectedStyleCode(styleVal);
+    } else {
+      // Siswa Baru: Default 0
+      setLatestEvalDoc(null);
+      setScores({});
+
+      const posCode = selectedStudent.playerRole || selectedStudent.position || (activeFutsalTier === 1 ? 'COURT_DASAR' : 'FIXO');
+      setSelectedPosition(posCode);
+      setSelectedStyleCode(selectedStudent.styleCode || 'STY01');
+    }
+
+    setFetchingStudentHistory(false);
+  }, [selectedStudent?.id, selectedClass?.id, history, activeFutsalTier]);
+
+  // Filtered Indicator Names for each of the 6 Futsal Core Categories based on minTier <= activeFutsalTier
+  const filteredCategoryIndicators = useMemo(() => {
+    return {
+      fisik: getFilteredFutsalIndicatorsForCategory('fisik', activeFutsalTier),
+      teknik: getFilteredFutsalIndicatorsForCategory('teknik', activeFutsalTier),
+      taktik: getFilteredFutsalIndicatorsForCategory('taktik', activeFutsalTier),
+      mental: getFilteredFutsalIndicatorsForCategory('mental', activeFutsalTier),
+      perkembangan: getFilteredFutsalIndicatorsForCategory('perkembangan', activeFutsalTier),
+      komunikasi: getFilteredFutsalIndicatorsForCategory('komunikasi', activeFutsalTier)
+    };
+  }, [activeFutsalTier]);
+
+  // 7-Axis Calculated Average Scores for Futsal
+  const axisScores = useMemo(() => {
+    const calcCategoryAvg = (indicatorList) => {
+      if (!indicatorList || indicatorList.length === 0) return 0;
+      const total = indicatorList.reduce((sum, ind) => {
+        const val = scores[ind] !== undefined ? scores[ind] : 0;
+        return sum + val;
+      }, 0);
+      return Math.round(total / indicatorList.length);
+    };
+
+    const fisik = calcCategoryAvg(filteredCategoryIndicators.fisik);
+    const teknik = calcCategoryAvg(filteredCategoryIndicators.teknik);
+    const taktik = calcCategoryAvg(filteredCategoryIndicators.taktik);
+    const mental = calcCategoryAvg(filteredCategoryIndicators.mental);
+    const perkembangan = calcCategoryAvg(filteredCategoryIndicators.perkembangan);
+    const komunikasi = calcCategoryAvg(filteredCategoryIndicators.komunikasi);
+    const khususPosisi = calcCategoryAvg(currentPosIndicatorsConfig.indicators);
+
+    const overall = Math.round((fisik + teknik + taktik + mental + perkembangan + komunikasi + khususPosisi) / 7);
+
+    return {
+      fisik,
+      teknik,
+      taktik,
+      mental,
+      perkembangan,
+      komunikasi,
+      khususPosisi,
+      overall
+    };
+  }, [scores, filteredCategoryIndicators, currentPosIndicatorsConfig]);
+
+  // Recharts radar data for Futsal
+  const radarData = useMemo(() => [
+    { subject: 'Fisik', A: axisScores.fisik, fullMark: 100 },
+    { subject: 'Teknik', A: axisScores.teknik, fullMark: 100 },
+    { subject: 'Taktik', A: axisScores.taktik, fullMark: 100 },
+    { subject: 'Mental', A: axisScores.mental, fullMark: 100 },
+    { subject: 'Perkembangan', A: axisScores.perkembangan, fullMark: 100 },
+    { subject: 'Komunikasi', A: axisScores.komunikasi, fullMark: 100 },
+    { subject: 'Khusus Posisi', A: axisScores.khususPosisi, fullMark: 100 },
+  ], [axisScores]);
+
+  // Adjust score with +/- 5
+  const handleAdjustScore = (indicatorName, delta) => {
+    setScores((prev) => {
+      const curr = prev[indicatorName] !== undefined ? prev[indicatorName] : 0;
+      const nextVal = Math.min(100, Math.max(0, curr + delta));
+      return { ...prev, [indicatorName]: nextVal };
+    });
+  };
+
+  const handleScoreChange = (indicatorName, value) => {
     setScores((prev) => ({
       ...prev,
-      [kpiName]: Math.min(100, Math.max(0, Number(value) || 0))
+      [indicatorName]: Math.min(100, Math.max(0, Number(value) || 0))
     }));
   };
 
-  // Open Mutation Modal
-  const handleOpenMutationModal = () => {
-    if (!selectedStudent) return;
-    const availRoles = categoryConfig.roles || [];
-    setNewRole(playerRole || availRoles[0] || '');
-    setMutationReason('');
-    setShowMutationModal(true);
+  const handleSetAllGlobalValue = (val) => {
+    const activeIndicators = [];
+    Object.values(filteredCategoryIndicators).forEach((arr) => {
+      activeIndicators.push(...arr);
+    });
+    activeIndicators.push(...currentPosIndicatorsConfig.indicators);
+
+    const nextState = { ...scores };
+    activeIndicators.forEach((ind) => {
+      nextState[ind] = val;
+    });
+    setScores(nextState);
+
+    setSuccessMsg(`Seluruh indikator aktif Futsal Tier ${activeFutsalTier} (${activeIndicators.length}) di-set ke ${val}.`);
+    setTimeout(() => setSuccessMsg(null), 2500);
   };
 
-  // Execute Position Mutation (Firestore updateDoc with arrayUnion)
-  const handleMutatePosition = async (e) => {
-    e.preventDefault();
-    if (!selectedStudent?.id || !newRole) return;
-
-    setIsMutating(true);
-    setErrorMsg(null);
-    try {
-      const historyEntry = {
-        oldRole: playerRole || 'Belum Ada',
-        newRole: newRole,
-        date: new Date().toISOString(),
-        reason: mutationReason.trim() || 'Mutasi posisi atlet oleh pelatih'
-      };
-
-      await updateDoc(doc(db, 'students', selectedStudent.id), {
-        playerRole: newRole,
-        position: newRole,
-        positionHistory: arrayUnion(historyEntry),
-        updatedAt: serverTimestamp()
-      });
-
-      setSuccessMsg(`Posisi ${selectedStudent.studentName} berhasil dimutasi ke "${newRole}"!`);
-      setShowMutationModal(false);
-      setTimeout(() => setSuccessMsg(null), 4000);
-    } catch (err) {
-      console.error('Failed to mutate student position:', err);
-      handleFirestoreError(err, 'update', 'students');
-      setErrorMsg('Gagal melakukan mutasi posisi. Silakan coba lagi.');
-    } finally {
-      setIsMutating(false);
+  const handleSmartProFill = () => {
+    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
+      setScores(latestEvalDoc.scores);
+      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat Futsal terakhir!');
+    } else {
+      handleSetAllGlobalValue(75);
     }
   };
 
-  // AUTO-GENERATOR CATATAN PELATIH
   const handleGenerateDraft = () => {
     if (!selectedStudent) return;
 
-    const items = [
-      { name: 'Kondisi Fisik', score: pillarScores.fisik },
-      { name: 'Kemampuan Teknik', score: pillarScores.teknik },
-      { name: 'Pemahaman Taktik', score: pillarScores.taktik },
-      { name: 'Mentalitas', score: pillarScores.mental },
-      { name: `Spesifik Posisi (${playerRole || 'Peran'})`, score: pillarScores.position }
+    const categoriesList = [
+      { name: 'Kondisi Fisik', score: axisScores.fisik },
+      { name: 'Kemampuan Teknik', score: axisScores.teknik },
+      { name: 'Pemahaman Taktik Futsal', score: axisScores.taktik },
+      { name: 'Mentalitas', score: axisScores.mental },
+      { name: 'Perkembangan Atlet', score: axisScores.perkembangan },
+      { name: 'Komunikasi Rotasi', score: axisScores.komunikasi },
+      { name: `Indikator Khusus (${currentPosIndicatorsConfig.shortLabel})`, score: axisScores.khususPosisi },
     ];
 
-    const sorted = [...items].sort((a, b) => b.score - a.score);
-    const top = sorted[0];
-    const bottom = sorted[sorted.length - 1];
+    const sorted = [...categoriesList].sort((a, b) => b.score - a.score);
+    const topPillar = sorted[0];
+    const bottomPillar = sorted[sorted.length - 1];
+    const overall = axisScores.overall;
 
-    let draft = `Atlet ${selectedStudent.studentName} (${playerRole || 'Umum'}) menunjukkan kekuatan luar biasa pada aspek ${top.name} (Skor: ${top.score}/100). Namun, perlu ada fokus latihan tambahan untuk meningkatkan ${bottom.name} (Skor: ${bottom.score}/100). Secara keseluruhan performa sudah ${pillarScores.overall >= 80 ? 'sangat memuaskan' : pillarScores.overall >= 70 ? 'cukup baik' : 'membutuhkan pembinaan berkelanjutan'}.`;
+    let draft = '';
+
+    if (activeFutsalTier === 1 || activeFutsalTier === 2) {
+      // Tier 1 & 2 Futsal: Focus on fun, sole control, motor skills, basic rotation without complex STY
+      let summaryText = 'menunjukkan antusiasme dan kesenangan bermain Futsal yang tinggi.';
+      if (overall < 50) summaryText = 'dalam tahap pengenalan kontrol sole (telapak kaki) dan gerak dasar lapangan kecil.';
+      else if (overall >= 75) summaryText = 'sangat berbakat dengan kontrol telapak kaki dan kelincahan ruang sempit yang luar biasa.';
+
+      draft = `[Rapor Perkembangan Futsal ${futsalTierConfig.shortLabel}]\n` +
+        `Atlet ${selectedStudent.studentName} berada pada tahap ${futsalTierConfig.label} (${currentPosIndicatorsConfig.label}). Atlet ${summaryText}\n\n` +
+        `Aspek yang paling berkembang: ${topPillar.name} (Skor: ${topPillar.score}/100).\n` +
+        `Fokus pembinaan selanjutnya: ${bottomPillar.name} (Skor: ${bottomPillar.score}/100).\n\n` +
+        `Rata-rata perkembangan Futsal saat ini: ${overall}/100.`;
+    } else {
+      // Tier 3 & 4: Focus on tactical position, specialization, and STY01-STY14
+      const styleObj = getFutsalStyleConfig(selectedStyleCode);
+      let summaryText = 'sangat baik dan menunjukkan penguasaan rotasi permainan yang matang.';
+      if (overall < 60) summaryText = 'membutuhkan pembinaan teknik dasar dan rotasi intensif.';
+      else if (overall < 80) summaryText = 'cukup solid dengan progres positif.';
+
+      draft = `[Rapor Taktis Futsal ${futsalTierConfig.shortLabel} - ${currentPosIndicatorsConfig.shortLabel}]\n` +
+        `Atlet ${selectedStudent.studentName} dievaluasi pada posisi Futsal ${currentPosIndicatorsConfig.label} dengan profil gaya bermain ${styleObj.code} — ${styleObj.name} (${styleObj.desc}).\n\n` +
+        `Keunggulan utama ditunjukkan pada ${topPillar.name} (Skor: ${topPillar.score}/100). Aspek yang perlu ditingkatkan adalah ${bottomPillar.name} (Skor: ${bottomPillar.score}/100).\n\n` +
+        `Secara keseluruhan, performa atlet dinilai ${summaryText} (Skor Total: ${overall}/100).`;
+    }
 
     setCoachNote(draft);
   };
 
-  // Grade helper
-  const getScoreGrade = (score) => {
-    if (score >= 85) return { grade: 'A (Sangat Baik)', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
-    if (score >= 75) return { grade: 'B (Baik)', badge: 'bg-blue-100 text-blue-800 border-blue-300' };
-    if (score >= 60) return { grade: 'C (Cukup)', badge: 'bg-amber-100 text-amber-800 border-amber-300' };
-    return { grade: 'D (Perlu Bimbingan)', badge: 'bg-rose-100 text-rose-800 border-rose-300' };
-  };
-
-  // Handler simpan evaluasi ke Firestore
   const handleSaveEvaluation = async (e) => {
     e.preventDefault();
     if (!selectedClass?.id || !tenantId) return;
     if (!selectedStudent?.id) {
       setErrorMsg('Pilih siswa atlet dari daftar untuk dievaluasi.');
-      return;
-    }
-    if (!playerRole) {
-      setErrorMsg('Siswa belum memiliki posisi resmi. Silakan gunakan tombol "🔄 Ganti Posisi" terlebih dahulu.');
       return;
     }
     if (!evaluationDate) {
@@ -451,11 +666,2177 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
     setSuccessMsg(null);
     const evaluatorName = selectedClass.coachName || selectedClass.coach || 'Pelatih Utama';
 
-    // Susun scores lengkap
-    const finalScores = {};
-    pillarScores.allActiveKPIs.forEach((kpi) => {
-      finalScores[kpi] = scores[kpi] !== undefined ? scores[kpi] : 75;
+    const activeIndicators = [];
+    Object.values(filteredCategoryIndicators).forEach((arr) => {
+      activeIndicators.push(...arr);
     });
+    activeIndicators.push(...currentPosIndicatorsConfig.indicators);
+
+    const finalScores = {};
+    activeIndicators.forEach((ind) => {
+      finalScores[ind] = scores[ind] !== undefined ? scores[ind] : 0;
+    });
+
+    const styleObj = getFutsalStyleConfig(selectedStyleCode);
+
+    try {
+      await addDoc(collection(db, 'academy_evaluations'), {
+        tenantId,
+        academyId: selectedClass.academyId || activeAcademy?.id || '',
+        classId: selectedClass.id,
+        className: selectedClass.className || selectedClass.name || 'Kelas Futsal',
+        sportCategory: 'futsal',
+        sportCategoryLabel: `Futsal (${futsalTierConfig.shortLabel})`,
+        sportName: 'Futsal',
+        sport: 'Futsal',
+        activeTier: activeFutsalTier,
+        curriculumTier: activeFutsalTier,
+        tierLabel: futsalTierConfig.label,
+        ageStage: futsalTierConfig.shortLabel,
+        playerRole: selectedPosition,
+        specialization: activeFutsalTier >= 3 ? currentPosIndicatorsConfig.shortLabel : 'Eksplorasi Futsal',
+        styleCode: activeFutsalTier >= 3 ? selectedStyleCode : 'N/A',
+        styleLabel: activeFutsalTier >= 3 ? styleObj.name : 'N/A',
+        studentId: selectedStudent.id,
+        studentName: selectedStudent.studentName || 'Siswa',
+        date: evaluationDate,
+        scores: finalScores,
+        pillarScores: {
+          fisik: axisScores.fisik,
+          teknik: axisScores.teknik,
+          taktik: axisScores.taktik,
+          mental: axisScores.mental,
+          perkembangan: axisScores.perkembangan,
+          komunikasi: axisScores.komunikasi,
+          khususPosisi: axisScores.khususPosisi,
+          position: axisScores.khususPosisi,
+          overall: axisScores.overall
+        },
+        overallScore: axisScores.overall,
+        coachNote: coachNote.trim(),
+        evaluator: evaluatorName,
+        assessmentType: '7-axis-ltad-futsal',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      try {
+        await updateDoc(doc(db, 'students', selectedStudent.id), {
+          playerRole: selectedPosition,
+          position: selectedPosition,
+          curriculumTier: activeFutsalTier,
+          styleCode: activeFutsalTier >= 3 ? selectedStyleCode : 'N/A',
+          updatedAt: serverTimestamp()
+        });
+      } catch (stErr) {
+        console.warn('Failed to update student profile:', stErr);
+      }
+
+      setSuccessMsg(`Assessment Futsal (${futsalTierConfig.shortLabel}) untuk ${selectedStudent.studentName} berhasil disimpan!`);
+      setCoachNote('');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Failed to save futsal assessment:', err);
+      handleFirestoreError(err, 'create', 'academy_evaluations');
+      setErrorMsg('Gagal menyimpan assessment Futsal. Silakan coba lagi.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const evaluatedStudentIdsToday = new Set(
+    history.filter((h) => h.date === evaluationDate).map((h) => h.studentId)
+  );
+
+  const overallGrade = getScoreGrade(axisScores.overall);
+
+  return (
+    <div className="space-y-6 text-left">
+      {/* 1. COMPACT HEADER BAR */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        {/* BARIS 1: JUDUL KARTU & STATUS RIWAYAT */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+              <Flame className="w-5 h-5 text-orange-100" />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                Athlete Development Assessment
+              </h2>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-orange-50 text-orange-800 border border-orange-200">
+                Futsal
+              </span>
+            </div>
+          </div>
+
+          <div className="self-start sm:self-center">
+            {fetchingStudentHistory ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>Memuat riwayat...</span>
+              </span>
+            ) : latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Riwayat Terakhir Terpasang (Tanggal: {formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold">
+                <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Belum ada riwayat (Mulai dari 0)</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {successMsg && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+        {errorMsg && (
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {students.length === 0 ? (
+          <div className="py-8 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
+            <User className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-700">Belum ada siswa terdaftar di kelas Futsal ini.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, JENJANG, & SKOR REALTIME */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/90 items-center">
+              {/* 1. Pilih Atlet */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Pilih Atlet</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedStudent?.id || ''}
+                    onChange={(e) => setSelectedStudentId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer appearance-none pr-8"
+                  >
+                    {students.map((st) => {
+                      const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
+                      const pos = st.playerRole || st.position || 'FIXO';
+                      return (
+                        <option key={st.id} value={st.id}>
+                          {isEvaluatedToday ? '✓ ' : ''}{st.studentName} ({pos})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Tanggal Evaluasi */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Tanggal Evaluasi</span>
+                </label>
+                <input
+                  type="date"
+                  value={evaluationDate}
+                  onChange={(e) => setEvaluationDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer"
+                />
+              </div>
+
+              {/* 3. Jenjang Evaluasi */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <GraduationCap className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Jenjang Evaluasi</span>
+                </label>
+                <select
+                  value={overrideFutsalTier}
+                  onChange={(e) => setOverrideFutsalTier(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-orange-500 cursor-pointer"
+                >
+                  <option value="AUTO">Otomatis: Tier {detectedFutsalTier} ({studentAge} Thn)</option>
+                  <option value="1">Tier 1 — Usia Dini Futsal (6–12 Thn)</option>
+                  <option value="2">Tier 2 — Youth Futsal (13–15 Thn)</option>
+                  <option value="3">Tier 3 — Junior Futsal (16–19 Thn)</option>
+                  <option value="4">Tier 4 — Fase Profesional (&gt;19 Thn)</option>
+                </select>
+              </div>
+
+              {/* 4. Skor Realtime */}
+              <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Skor Realtime</span>
+                  <span className="text-base font-black text-slate-900">{axisScores.overall} / 100</span>
+                </div>
+                <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${overallGrade.badge}`}>
+                  {overallGrade.grade}
+                </span>
+              </div>
+            </div>
+
+            {/* 2. PANEL ATAS: SCOUTING RADAR & KONFIGURASI POSISI */}
+            {selectedStudent && (
+              <form onSubmit={handleSaveEvaluation} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  
+                  {/* RADAR 7-AXIS */}
+                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <span className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
+                        <BarChart2 className="w-4 h-4 text-orange-400" />
+                        <span>Scouting Radar</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+                        Total: {axisScores.overall}/100
+                      </span>
+                    </div>
+
+                    <div className="h-64 w-full flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+                          <PolarGrid stroke="#334155" />
+                          <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
+                          <Radar name="Skor Futsal" dataKey="A" stroke="#f97316" fill="#ea580c" fillOpacity={0.55} />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800">
+                      <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
+                        <span className="text-rose-300 block text-[8px] uppercase font-black truncate">1. Fisik</span>
+                        <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
+                        <span className="text-blue-300 block text-[8px] uppercase font-black truncate">2. Teknik</span>
+                        <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
+                        <span className="text-purple-300 block text-[8px] uppercase font-black truncate">3. Taktik</span>
+                        <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
+                        <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">4. Mental</span>
+                        <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
+                        <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">5. Dev.</span>
+                        <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
+                        <span className="text-amber-300 block text-[8px] uppercase font-black truncate">6. Kom.</span>
+                        <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
+                      </div>
+                      <div className="p-1.5 rounded-xl bg-indigo-950/70 border border-indigo-800/60 col-span-2 sm:col-span-1">
+                        <span className="text-indigo-300 block text-[8px] uppercase font-black truncate">7. Posisi</span>
+                        <span className="font-black text-indigo-200 text-xs">{axisScores.khususPosisi}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* KONFIGURASI POSISI & PERAN */}
+                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                          <Target className="w-4 h-4 text-orange-600" />
+                          <span>Konfigurasi Posisi &amp; Peran</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{futsalTierConfig.shortLabel}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* POSISI FUTSAL */}
+                        <div>
+                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            1. Posisi Pemain
+                          </label>
+                          <select
+                            value={selectedPosition}
+                            onChange={(e) => setSelectedPosition(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer"
+                          >
+                            {availablePositions.map((p) => (
+                              <option key={p.code} value={p.code}>
+                                {p.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* STY DROPDOWN - RENDER ONLY IF ACTIVE FUTSAL TIER >= 3 */}
+                        {activeFutsalTier >= 3 && (
+                          <div>
+                            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                              2. Profil Gaya Bermain (STY)
+                            </label>
+                            <select
+                              value={selectedStyleCode}
+                              onChange={(e) => setSelectedStyleCode(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer"
+                            >
+                              {FUTSAL_PLAYING_STYLES.map((st) => (
+                                <option key={st.code} value={st.code}>
+                                  {st.code} — {st.name} ({st.desc})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                        <Sliders className="w-3.5 h-3.5 text-orange-600" />
+                        <span>Preset Nilai Cepat:</span>
+                      </span>
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(0)}
+                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                          title="Reset semua indikator ke 0"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Reset (0)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(50)}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Standard (50)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(75)}
+                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Good (75)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAllGlobalValue(90)}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                        >
+                          Elite (90)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSmartProFill}
+                          className="px-2.5 py-1 bg-orange-600 text-white hover:bg-orange-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                          title="Muat riwayat atau baseline 75"
+                        >
+                          <Sparkles className="w-3 h-3 text-orange-200" />
+                          <span>Smart Pro-Fill</span>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* 3. SUB-TABS 7 KATEGORI */}
+                <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-orange-600" />
+                      <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                        Lembar Penilaian Futsal ({futsalTierConfig.shortLabel})
+                      </h3>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAllAtOnce(!showAllAtOnce)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer border ${
+                        showAllAtOnce
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>{showAllAtOnce ? 'Tutup (Kembali ke Tab)' : 'Tampilkan Semua Sekaligus'}</span>
+                    </button>
+                  </div>
+
+                  {!showAllAtOnce && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('fisik')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'fisik'
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                            : 'bg-rose-50/60 text-rose-900 border-rose-200 hover:bg-rose-100'
+                        }`}
+                      >
+                        <Dumbbell className="w-3.5 h-3.5" />
+                        <span>Fisik ({filteredCategoryIndicators.fisik.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'fisik' ? 'bg-rose-700 text-white' : 'bg-rose-200 text-rose-900'}`}>
+                          {axisScores.fisik}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('teknik')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'teknik'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-blue-50/60 text-blue-900 border-blue-200 hover:bg-blue-100'
+                        }`}
+                      >
+                        <Activity className="w-3.5 h-3.5" />
+                        <span>Teknik ({filteredCategoryIndicators.teknik.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'teknik' ? 'bg-blue-700 text-white' : 'bg-blue-200 text-blue-900'}`}>
+                          {axisScores.teknik}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('taktik')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'taktik'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : 'bg-purple-50/60 text-purple-900 border-purple-200 hover:bg-purple-100'
+                        }`}
+                      >
+                        <Brain className="w-3.5 h-3.5" />
+                        <span>Taktik ({filteredCategoryIndicators.taktik.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'taktik' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-900'}`}>
+                          {axisScores.taktik}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('mental')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'mental'
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-emerald-50/60 text-emerald-900 border-emerald-200 hover:bg-emerald-100'
+                        }`}
+                      >
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Mental ({filteredCategoryIndicators.mental.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'mental' ? 'bg-emerald-700 text-white' : 'bg-emerald-200 text-emerald-900'}`}>
+                          {axisScores.mental}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('komunikasi')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'komunikasi'
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-amber-50/60 text-amber-900 border-amber-200 hover:bg-amber-100'
+                        }`}
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Komunikasi ({filteredCategoryIndicators.komunikasi.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'komunikasi' ? 'bg-amber-700 text-white' : 'bg-amber-200 text-amber-900'}`}>
+                          {axisScores.komunikasi}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('perkembangan')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'perkembangan'
+                            ? 'bg-cyan-600 text-white border-cyan-600 shadow-xs'
+                            : 'bg-cyan-50/60 text-cyan-900 border-cyan-200 hover:bg-cyan-100'
+                        }`}
+                      >
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Perkembangan ({filteredCategoryIndicators.perkembangan.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'perkembangan' ? 'bg-cyan-700 text-white' : 'bg-cyan-200 text-cyan-900'}`}>
+                          {axisScores.perkembangan}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('posisi')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                          activeTab === 'posisi'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                            : 'bg-indigo-50/60 text-indigo-900 border-indigo-200 hover:bg-indigo-100'
+                        }`}
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Khusus Posisi ({currentPosIndicatorsConfig.indicators.length})</span>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'posisi' ? 'bg-indigo-700 text-white' : 'bg-indigo-200 text-indigo-900'}`}>
+                          {axisScores.khususPosisi}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="space-y-6">
+                    {Object.entries(FUTSAL_CORE_CATEGORIES).map(([catKey, catConfig]) => {
+                      if (!showAllAtOnce && activeTab !== catKey) return null;
+                      const activeInds = filteredCategoryIndicators[catKey] || [];
+
+                      return (
+                        <div key={catKey} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/40 space-y-3">
+                          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${catConfig.badgeColor}`} />
+                              <span>{catConfig.title}</span>
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-800">
+                              Rata-rata: {axisScores[catKey]} / 100
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                            {activeInds.map((ind) => {
+                              const val = scores[ind] !== undefined ? scores[ind] : 0;
+                              return (
+                                <IndicatorCard
+                                  key={ind}
+                                  title={ind}
+                                  value={val}
+                                  onScoreChange={(v) => handleScoreChange(ind, v)}
+                                  onAdjust={(delta) => handleAdjustScore(ind, delta)}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {(showAllAtOnce || activeTab === 'posisi') && (
+                      <div className="p-4 sm:p-5 rounded-2xl border border-indigo-200 bg-indigo-50/30 space-y-3">
+                        <div className="flex items-center justify-between border-b border-indigo-200 pb-2">
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
+                            <Star className="w-4 h-4 text-indigo-600 fill-indigo-100" />
+                            <span>Khusus Posisi: {currentPosIndicatorsConfig.label}</span>
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            Rata-rata: {axisScores.khususPosisi} / 100
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                          {currentPosIndicatorsConfig.indicators.map((ind) => {
+                            const val = scores[ind] !== undefined ? scores[ind] : 0;
+                            return (
+                              <IndicatorCard
+                                key={ind}
+                                title={ind}
+                                value={val}
+                                isSpecial
+                                onScoreChange={(v) => handleScoreChange(ind, v)}
+                                onAdjust={(delta) => handleAdjustScore(ind, delta)}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. CATATAN & SIMPAN */}
+                <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <MessageSquare className="w-4 h-4 text-orange-600" />
+                      <span>Catatan Evaluasi Pelatih ({futsalTierConfig.shortLabel})</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateDraft}
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 text-orange-800 border border-orange-200 text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Buat Draf Analisis Otomatis</span>
+                    </button>
+                  </div>
+
+                  <textarea
+                    rows={4}
+                    value={coachNote}
+                    onChange={(e) => setCoachNote(e.target.value)}
+                    placeholder={`Contoh: Atlet ${selectedStudent.studentName} sangat kuat pada posisi ${currentPosIndicatorsConfig.shortLabel} dengan kontrol sole dan rotasi passing cepat. Perlu peningkatan stamina transisi.`}
+                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium text-slate-800 leading-relaxed"
+                  />
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <p className="text-[11px] text-slate-400">
+                      * Hasil assessment Futsal ini tersimpan permanen dan otomatis dapat diakses oleh Wali Murid di Portal Resmi.
+                    </p>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>Menyimpan Assessment Futsal...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-4 h-4 text-orange-100" />
+                          <span>Simpan Assessment Futsal ({futsalTierConfig.shortLabel})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+              </form>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 5. RIWAYAT EVALUASI */}
+      <HistorySection
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        students={students}
+        onDeleteEvaluation={onDeleteEvaluation}
+      />
+    </div>
+  );
+}
+
+// =====================================================================
+// COMPONENT: ATHLETE DEVELOPMENT ASSESSMENT KHUSUS BADMINTON / BULUTANGKIS
+// =====================================================================
+function BadmintonAssessmentView({
+  selectedClass,
+  students,
+  tenantId,
+  activeAcademy,
+  history,
+  loadingHistory,
+  filterStudentId,
+  setFilterStudentId,
+  onDeleteEvaluation
+}) {
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const selectedStudent = useMemo(() => {
+    if (students.length === 0) return null;
+    return students.find((s) => s.id === selectedStudentId) || students[0];
+  }, [students, selectedStudentId]);
+
+  // DETEKSI OTOMATIS TIER BADMINTON & LEVEL PBSI DARI USIA + OVERRIDE DROPDOWN
+  const [overrideBadmintonTier, setOverrideBadmintonTier] = useState('AUTO');
+
+  const studentAge = useMemo(() => {
+    if (!selectedStudent) return 0;
+    if (selectedStudent.birthDate) {
+      const calculated = calculateAge(selectedStudent.birthDate);
+      if (calculated !== '-') {
+        const num = parseInt(String(calculated).replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > 0) return num;
+      }
+    }
+    const rawAge = selectedStudent.age || selectedStudent.umur;
+    if (rawAge) {
+      const num = parseInt(String(rawAge).replace(/\D/g, ''), 10);
+      if (!isNaN(num) && num > 0) return num;
+    }
+    return 10;
+  }, [selectedStudent]);
+
+  const detectedBadmintonTier = useMemo(() => {
+    return detectBadmintonTierFromAge(studentAge);
+  }, [studentAge]);
+
+  const activeBadmintonTier = useMemo(() => {
+    if (overrideBadmintonTier && overrideBadmintonTier !== 'AUTO') {
+      return parseInt(overrideBadmintonTier, 10);
+    }
+    return detectedBadmintonTier;
+  }, [overrideBadmintonTier, detectedBadmintonTier]);
+
+  const badmintonTierConfig = BADMINTON_TIER_CONFIGS[activeBadmintonTier] || BADMINTON_TIER_CONFIGS[1];
+  const pbsiLevelInfo = useMemo(() => detectPbsiLevelFromAge(studentAge), [studentAge]);
+
+  // Event Number Code (BASIC_SINGLE, MS, WS, MD, WD, XD)
+  const [eventCode, setEventCode] = useState('MS');
+  const [styleCode, setStyleCode] = useState('STY01');
+  const [doublesSpecCode, setDoublesSpecCode] = useState('SPC01');
+
+  // Available events based on activeBadmintonTier
+  const availableEvents = useMemo(() => {
+    return getAvailableBadmintonEventsForTier(activeBadmintonTier);
+  }, [activeBadmintonTier]);
+
+  // Feature unlock flags by activeBadmintonTier
+  const isStyleUnlocked = isStyleUnlockedForTier(activeBadmintonTier);
+  const isDoublesSpecUnlocked = isDoublesSpecUnlockedForTier(activeBadmintonTier);
+
+  // Health & Recovery Profile (Non-Scoring)
+  const [healthPhysicalReadiness, setHealthPhysicalReadiness] = useState('Fit 100%');
+  const [healthInjuryNotes, setHealthInjuryNotes] = useState('');
+  const [healthRecoveryQuality, setHealthRecoveryQuality] = useState('Bagus (8+ Jam)');
+
+  // Active Category Tab
+  const [activeTab, setActiveTab] = useState('fisik');
+  const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+
+  // Scores state: { [indicatorName]: number }
+  const [scores, setScores] = useState({});
+  const [coachNote, setCoachNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Status indicator loading state
+  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
+  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+
+  // Validate eventCode when activeBadmintonTier changes
+  useEffect(() => {
+    if (activeBadmintonTier === 1) {
+      if (eventCode !== 'BASIC_SINGLE') {
+        setEventCode('BASIC_SINGLE');
+      }
+    } else if (activeBadmintonTier === 2) {
+      if (!['MS', 'WS', 'MD', 'WD'].includes(eventCode)) {
+        setEventCode('MS');
+      }
+    } else {
+      if (eventCode === 'BASIC_SINGLE') {
+        setEventCode(selectedStudent?.playerRole || 'MS');
+      }
+    }
+  }, [activeBadmintonTier, selectedStudent]);
+
+  const isDoubles = isDoublesEvent(eventCode);
+  const eventConfig = getBadmintonEventConfig(eventCode);
+  const styleConfig = getBadmintonStyleConfig(styleCode);
+  const doublesSpecConfig = getBadmintonDoublesSpecConfig(doublesSpecCode);
+  const eventSpecificConfig = getBadmintonEventSpecificConfigForTier(eventCode, activeBadmintonTier);
+
+  // Automatically adjust activeTab if switching to Singles or Tier 1 while on 'komunikasi' tab
+  useEffect(() => {
+    if ((!isDoubles || activeBadmintonTier < 2) && activeTab === 'komunikasi') {
+      setActiveTab('fisik');
+    }
+  }, [isDoubles, activeBadmintonTier, activeTab]);
+
+  // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA BERUBAH
+  useEffect(() => {
+    if (!selectedStudent?.id) {
+      setLatestEvalDoc(null);
+      setScores({});
+      setFetchingStudentHistory(false);
+      return;
+    }
+
+    setFetchingStudentHistory(true);
+    setScores({});
+    setCoachNote('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    // Cari riwayat Badminton terbaru
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+
+    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
+
+    if (latest) {
+      setLatestEvalDoc(latest);
+      setScores(latest.scores || {});
+
+      const defaultEv = activeBadmintonTier === 1 ? 'BASIC_SINGLE' : 'MS';
+      const evCode = latest.eventCode || latest.playerRole || selectedStudent.playerRole || selectedStudent.position || defaultEv;
+      setEventCode(evCode);
+
+      const stCode = latest.styleCode || selectedStudent.styleCode || 'STY01';
+      setStyleCode(stCode);
+
+      const dSpec = latest.doublesSpecCode || latest.specialization || selectedStudent.specialization || 'SPC01';
+      setDoublesSpecCode(dSpec);
+
+      setHealthPhysicalReadiness(latest.healthPhysicalReadiness || 'Fit 100%');
+      setHealthInjuryNotes(latest.healthInjuryNotes || '');
+      setHealthRecoveryQuality(latest.healthRecoveryQuality || 'Bagus (8+ Jam)');
+    } else {
+      // Siswa Baru: Default 0
+      setLatestEvalDoc(null);
+      setScores({});
+
+      const defaultEv = activeBadmintonTier === 1 ? 'BASIC_SINGLE' : 'MS';
+      const evCode = selectedStudent.playerRole || selectedStudent.position || defaultEv;
+      setEventCode(evCode);
+      setStyleCode(selectedStudent.styleCode || 'STY01');
+      setDoublesSpecCode(selectedStudent.specialization || 'SPC01');
+
+      setHealthPhysicalReadiness('Fit 100%');
+      setHealthInjuryNotes('');
+      setHealthRecoveryQuality('Bagus (8+ Jam)');
+    }
+
+    setFetchingStudentHistory(false);
+  }, [selectedStudent?.id, selectedClass?.id, history, activeBadmintonTier]);
+
+  // Category Indicators filtered by minTier <= activeBadmintonTier
+  const filteredCategoryIndicators = useMemo(() => {
+    return {
+      fisik: getFilteredBadmintonIndicatorsForCategory('fisik', activeBadmintonTier, isDoubles),
+      teknik: getFilteredBadmintonIndicatorsForCategory('teknik', activeBadmintonTier, isDoubles),
+      taktik: getFilteredBadmintonIndicatorsForCategory('taktik', activeBadmintonTier, isDoubles),
+      mental: getFilteredBadmintonIndicatorsForCategory('mental', activeBadmintonTier, isDoubles),
+      komunikasi: getFilteredBadmintonIndicatorsForCategory('komunikasi', activeBadmintonTier, isDoubles),
+      perkembangan: getFilteredBadmintonIndicatorsForCategory('perkembangan', activeBadmintonTier, isDoubles),
+      khususNomor: eventSpecificConfig.indicators
+    };
+  }, [activeBadmintonTier, isDoubles, eventSpecificConfig]);
+
+  // Dynamic Radar & Pillar Average Scores Calculation
+  const axisScores = useMemo(() => {
+    const calcCategoryAvg = (indicatorList) => {
+      if (!indicatorList || indicatorList.length === 0) return 0;
+      const total = indicatorList.reduce((sum, ind) => {
+        const val = scores[ind] !== undefined ? scores[ind] : 0;
+        return sum + val;
+      }, 0);
+      return Math.round(total / indicatorList.length);
+    };
+
+    const fisik = calcCategoryAvg(filteredCategoryIndicators.fisik);
+    const teknik = calcCategoryAvg(filteredCategoryIndicators.teknik);
+    const taktik = calcCategoryAvg(filteredCategoryIndicators.taktik);
+    const mental = calcCategoryAvg(filteredCategoryIndicators.mental);
+    const perkembangan = calcCategoryAvg(filteredCategoryIndicators.perkembangan);
+    const khususNomor = calcCategoryAvg(filteredCategoryIndicators.khususNomor);
+
+    if (isDoubles && activeBadmintonTier >= 2) {
+      const komunikasi = calcCategoryAvg(filteredCategoryIndicators.komunikasi);
+      const overall = Math.round((fisik + teknik + taktik + mental + perkembangan + komunikasi + khususNomor) / 7);
+      return {
+        fisik,
+        teknik,
+        taktik,
+        mental,
+        perkembangan,
+        komunikasi,
+        khususNomor,
+        overall
+      };
+    } else {
+      const overall = Math.round((fisik + teknik + taktik + mental + perkembangan + khususNomor) / 6);
+      return {
+        fisik,
+        teknik,
+        taktik,
+        mental,
+        perkembangan,
+        komunikasi: undefined,
+        khususNomor,
+        overall
+      };
+    }
+  }, [scores, filteredCategoryIndicators, isDoubles, activeBadmintonTier]);
+
+  // Recharts radar data for Badminton
+  const radarData = useMemo(() => {
+    const list = [
+      { subject: 'Fisik', A: axisScores.fisik, fullMark: 100 },
+      { subject: 'Teknik', A: axisScores.teknik, fullMark: 100 },
+      { subject: 'Taktik', A: axisScores.taktik, fullMark: 100 },
+      { subject: 'Mental', A: axisScores.mental, fullMark: 100 },
+      { subject: 'Perkembangan', A: axisScores.perkembangan, fullMark: 100 },
+    ];
+    if (isDoubles && activeBadmintonTier >= 2) {
+      list.push({ subject: 'Komunikasi', A: axisScores.komunikasi || 0, fullMark: 100 });
+    }
+    list.push({ subject: 'Khusus Nomor', A: axisScores.khususNomor, fullMark: 100 });
+    return list;
+  }, [axisScores, isDoubles, activeBadmintonTier]);
+
+  const handleAdjustScore = (indicatorName, delta) => {
+    setScores((prev) => {
+      const curr = prev[indicatorName] !== undefined ? prev[indicatorName] : 0;
+      const nextVal = Math.min(100, Math.max(0, curr + delta));
+      return { ...prev, [indicatorName]: nextVal };
+    });
+  };
+
+  const handleScoreChange = (indicatorName, value) => {
+    setScores((prev) => ({
+      ...prev,
+      [indicatorName]: Math.min(100, Math.max(0, Number(value) || 0))
+    }));
+  };
+
+  const handleSetAllGlobalValue = (val) => {
+    const activeIndicators = [];
+    Object.values(filteredCategoryIndicators).forEach((arr) => {
+      activeIndicators.push(...arr);
+    });
+
+    const nextState = { ...scores };
+    activeIndicators.forEach((ind) => {
+      nextState[ind] = val;
+    });
+    setScores(nextState);
+
+    setSuccessMsg(`Seluruh indikator aktif Badminton Tier ${activeBadmintonTier} (${activeIndicators.length}) di-set ke ${val}.`);
+    setTimeout(() => setSuccessMsg(null), 2500);
+  };
+
+  const handleSmartProFill = () => {
+    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
+      setScores(latestEvalDoc.scores);
+      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat Badminton terakhir!');
+    } else {
+      handleSetAllGlobalValue(75);
+    }
+  };
+
+  const handleGenerateDraft = () => {
+    if (!selectedStudent) return;
+
+    const categoriesList = [
+      { name: 'Kondisi Fisik', score: axisScores.fisik },
+      { name: 'Teknik Pukulan & Footwork', score: axisScores.teknik },
+      { name: 'Pemahaman Taktik Reli', score: axisScores.taktik },
+      { name: 'Mentalitas Bertanding', score: axisScores.mental },
+      { name: 'Perkembangan Atlet', score: axisScores.perkembangan },
+      { name: `Khusus (${eventSpecificConfig.shortLabel})`, score: axisScores.khususNomor }
+    ];
+
+    if (isDoubles && activeBadmintonTier >= 2) {
+      categoriesList.push({ name: 'Komunikasi & Rotasi Pasangan', score: axisScores.komunikasi || 0 });
+    }
+
+    const sorted = [...categoriesList].sort((a, b) => b.score - a.score);
+    const topPillar = sorted[0];
+    const bottomPillar = sorted[sorted.length - 1];
+    const overall = axisScores.overall;
+
+    let draft = '';
+
+    if (activeBadmintonTier === 1) {
+      // Tier 1: Focus on motor coordination, racket swing, footwork rhythm, fun-badminton
+      let summaryText = 'menunjukkan antusiasme dan kegembiraan bermain bulu tangkis yang tinggi.';
+      if (overall < 50) summaryText = 'berada dalam tahap pengenalan ayunan raket dasar dan koordinasi motorik mata-tangan.';
+      else if (overall >= 75) summaryText = 'sangat baik dalam kelincahan langkah dasar (footwork rhythm) dan keberanian memukul kok.';
+
+      draft = `[Rapor Development Badminton — ${badmintonTierConfig.shortLabel} (${pbsiLevelInfo.name})]\n` +
+        `Atlet ${selectedStudent.studentName} berada pada jenjang ${pbsiLevelInfo.name} (${pbsiLevelInfo.ageRange}). Atlet ${summaryText}\n\n` +
+        `• Keunggulan Utama: ${topPillar.name} (Skor: ${topPillar.score}/100)\n` +
+        `• Area Perhatian Pembinaan: ${bottomPillar.name} (Skor: ${bottomPillar.score}/100)\n\n` +
+        `Fokus Pembinaan: ${pbsiLevelInfo.focus}\n` +
+        `Rata-Rata Performa Dasar: ${overall}/100.`;
+    } else if (activeBadmintonTier === 2) {
+      // Tier 2: Sirnas U-13 / Anak-Anak
+      let summaryText = 'menunjukkan konsistensi teknik dasar dan kesiapan mengikuti Sirnas U-13 yang baik.';
+      if (overall < 60) summaryText = 'membutuhkan pemantapan footwork dan servis konsisten sebelum turnamen resmi.';
+
+      draft = `[Rapor Development Badminton — ${badmintonTierConfig.shortLabel} (${pbsiLevelInfo.name})]\n` +
+        `Atlet ${selectedStudent.studentName} dievaluasi pada Nomor ${eventConfig.label}.\n` +
+        `Atlet ${summaryText}\n\n` +
+        `• Keunggulan Utama: ${topPillar.name} (Skor: ${topPillar.score}/100)\n` +
+        `• Area Perbaikan Fokus: ${bottomPillar.name} (Skor: ${bottomPillar.score}/100)\n\n` +
+        `Fokus Sirnas U-13: ${pbsiLevelInfo.focus}\n` +
+        `Rata-Rata Performa: ${overall}/100.`;
+    } else {
+      // Tier 3 & Tier 4: Pemula, Remaja, Taruna & Dewasa
+      let summaryText = 'menunjukkan kontrol permainan dan kesiapan bertanding tingkat tinggi.';
+      if (overall < 60) summaryText = 'membutuhkan penguatan variasi pukulan dan daya tahan fisik intensif.';
+      else if (overall < 80) summaryText = 'cukup solid dengan potensi transisi taktik menyerang-bertahan yang positif.';
+
+      let specText = '';
+      if (isDoubles) {
+        specText = ` | Spesialisasi Ganda: ${doublesSpecConfig.name} (${doublesSpecConfig.code})`;
+      }
+
+      draft = `[Rapor Development Badminton — ${badmintonTierConfig.shortLabel} (${pbsiLevelInfo.name})]\n` +
+        `Atlet ${selectedStudent.studentName} dievaluasi pada Nomor ${eventConfig.label}.\n` +
+        `Gaya Bermain: ${styleConfig.name} (${styleConfig.code})${specText}.\n\n` +
+        `Atlet ${summaryText}\n` +
+        `• Keunggulan Utama: ${topPillar.name} (Skor: ${topPillar.score}/100)\n` +
+        `• Area Perbaikan Fokus: ${bottomPillar.name} (Skor: ${bottomPillar.score}/100)\n\n` +
+        `Fokus Pembinaan: ${pbsiLevelInfo.focus}\n` +
+        `Rata-Rata Performa ${isDoubles ? '7-Axis (Ganda)' : '6-Axis (Tunggal)'}: ${overall}/100.`;
+    }
+
+    let healthSection = `\n\n[Profil Pendukung Kesehatan & Pemulihan (Non-Scoring)]\n` +
+      `- Kesiapan Fisik: ${healthPhysicalReadiness}\n` +
+      `- Catatan Cedera: ${healthInjuryNotes || 'Tidak Ada Keluhan'}\n` +
+      `- Kualitas Pemulihan: ${healthRecoveryQuality}\n` +
+      `*(Catatan pendukung kesehatan tidak mempengaruhi skor performa angka)*`;
+
+    setCoachNote(draft + healthSection);
+  };
+
+  const handleSaveEvaluation = async (e) => {
+    e.preventDefault();
+    if (!selectedStudent) {
+      setErrorMsg('Silakan pilih atlet terlebih dahulu.');
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const payload = {
+        tenantId,
+        classId: selectedClass?.id || '',
+        className: selectedClass?.className || '',
+        sport: 'Badminton',
+        studentId: selectedStudent.id,
+        studentName: selectedStudent.studentName,
+        date: evaluationDate,
+        activeTier: activeBadmintonTier,
+        pbsiLevel: pbsiLevelInfo.name,
+        overallScore: axisScores.overall,
+        eventCode: eventCode,
+        playerRole: eventCode,
+        styleCode: isStyleUnlocked ? styleCode : 'N/A',
+        doublesSpecCode: (isDoubles && isDoublesSpecUnlocked) ? doublesSpecCode : 'N/A',
+        specialization: (isDoubles && isDoublesSpecUnlocked) ? doublesSpecConfig.name : 'N/A',
+        scores: scores,
+        healthPhysicalReadiness,
+        healthInjuryNotes,
+        healthRecoveryQuality,
+        pillarScores: {
+          fisik: axisScores.fisik,
+          teknik: axisScores.teknik,
+          taktik: axisScores.taktik,
+          mental: axisScores.mental,
+          perkembangan: axisScores.perkembangan,
+          komunikasi: (isDoubles && activeBadmintonTier >= 2) ? axisScores.komunikasi : undefined,
+          khususPosisi: axisScores.khususNomor
+        },
+        coachNote: coachNote,
+        evaluator: 'Pelatih Badminton',
+        createdAt: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, 'academy_evaluations'), payload);
+
+      try {
+        const studentRef = doc(db, 'students', selectedStudent.id);
+        await updateDoc(studentRef, {
+          playerRole: eventCode,
+          styleCode: isStyleUnlocked ? styleCode : 'N/A',
+          specialization: (isDoubles && isDoublesSpecUnlocked) ? doublesSpecConfig.name : 'N/A',
+          activeTier: activeBadmintonTier,
+          lastEvaluationDate: evaluationDate,
+          lastOverallScore: axisScores.overall,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (stErr) {
+        console.warn('Could not update student profile doc:', stErr);
+      }
+
+      setSuccessMsg(`Rapor Badminton (${pbsiLevelInfo.name}) untuk ${selectedStudent.studentName} berhasil disimpan!`);
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Error saving Badminton evaluation:', err);
+      handleFirestoreError(err, 'create', 'academy_evaluations');
+      setErrorMsg('Gagal menyimpan evaluasi. Periksa koneksi atau izin Firestore.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const gradeInfo = getScoreGrade(axisScores.overall);
+
+  return (
+    <div className="space-y-6 text-left">
+      {/* 1. COMPACT HEADER BAR */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        {/* BARIS 1: JUDUL KARTU & STATUS RIWAYAT */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+              <Target className="w-5 h-5 text-teal-100" />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                Athlete Development Assessment
+              </h2>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-teal-50 text-teal-800 border border-teal-200">
+                Badminton
+              </span>
+            </div>
+          </div>
+
+          <div className="self-start sm:self-center">
+            {fetchingStudentHistory ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>Memuat riwayat...</span>
+              </span>
+            ) : latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Riwayat Terakhir Terpasang (Tanggal: {formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold">
+                <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Belum ada riwayat (Mulai dari 0)</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {successMsg && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+        {errorMsg && (
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {students.length === 0 ? (
+          <div className="py-8 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
+            <User className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-700">Belum ada siswa terdaftar di kelas Badminton ini.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, JENJANG, & SKOR REALTIME */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/90 items-center">
+              {/* 1. Pilih Atlet */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Pilih Atlet</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedStudentId}
+                    onChange={(e) => setSelectedStudentId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer appearance-none pr-8"
+                  >
+                    {students.map((st) => (
+                      <option key={st.id} value={st.id}>
+                        {st.studentName} ({st.age || st.umur || calculateAge(st.birthDate)} Thn)
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Tanggal Evaluasi */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Tanggal Evaluasi</span>
+                </label>
+                <input
+                  type="date"
+                  value={evaluationDate}
+                  onChange={(e) => setEvaluationDate(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                />
+              </div>
+
+              {/* 3. Jenjang Evaluasi */}
+              <div>
+                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <GraduationCap className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Jenjang Evaluasi</span>
+                </label>
+                <select
+                  value={overrideBadmintonTier}
+                  onChange={(e) => setOverrideBadmintonTier(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                >
+                  <option value="AUTO">Otomatis: Tier {detectedBadmintonTier} ({pbsiLevelInfo.name})</option>
+                  <option value="1">Tier 1 — Pra-Usia Dini &amp; Usia Dini (&le;10 Thn)</option>
+                  <option value="2">Tier 2 — Anak-Anak / Sirnas U-13 (11–13 Thn)</option>
+                  <option value="3">Tier 3 — Pemula &amp; Remaja / Sirnas U-15/U-17 (14–17 Thn)</option>
+                  <option value="4">Tier 4 — Taruna &amp; Dewasa / Sirnas U-19 &amp; Pro (&ge;18 Thn)</option>
+                </select>
+              </div>
+
+              {/* 4. Skor Realtime */}
+              <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Skor Realtime</span>
+                  <span className="text-base font-black text-slate-900">{axisScores.overall} / 100</span>
+                </div>
+                <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${gradeInfo.badge}`}>
+                  {gradeInfo.grade}
+                </span>
+              </div>
+            </div>
+
+            {/* 2. PANEL ATAS: SCOUTING RADAR & KONFIGURASI NOMOR */}
+            {selectedStudent && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* RADAR CHART */}
+                <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+                      <BarChart2 className="w-4 h-4 text-teal-400" />
+                      <span>Scouting Radar</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+                      Total: {axisScores.overall}/100
+                    </span>
+                  </div>
+
+                  <div className="h-64 w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={250}>
+                      <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
+                        <PolarGrid stroke="#334155" />
+                        <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
+                        <Radar
+                          name="Performa"
+                          dataKey="A"
+                          stroke="#0d9488"
+                          fill="#14b8a6"
+                          fillOpacity={0.45}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className={`grid ${isDoubles && activeBadmintonTier >= 2 ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-3 sm:grid-cols-6'} gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800`}>
+                    <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
+                      <span className="text-rose-300 block text-[8px] uppercase font-black truncate">Fisik</span>
+                      <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
+                    </div>
+                    <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
+                      <span className="text-blue-300 block text-[8px] uppercase font-black truncate">Teknik</span>
+                      <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
+                    </div>
+                    <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
+                      <span className="text-purple-300 block text-[8px] uppercase font-black truncate">Taktik</span>
+                      <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
+                    </div>
+                    <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
+                      <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">Mental</span>
+                      <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
+                    </div>
+                    <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
+                      <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">Dev.</span>
+                      <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
+                    </div>
+                    {isDoubles && activeBadmintonTier >= 2 && (
+                      <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
+                        <span className="text-amber-300 block text-[8px] uppercase font-black truncate">Komun.</span>
+                        <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
+                      </div>
+                    )}
+                    <div className="p-1.5 rounded-xl bg-teal-950/70 border border-teal-800/60 col-span-2 sm:col-span-1">
+                      <span className="text-teal-300 block text-[8px] uppercase font-black truncate">Nomor</span>
+                      <span className="font-black text-teal-200 text-xs">{axisScores.khususNomor}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* KONFIGURASI NOMOR & PERAN + HEALTH PANEL */}
+                <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <Layers className="w-4 h-4 text-teal-600" />
+                        <span>Konfigurasi Nomor &amp; Peran</span>
+                      </span>
+                      <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full font-bold">
+                        {eventConfig.shortLabel}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      {/* NOMOR PERTANDINGAN */}
+                      <div>
+                        <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                          1. Nomor Pertandingan
+                        </label>
+                        <select
+                          value={eventCode}
+                          onChange={(e) => setEventCode(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                        >
+                          {availableEvents.map((ev) => (
+                            <option key={ev.code} value={ev.code}>
+                              {ev.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* STY DROPDOWN - RENDER ONLY IF UNLOCKED */}
+                      {isStyleUnlocked && (
+                        <div>
+                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            2. Profil Gaya Bermain (STY)
+                          </label>
+                          <select
+                            value={styleCode}
+                            onChange={(e) => setStyleCode(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                          >
+                            {BADMINTON_PLAYING_STYLES.map((st) => (
+                              <option key={st.code} value={st.code}>
+                                {st.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* SPESIALISASI GANDA - RENDER ONLY IF DOUBLES & UNLOCKED */}
+                      {isDoubles && isDoublesSpecUnlocked && (
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            3. Spesialisasi Nomor Ganda
+                          </label>
+                          <select
+                            value={doublesSpecCode}
+                            onChange={(e) => setDoublesSpecCode(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                          >
+                            {BADMINTON_DOUBLES_SPECS.map((sp) => (
+                              <option key={sp.code} value={sp.code}>
+                                {sp.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* HEALTH & RECOVERY PANEL */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+                      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-1.5">
+                        <Activity className="w-4 h-4 text-teal-600" />
+                        <h4 className="text-xs font-extrabold text-slate-800">
+                          Catatan Fisik &amp; Pemulihan (Non-Skor)
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Kesiapan Fisik:</label>
+                          <select
+                            value={healthPhysicalReadiness}
+                            onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                          >
+                            <option value="Fit 100%">Fit 100% (Prima)</option>
+                            <option value="Sangat Fit">Sangat Fit</option>
+                            <option value="Kelelahan Ringan">Kelelahan Ringan</option>
+                            <option value="Kelelahan Sedang">Kelelahan Sedang</option>
+                            <option value="Perlu Istirahat">Perlu Istirahat / Rest</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Riwayat Cedera:</label>
+                          <input
+                            type="text"
+                            value={healthInjuryNotes}
+                            onChange={(e) => setHealthInjuryNotes(e.target.value)}
+                            placeholder="Misal: Nyeri lutut ringan..."
+                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-1">Kualitas Tidur:</label>
+                          <select
+                            value={healthRecoveryQuality}
+                            onChange={(e) => setHealthRecoveryQuality(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                          >
+                            <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
+                            <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
+                            <option value="Kurang (<6 Jam)">Kurang (&lt;6 Jam)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                      <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Preset Nilai Cepat:</span>
+                    </span>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllGlobalValue(0)}
+                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                        title="Reset semua indikator ke 0"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Reset (0)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllGlobalValue(50)}
+                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                      >
+                        Standard (50)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllGlobalValue(75)}
+                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                      >
+                        Good (75)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllGlobalValue(90)}
+                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                      >
+                        Elite (90)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSmartProFill}
+                        className="px-2.5 py-1 bg-teal-600 text-white hover:bg-teal-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                        title="Muat riwayat atau baseline 75"
+                      >
+                        <Sparkles className="w-3 h-3 text-teal-200" />
+                        <span>Smart Pro-Fill</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 3. SUB-TAB KATEGORI & SLIDER INDIKATOR */}
+      {selectedStudent && (
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+          {/* Sub-Tab Navigation Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* Tab 1: Fisik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('fisik')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'fisik' && !showAllAtOnce
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <span>Fisik</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'fisik' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800'
+                }`}>
+                  {filteredCategoryIndicators.fisik.length}
+                </span>
+              </button>
+
+              {/* Tab 2: Teknik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('teknik')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'teknik' && !showAllAtOnce
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <span>Teknik</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'teknik' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {filteredCategoryIndicators.teknik.length}
+                </span>
+              </button>
+
+              {/* Tab 3: Taktik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('taktik')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'taktik' && !showAllAtOnce
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <span>Taktik</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'taktik' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+                }`}>
+                  {filteredCategoryIndicators.taktik.length}
+                </span>
+              </button>
+
+              {/* Tab 4: Mental */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('mental')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'mental' && !showAllAtOnce
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <span>Mental</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'mental' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {filteredCategoryIndicators.mental.length}
+                </span>
+              </button>
+
+              {/* Tab 5: Komunikasi (HIDE COMPLETELY IF NOT DOUBLES OR TIER < 2) */}
+              {isDoubles && activeBadmintonTier >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('komunikasi')}
+                  className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'komunikasi' && !showAllAtOnce
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <span>Komunikasi</span>
+                  <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                    activeTab === 'komunikasi' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {filteredCategoryIndicators.komunikasi.length}
+                  </span>
+                </button>
+              )}
+
+              {/* Tab 6: Perkembangan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('perkembangan')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'perkembangan' && !showAllAtOnce
+                    ? 'bg-cyan-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <span>Perkembangan</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'perkembangan' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-800'
+                }`}>
+                  {filteredCategoryIndicators.perkembangan.length}
+                </span>
+              </button>
+
+              {/* Tab 7: Khusus Nomor */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('khususNomor')}
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'khususNomor' && !showAllAtOnce
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200'
+                }`}
+              >
+                <span>Khusus Nomor</span>
+                <span className={`px-1.5 py-0.2 text-[9px] rounded-full font-black ${
+                  activeTab === 'khususNomor' && !showAllAtOnce ? 'bg-white/20 text-white' : 'bg-teal-200 text-teal-900'
+                }`}>
+                  {filteredCategoryIndicators.khususNomor.length}
+                </span>
+              </button>
+            </div>
+
+            {/* Toggle Show All At Once */}
+            <button
+              type="button"
+              onClick={() => setShowAllAtOnce(!showAllAtOnce)}
+              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                showAllAtOnce
+                  ? 'bg-teal-600 text-white border-teal-600'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>{showAllAtOnce ? 'Tampilan Per-Tab' : 'Tampilkan Semua Sekaligus'}</span>
+            </button>
+          </div>
+
+          {/* Render Active Category Sliders Grid */}
+          <div className="space-y-6">
+            {(() => {
+              const renderGridForCategory = (catKey, catTitle, indicatorList, badgeColor = 'bg-slate-100 text-slate-800') => {
+                if (!indicatorList || indicatorList.length === 0) return null;
+
+                return (
+                  <div key={catKey} className="space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 text-xs font-black uppercase rounded-lg ${badgeColor}`}>
+                          {catTitle}
+                        </span>
+                        <span className="text-xs text-slate-500 font-bold">
+                          ({indicatorList.length} Indikator Aktif)
+                        </span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-800">
+                        Rata-rata: {axisScores[catKey] !== undefined ? axisScores[catKey] : 0} / 100
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                      {indicatorList.map((indicatorName) => {
+                        const val = scores[indicatorName] !== undefined ? scores[indicatorName] : 0;
+                        const scoreGrade = getScoreGrade(val);
+
+                        return (
+                          <div
+                            key={indicatorName}
+                            className="p-3 bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-teal-300 rounded-2xl transition-all space-y-2 shadow-2xs"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="text-xs font-bold text-slate-800 leading-snug">
+                                {indicatorName}
+                              </span>
+                              <span className={`px-2 py-0.5 text-[10px] font-black rounded-lg border ${scoreGrade.badge}`}>
+                                {val} / 100
+                              </span>
+                            </div>
+
+                            {/* Slider + Quick Adjustment Buttons */}
+                            <div className="flex items-center gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleAdjustScore(indicatorName, -5)}
+                                title="Kurangi 5"
+                                className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-bold hover:text-rose-600 transition-colors cursor-pointer"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={val}
+                                onChange={(e) => handleScoreChange(indicatorName, e.target.value)}
+                                className="w-full accent-teal-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() => handleAdjustScore(indicatorName, 5)}
+                                title="Tambah 5"
+                                className="p-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-bold hover:text-emerald-600 transition-colors cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              };
+
+              if (showAllAtOnce) {
+                return (
+                  <div className="space-y-8">
+                    {renderGridForCategory('fisik', '1. Fisik / Physical', filteredCategoryIndicators.fisik, 'bg-rose-100 text-rose-900 border border-rose-300')}
+                    {renderGridForCategory('teknik', '2. Teknik / Technical', filteredCategoryIndicators.teknik, 'bg-blue-100 text-blue-900 border border-blue-300')}
+                    {renderGridForCategory('taktik', '3. Taktik / Tactical', filteredCategoryIndicators.taktik, 'bg-purple-100 text-purple-900 border border-purple-300')}
+                    {renderGridForCategory('mental', '4. Mental / Psychology', filteredCategoryIndicators.mental, 'bg-emerald-100 text-emerald-900 border border-emerald-300')}
+                    {isDoubles && activeBadmintonTier >= 2 && renderGridForCategory('komunikasi', '5. Komunikasi (Khusus Ganda)', filteredCategoryIndicators.komunikasi, 'bg-amber-100 text-amber-900 border border-amber-300')}
+                    {renderGridForCategory('perkembangan', '6. Perkembangan / Development', filteredCategoryIndicators.perkembangan, 'bg-cyan-100 text-cyan-900 border border-cyan-300')}
+                    {renderGridForCategory('khususNomor', `7. Khusus Nomor (${eventSpecificConfig.shortLabel})`, filteredCategoryIndicators.khususNomor, 'bg-teal-100 text-teal-900 border border-teal-300')}
+                  </div>
+                );
+              }
+
+              // Per Tab view
+              switch (activeTab) {
+                case 'fisik':
+                  return renderGridForCategory('fisik', '1. Fisik / Physical', filteredCategoryIndicators.fisik, 'bg-rose-100 text-rose-900 border border-rose-300');
+                case 'teknik':
+                  return renderGridForCategory('teknik', '2. Teknik / Technical', filteredCategoryIndicators.teknik, 'bg-blue-100 text-blue-900 border border-blue-300');
+                case 'taktik':
+                  return renderGridForCategory('taktik', '3. Taktik / Tactical', filteredCategoryIndicators.taktik, 'bg-purple-100 text-purple-900 border border-purple-300');
+                case 'mental':
+                  return renderGridForCategory('mental', '4. Mental / Psychology', filteredCategoryIndicators.mental, 'bg-emerald-100 text-emerald-900 border border-emerald-300');
+                case 'komunikasi':
+                  return isDoubles && activeBadmintonTier >= 2 ? renderGridForCategory('komunikasi', '5. Komunikasi (Khusus Ganda)', filteredCategoryIndicators.komunikasi, 'bg-amber-100 text-amber-900 border border-amber-300') : null;
+                case 'perkembangan':
+                  return renderGridForCategory('perkembangan', '6. Perkembangan / Development', filteredCategoryIndicators.perkembangan, 'bg-cyan-100 text-cyan-900 border border-cyan-300');
+                case 'khususNomor':
+                  return renderGridForCategory('khususNomor', `7. Khusus Nomor (${eventSpecificConfig.shortLabel})`, filteredCategoryIndicators.khususNomor, 'bg-teal-100 text-teal-900 border border-teal-300');
+                default:
+                  return renderGridForCategory('fisik', '1. Fisik / Physical', filteredCategoryIndicators.fisik, 'bg-rose-100 text-rose-900 border border-rose-300');
+              }
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* 4. CATATAN EVALUASI & TOMBOL SIMPAN */}
+      {selectedStudent && (
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4.5 h-4.5 text-teal-600" />
+              <h3 className="font-extrabold text-sm text-slate-900">
+                Catatan Pelatih ({pbsiLevelInfo.name})
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateDraft}
+              className="px-3 py-1.5 text-xs font-extrabold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+              <span>Buat Draf Analisis Otomatis</span>
+            </button>
+          </div>
+
+          <textarea
+            value={coachNote}
+            onChange={(e) => setCoachNote(e.target.value)}
+            rows={5}
+            placeholder="Tuliskan umpan balik pelatih, keunggulan pukulan, area perbaikan footwork/taktik, dan rekomendasi program latihan..."
+            className="w-full p-4 text-xs font-medium bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 leading-relaxed text-slate-800 placeholder:text-slate-400"
+          />
+
+          {errorMsg && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-bold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSaveEvaluation}
+              disabled={isSaving}
+              className="w-full sm:w-auto px-8 py-3.5 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-black text-sm rounded-2xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Menyimpan Rapor Badminton...</span>
+                </>
+              ) : (
+                <>
+                  <Award className="w-4.5 h-4.5" />
+                  <span>Simpan Assessment Badminton ({badmintonTierConfig.shortLabel})</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. RIWAYAT EVALUASI BADMINTON */}
+      <HistorySection
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        students={students}
+        onDeleteEvaluation={onDeleteEvaluation}
+      />
+    </div>
+  );
+}
+
+// =====================================================================
+// COMPONENT 2: ATHLETE DEVELOPMENT ASSESSMENT (4-TIER LTAD CURRICULUM SEPAKBOLA & MINISOCCER)
+// =====================================================================
+function FootballAssessmentView({
+  selectedClass,
+  students,
+  tenantId,
+  activeAcademy,
+  history,
+  loadingHistory,
+  filterStudentId,
+  setFilterStudentId,
+  onDeleteEvaluation
+}) {
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const selectedStudent = useMemo(() => {
+    if (students.length === 0) return null;
+    return students.find((s) => s.id === selectedStudentId) || students[0];
+  }, [students, selectedStudentId]);
+
+  // DETEKSI OTOMATIS TIER DARI USIA + MANUAL OVERRIDE DROPDOWN
+  const [overrideTier, setOverrideTier] = useState('AUTO');
+
+  const studentAge = useMemo(() => {
+    if (!selectedStudent) return 0;
+    if (selectedStudent.birthDate) {
+      const calculated = calculateAge(selectedStudent.birthDate);
+      if (calculated !== '-') {
+        const num = parseInt(String(calculated).replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > 0) return num;
+      }
+    }
+    const rawAge = selectedStudent.age || selectedStudent.umur;
+    if (rawAge) {
+      const num = parseInt(String(rawAge).replace(/\D/g, ''), 10);
+      if (!isNaN(num) && num > 0) return num;
+    }
+    return 10;
+  }, [selectedStudent]);
+
+  const detectedTier = useMemo(() => {
+    return detectTierFromAge(studentAge);
+  }, [studentAge]);
+
+  const activeTier = useMemo(() => {
+    if (overrideTier && overrideTier !== 'AUTO') {
+      return parseInt(overrideTier, 10);
+    }
+    return detectedTier;
+  }, [overrideTier, detectedTier]);
+
+  const tierConfig = TIER_CONFIGS[activeTier] || TIER_CONFIGS[1];
+
+  // Position, Specialization, StyleCode
+  const [selectedPosition, setSelectedPosition] = useState('ST');
+  const [selectedSpecialization, setSelectedSpecialization] = useState('Poacher');
+  const [selectedStyleCode, setSelectedStyleCode] = useState('STY07');
+
+  // Active Category Tab
+  const [activeTab, setActiveTab] = useState('fisik');
+  const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+
+  // Scores state: { [indicatorName]: number }
+  const [scores, setScores] = useState({});
+  const [coachNote, setCoachNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Status indicator loading state per student
+  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
+  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+
+  const sportName = selectedClass?.sport || activeAcademy?.sport || 'SepakBola / Minisoccer';
+
+  // Available positions based on activeTier
+  const availablePositions = useMemo(() => {
+    return getAvailablePositionsForTier(activeTier);
+  }, [activeTier]);
+
+  // Position-Specific Indicators Config based on activeTier
+  const currentPosIndicatorsConfig = useMemo(() => {
+    return getPositionIndicatorsForTier(selectedPosition, activeTier);
+  }, [selectedPosition, activeTier]);
+
+  // Ensure selectedPosition is valid for activeTier
+  useEffect(() => {
+    if (activeTier === 1) {
+      if (!['OUTFIELD_SSB', 'GK_SSB'].includes(selectedPosition)) {
+        setSelectedPosition('OUTFIELD_SSB');
+      }
+    } else if (activeTier === 2) {
+      if (!['GK', 'CB', 'CM', 'ST'].includes(selectedPosition)) {
+        setSelectedPosition('CM');
+      }
+    } else {
+      if (['OUTFIELD_SSB', 'GK_SSB'].includes(selectedPosition)) {
+        setSelectedPosition(selectedStudent?.playerRole || selectedStudent?.position || 'ST');
+      }
+    }
+  }, [activeTier, selectedStudent]);
+
+  // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA / KELAS BERUBAH
+  useEffect(() => {
+    if (!selectedStudent?.id) {
+      setLatestEvalDoc(null);
+      setScores({});
+      setFetchingStudentHistory(false);
+      return;
+    }
+
+    setFetchingStudentHistory(true);
+    setScores({});
+    setCoachNote('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    // Cari dokumen evaluasi terbaru untuk siswa terpilih dari history
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+
+    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
+
+    if (latest) {
+      setLatestEvalDoc(latest);
+      setScores(latest.scores || {});
+
+      // Restore position/spec/style
+      const posCode = latest.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
+      setSelectedPosition(posCode);
+
+      const posConfig = getPositionConfig(posCode);
+      const specVal = latest.specialization || selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher');
+      setSelectedSpecialization(specVal);
+
+      const styleVal = latest.styleCode || selectedStudent.styleCode || 'STY07';
+      setSelectedStyleCode(styleVal);
+    } else {
+      // Siswa Baru: Inisialisasi dari 0
+      setLatestEvalDoc(null);
+      setScores({});
+
+      const posCode = selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
+      setSelectedPosition(posCode);
+
+      const posConfig = getPositionConfig(posCode);
+      setSelectedSpecialization(selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher'));
+      setSelectedStyleCode(selectedStudent.styleCode || 'STY07');
+    }
+
+    setFetchingStudentHistory(false);
+  }, [selectedStudent?.id, selectedClass?.id, history, activeTier]);
+
+  const handlePositionChange = (newCode) => {
+    setSelectedPosition(newCode);
+    if (activeTier >= 3) {
+      const cfg = getPositionConfig(newCode);
+      if (cfg.specializations && cfg.specializations.length > 0) {
+        setSelectedSpecialization(cfg.specializations[0]);
+      }
+    }
+  };
+
+  // Filtered Indicator Names for each of the 6 Core Categories based on minTier <= activeTier
+  const filteredCategoryIndicators = useMemo(() => {
+    return {
+      fisik: getFilteredIndicatorsForCategory('fisik', activeTier),
+      teknik: getFilteredIndicatorsForCategory('teknik', activeTier),
+      taktik: getFilteredIndicatorsForCategory('taktik', activeTier),
+      mental: getFilteredIndicatorsForCategory('mental', activeTier),
+      komunikasi: getFilteredIndicatorsForCategory('komunikasi', activeTier),
+      perkembangan: getFilteredIndicatorsForCategory('perkembangan', activeTier)
+    };
+  }, [activeTier]);
+
+  // 7-Axis Calculated Average Scores (Only counting active indicators in activeTier)
+  const axisScores = useMemo(() => {
+    const calcCategoryAvg = (indicatorList) => {
+      if (!indicatorList || indicatorList.length === 0) return 0;
+      const total = indicatorList.reduce((sum, ind) => {
+        const val = scores[ind] !== undefined ? scores[ind] : 0;
+        return sum + val;
+      }, 0);
+      return Math.round(total / indicatorList.length);
+    };
+
+    const fisik = calcCategoryAvg(filteredCategoryIndicators.fisik);
+    const teknik = calcCategoryAvg(filteredCategoryIndicators.teknik);
+    const taktik = calcCategoryAvg(filteredCategoryIndicators.taktik);
+    const mental = calcCategoryAvg(filteredCategoryIndicators.mental);
+    const komunikasi = calcCategoryAvg(filteredCategoryIndicators.komunikasi);
+    const perkembangan = calcCategoryAvg(filteredCategoryIndicators.perkembangan);
+    const khususPosisi = calcCategoryAvg(currentPosIndicatorsConfig.indicators);
+
+    const overall = Math.round((fisik + teknik + taktik + mental + komunikasi + perkembangan + khususPosisi) / 7);
+
+    return {
+      fisik,
+      teknik,
+      taktik,
+      mental,
+      komunikasi,
+      perkembangan,
+      khususPosisi,
+      overall
+    };
+  }, [scores, filteredCategoryIndicators, currentPosIndicatorsConfig]);
+
+  // Recharts radar data for 7 corners
+  const radarData = useMemo(() => [
+    { subject: 'Fisik', A: axisScores.fisik, fullMark: 100 },
+    { subject: 'Teknik', A: axisScores.teknik, fullMark: 100 },
+    { subject: 'Taktik', A: axisScores.taktik, fullMark: 100 },
+    { subject: 'Mental', A: axisScores.mental, fullMark: 100 },
+    { subject: 'Komunikasi', A: axisScores.komunikasi, fullMark: 100 },
+    { subject: 'Perkembangan', A: axisScores.perkembangan, fullMark: 100 },
+    { subject: 'Khusus Posisi', A: axisScores.khususPosisi, fullMark: 100 },
+  ], [axisScores]);
+
+  // Adjust score handler with +/- 5 step
+  const handleAdjustScore = (indicatorName, delta) => {
+    setScores((prev) => {
+      const curr = prev[indicatorName] !== undefined ? prev[indicatorName] : 0;
+      const nextVal = Math.min(100, Math.max(0, curr + delta));
+      return { ...prev, [indicatorName]: nextVal };
+    });
+  };
+
+  // Direct slider change
+  const handleScoreChange = (indicatorName, value) => {
+    setScores((prev) => ({
+      ...prev,
+      [indicatorName]: Math.min(100, Math.max(0, Number(value) || 0))
+    }));
+  };
+
+  // Set All Active Indicators To Specific Value
+  const handleSetAllGlobalValue = (val) => {
+    const activeIndicators = [];
+    Object.values(filteredCategoryIndicators).forEach((arr) => {
+      activeIndicators.push(...arr);
+    });
+    activeIndicators.push(...currentPosIndicatorsConfig.indicators);
+
+    const nextState = { ...scores };
+    activeIndicators.forEach((ind) => {
+      nextState[ind] = val;
+    });
+    setScores(nextState);
+
+    setSuccessMsg(`Seluruh indikator aktif Tier ${activeTier} (${activeIndicators.length}) di-set ke ${val}.`);
+    setTimeout(() => setSuccessMsg(null), 2500);
+  };
+
+  // Smart Pro-Fill
+  const handleSmartProFill = () => {
+    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
+      setScores(latestEvalDoc.scores);
+      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat penilaian terakhir!');
+    } else {
+      handleSetAllGlobalValue(75);
+    }
+  };
+
+  // Generate Auto-Draft Coach Note
+  const handleGenerateDraft = () => {
+    if (!selectedStudent) return;
+
+    const categoriesList = [
+      { name: 'Kondisi Fisik', score: axisScores.fisik },
+      { name: 'Kemampuan Teknik', score: axisScores.teknik },
+      { name: 'Pemahaman Taktik', score: axisScores.taktik },
+      { name: 'Mentalitas', score: axisScores.mental },
+      { name: 'Komunikasi Lapangan', score: axisScores.komunikasi },
+      { name: 'Perkembangan Atlet', score: axisScores.perkembangan },
+      { name: `Indikator Khusus (${currentPosIndicatorsConfig.shortLabel})`, score: axisScores.khususPosisi },
+    ];
+
+    const sorted = [...categoriesList].sort((a, b) => b.score - a.score);
+    const topPillar = sorted[0];
+    const bottomPillar = sorted[sorted.length - 1];
+    const overall = axisScores.overall;
+
+    let draft = '';
+
+    if (activeTier === 1 || activeTier === 2) {
+      let summaryText = 'menunjukkan antusiasme dan kesenangan bermain yang tinggi.';
+      if (overall < 50) summaryText = 'dalam tahap penyesuaian gerak motorik dan pengenalan bola.';
+      else if (overall >= 75) summaryText = 'sangat berbakat dengan kontrol motorik dan antusiasme luar biasa.';
+
+      draft = `[Rapor Perkembangan ${tierConfig.shortLabel}]\n` +
+        `Atlet ${selectedStudent.studentName} berada pada tahap ${tierConfig.label} (${currentPosIndicatorsConfig.label}). Atlet ${summaryText}\n\n` +
+        `Aspek yang paling berkembang: ${topPillar.name} (Skor: ${topPillar.score}/100).\n` +
+        `Fokus pembinaan selanjutnya: ${bottomPillar.name} (Skor: ${bottomPillar.score}/100).\n\n` +
+        `Rata-rata perkembangan saat ini: ${overall}/100.`;
+    } else {
+      const styleObj = getStyleConfig(selectedStyleCode);
+      let summaryText = 'sangat memuaskan dan siap bersaing di laga kompetitif.';
+      if (overall < 60) summaryText = 'membutuhkan pembinaan intensif dan disiplin latihan tambahan.';
+      else if (overall < 80) summaryText = 'cukup baik dengan progres positif yang konsisten.';
+
+      draft = `[Rapor Taktis ${tierConfig.shortLabel} - ${selectedPosition}]\n` +
+        `Atlet ${selectedStudent.studentName} dievaluasi pada posisi ${selectedPosition} dengan spesialisasi "${selectedSpecialization}" dan profil gaya bermain ${styleObj.code} — ${styleObj.name} (${styleObj.desc}).\n\n` +
+        `Keunggulan utama ditunjukkan pada ${topPillar.name} (Skor: ${topPillar.score}/100). Aspek yang perlu ditingkatkan adalah ${bottomPillar.name} (Skor: ${bottomPillar.score}/100).\n\n` +
+        `Secara keseluruhan, performa atlet dinilai ${summaryText} (Skor Total: ${overall}/100).`;
+    }
+
+    setCoachNote(draft);
+  };
+
+  // Save evaluation to Firestore
+  const handleSaveEvaluation = async (e) => {
+    e.preventDefault();
+    if (!selectedClass?.id || !tenantId) return;
+    if (!selectedStudent?.id) {
+      setErrorMsg('Pilih siswa atlet dari daftar untuk dievaluasi.');
+      return;
+    }
+    if (!evaluationDate) {
+      setErrorMsg('Tanggal evaluasi wajib diisi.');
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    const evaluatorName = selectedClass.coachName || selectedClass.coach || 'Pelatih Utama';
+
+    const activeIndicators = [];
+    Object.values(filteredCategoryIndicators).forEach((arr) => {
+      activeIndicators.push(...arr);
+    });
+    activeIndicators.push(...currentPosIndicatorsConfig.indicators);
+
+    const finalScores = {};
+    activeIndicators.forEach((ind) => {
+      finalScores[ind] = scores[ind] !== undefined ? scores[ind] : 0;
+    });
+
+    const styleObj = getStyleConfig(selectedStyleCode);
 
     try {
       await addDoc(collection(db, 'academy_evaluations'), {
@@ -463,90 +2844,114 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         academyId: selectedClass.academyId || activeAcademy?.id || '',
         classId: selectedClass.id,
         className: selectedClass.className || selectedClass.name || 'Kelas Akademi',
-        sportCategory: sportCategoryKey,
-        sportCategoryLabel: categoryConfig.label,
+        sportCategory: 'sepakbola',
+        sportCategoryLabel: `Athlete Development Assessment (${tierConfig.shortLabel})`,
         sportName: sportName,
         sport: selectedClass.sport || sportName,
-        playerRole: playerRole || 'Umum',
+        activeTier: activeTier,
+        tierLabel: tierConfig.label,
+        playerRole: selectedPosition,
+        specialization: activeTier >= 3 ? selectedSpecialization : 'Eksplorasi/Dasar',
+        styleCode: activeTier >= 3 ? selectedStyleCode : 'N/A',
+        styleLabel: activeTier >= 3 ? styleObj.name : 'N/A',
         studentId: selectedStudent.id,
         studentName: selectedStudent.studentName || 'Siswa',
         date: evaluationDate,
         scores: finalScores,
         pillarScores: {
-          fisik: pillarScores.fisik,
-          teknik: pillarScores.teknik,
-          taktik: pillarScores.taktik,
-          mental: pillarScores.mental,
-          position: pillarScores.position,
-          overall: pillarScores.overall
+          fisik: axisScores.fisik,
+          teknik: axisScores.teknik,
+          taktik: axisScores.taktik,
+          mental: axisScores.mental,
+          komunikasi: axisScores.komunikasi,
+          perkembangan: axisScores.perkembangan,
+          khususPosisi: axisScores.khususPosisi,
+          position: axisScores.khususPosisi,
+          overall: axisScores.overall
         },
-        overallScore: pillarScores.overall,
+        overallScore: axisScores.overall,
         coachNote: coachNote.trim(),
         evaluator: evaluatorName,
+        assessmentType: '7-axis-ltad',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
 
-      setSuccessMsg(`Rapor evaluasi ${selectedStudent.studentName} (${playerRole}) berhasil disimpan!`);
+      try {
+        await updateDoc(doc(db, 'students', selectedStudent.id), {
+          playerRole: selectedPosition,
+          position: selectedPosition,
+          curriculumTier: activeTier,
+          specialization: activeTier >= 3 ? selectedSpecialization : 'Dasar',
+          styleCode: activeTier >= 3 ? selectedStyleCode : 'N/A',
+          updatedAt: serverTimestamp()
+        });
+      } catch (stErr) {
+        console.warn('Failed to update student profile:', stErr);
+      }
+
+      setSuccessMsg(`Assessment (${tierConfig.shortLabel}) untuk ${selectedStudent.studentName} berhasil disimpan!`);
       setCoachNote('');
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err) {
-      console.error('Failed to save evaluation to academy_evaluations:', err);
+      console.error('Failed to save assessment:', err);
       handleFirestoreError(err, 'create', 'academy_evaluations');
-      setErrorMsg('Gagal menyimpan rapor evaluasi. Silakan coba lagi.');
+      setErrorMsg('Gagal menyimpan assessment evaluasi. Silakan coba lagi.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteEvaluation = async (id, studentName) => {
-    if (!window.confirm(`Hapus data rapor evaluasi untuk ${studentName}?`)) return;
-    try {
-      await deleteDoc(doc(db, 'academy_evaluations', id));
-    } catch (err) {
-      console.error('Failed to delete evaluation:', err);
-      handleFirestoreError(err, 'delete', 'academy_evaluations');
-    }
-  };
-
-  const filteredHistory = filterStudentId === 'ALL'
-    ? history
-    : history.filter((h) => h.studentId === filterStudentId);
-
   const evaluatedStudentIdsToday = new Set(
     history.filter((h) => h.date === evaluationDate).map((h) => h.studentId)
   );
 
+  const overallGrade = getScoreGrade(axisScores.overall);
+
   return (
     <div className="space-y-6 text-left">
-      {/* ================================================================= */}
-      {/* 1. HEADER INFO & BADGE RUMPUN OLAHRAGA */}
-      {/* ================================================================= */}
+      {/* HEADER BAR */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 border border-indigo-100/80">
-              <Award className="w-5 h-5 text-indigo-600" />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+              <Compass className="w-6 h-6 text-emerald-100" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-bold text-base text-slate-900 tracking-tight">
-                  Engine Evaluasi 4-Pilar & Mutasi Posisi
-                </h3>
-                {/* BADGE RUMPUN SEJAJAR JUDUL */}
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${theme.badge}`}>
-                  <Layers className="w-3 h-3 shrink-0" />
-                  <span>{categoryConfig.label}</span>
+                <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                  Athlete Development Assessment
+                </h2>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                  <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>SepakBola &amp; Minisoccer</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Kelas: <strong className="text-slate-700 font-medium">{selectedClass?.className}</strong> &bull; Cabang: <span className="text-indigo-600 font-medium">{sportName}</span>
-              </p>
             </div>
+          </div>
+
+          <div className="self-start sm:self-center">
+            {fetchingStudentHistory ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse shadow-2xs">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>Memuat riwayat...</span>
+              </span>
+            ) : latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Riwayat Terakhir Terpasang (Tanggal: {formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold shadow-2xs">
+                <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Belum ada riwayat (Mulai dari 0)</span>
+              </span>
+            )}
           </div>
         </div>
 
-        {/* FEEDBACK NOTIFICATION ALERTS */}
+        {/* ALERTS */}
         {successMsg && (
           <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-bold flex items-center gap-2 shadow-2xs animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -560,463 +2965,523 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* 2. MASTER-DETAIL INTERFACE (CLEAN INTEGRATED GRID) */}
-        {/* ================================================================= */}
-        {classStudents.length === 0 ? (
+        {students.length === 0 ? (
           <div className="py-12 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
             <User className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-slate-700">
-              Belum ada siswa terdaftar di kelas ini.
-            </p>
-            <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-              Daftarkan siswa baru ke kelas <strong className="text-slate-700">{selectedClass?.className}</strong> untuk mulai mengisi rapor evaluasi 4-Pilar.
-            </p>
+            <p className="text-sm font-bold text-slate-700">Belum ada siswa terdaftar di kelas ini.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            
-            {/* 2A. DROPDOWN SELECTOR SISWA & PROFIL ATLET AKTIF */}
-            <div className="p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Dropdown Siswa (Select Ringkas & Elegan) */}
-                <div className="flex-1">
-                  <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <UserCheck className="w-4 h-4 text-indigo-600" />
-                    <span>Pilih Siswa / Atlet Evaluasi ({classStudents.length} Atlet)</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={selectedStudent?.id || ''}
-                      onChange={(e) => {
-                        const found = classStudents.find((s) => s.id === e.target.value);
-                        if (found) handleSelectStudent(found);
-                      }}
-                      className="w-full px-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-10"
-                    >
-                      {classStudents.map((st) => {
-                        const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
-                        const pos = st.playerRole || st.position || 'Belum Set Posisi';
-                        return (
-                          <option key={st.id} value={st.id}>
-                            {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
+              <div className="lg:col-span-4">
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Pilih Atlet ({students.length})</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedStudent?.id || ''}
+                    onChange={(e) => setSelectedStudentId(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
+                  >
+                    {students.map((st) => {
+                      const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
+                      const pos = st.playerRole || st.position || 'ST';
+                      return (
+                        <option key={st.id} value={st.id}>
+                          {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                    <ChevronDown className="w-4 h-4" />
                   </div>
-                </div>
-
-                {/* Tanggal & Indikator Selesai Sesi */}
-                <div className="flex flex-wrap items-center gap-3 self-start lg:self-end">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>Tanggal Sesi</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={evaluationDate}
-                      onChange={(e) => setEvaluationDate(e.target.value)}
-                      className="px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
-                    />
-                  </div>
-
-                  {selectedStudent && evaluatedStudentIdsToday.has(selectedStudent.id) && (
-                    <div className="self-end pb-0.5">
-                      <span className="inline-flex items-center gap-1 px-3 py-2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold shadow-2xs">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Sesi Hari Ini Sudah Terisi</span>
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Rincian Ringkas Atlet Terpilih & Kontrol Posisi */}
-              {selectedStudent && (
-                <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base font-black text-slate-900">{selectedStudent.studentName}</span>
-                      {calculateAge(selectedStudent.birthDate) !== '-' && (
-                        <span className="px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[10px] font-semibold">
-                          Usia: {calculateAge(selectedStudent.birthDate)} Thn
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-slate-300 hidden sm:inline">&bull;</span>
-                    <p className="text-xs text-slate-500">
-                      Wali: <strong className="text-slate-700">{selectedStudent.parentName || '-'}</strong> {selectedStudent.parentPhone ? `(${selectedStudent.parentPhone})` : ''}
-                    </p>
-                  </div>
+              <div className="lg:col-span-3">
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-emerald-600" />
+                  <span>Tanggal Evaluasi</span>
+                </label>
+                <input
+                  type="date"
+                  value={evaluationDate}
+                  onChange={(e) => setEvaluationDate(e.target.value)}
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
+                />
+              </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    {/* Posisi & Mutasi */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                        <Target className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Posisi:</span>
-                      </span>
-                      {playerRole ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white text-slate-800 border border-slate-200 rounded-lg text-xs font-bold shadow-2xs">
-                          <Lock className="w-3 h-3 text-slate-400" />
-                          <span>{playerRole}</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold">
-                          Belum Set
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={handleOpenMutationModal}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                        title="Ubah posisi bermain atlet"
-                      >
-                        <RefreshCw className="w-3 h-3 text-indigo-600" />
-                        <span>Ganti Posisi</span>
-                      </button>
-                    </div>
+              <div className="lg:col-span-3">
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-emerald-600" />
+                  <span>Jenjang Evaluasi</span>
+                </label>
+                <select
+                  value={overrideTier}
+                  onChange={(e) => setOverrideTier(e.target.value)}
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
+                >
+                  <option value="AUTO">Otomatis: Tier {detectedTier} (Usia {studentAge} Thn)</option>
+                  <option value="1">Tier 1 — Usia Dini / SSB (U-6 s.d. U-12)</option>
+                  <option value="2">Tier 2 — Pemula (U-13)</option>
+                  <option value="3">Tier 3 — Pengembangan Taktik (U-15)</option>
+                  <option value="4">Tier 4 — Elit &amp; Profesional (U-16+)</option>
+                </select>
+              </div>
 
-                    {/* Live Skor */}
-                    <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
-                      <span className="text-xs text-slate-500 font-medium">Skor Total:</span>
-                      <span className="text-lg font-black text-slate-900">{overallScore}</span>
-                      <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${getScoreGrade(overallScore).badge}`}>
-                        {getScoreGrade(overallScore).grade}
-                      </span>
-                    </div>
-                  </div>
+              <div className="lg:col-span-2 flex justify-end">
+                <div className="w-full px-3.5 py-2 bg-emerald-600 text-white rounded-xl flex items-center justify-between shadow-xs">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-100">Total:</span>
+                  <span className="text-sm font-black">{axisScores.overall} / 100</span>
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
-              {/* Smart Pre-Fill Banner */}
-              {lastStudentEvaluation ? (
-                <div className="px-3.5 py-2 bg-indigo-50/70 border border-indigo-100 text-indigo-900 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0 animate-pulse" />
-                    <span>
-                      <strong>Smart Pre-Fill:</strong> Nilai slider dimuat otomatis dari rapor sesi tanggal <strong>{lastStudentEvaluation.date || 'sebelumnya'}</strong>.
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/90 px-2 py-0.5 rounded-md shrink-0">
-                    Histori Terakhir
-                  </span>
+      {/* PANEL ATAS */}
+      {selectedStudent && (
+        <form onSubmit={handleSaveEvaluation} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* RADAR 7-AXIS */}
+            <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                  <BarChart2 className="w-4 h-4 text-emerald-400" />
+                  <span>Scouting Radar</span>
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+                  Total: {axisScores.overall}/100
+                </span>
+              </div>
+
+              <div className="h-64 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={250}>
+                  <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+                    <PolarGrid stroke="#334155" />
+                    <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
+                    <Radar name="Skor Atlet" dataKey="A" stroke="#10b981" fill="#059669" fillOpacity={0.55} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-[10px] text-center pt-2 border-t border-slate-800">
+                <div className="p-1.5 rounded-xl bg-rose-950/70 border border-rose-800/60">
+                  <span className="text-rose-300 block text-[8px] uppercase font-black truncate">1. Fisik</span>
+                  <span className="font-black text-rose-200 text-xs">{axisScores.fisik}</span>
                 </div>
-              ) : (
-                <div className="px-3.5 py-1.5 bg-slate-100/70 text-slate-500 rounded-xl text-xs flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>Sesi evaluasi perdana atlet di kelas ini (Baseline nilai awal: 75).</span>
+                <div className="p-1.5 rounded-xl bg-blue-950/70 border border-blue-800/60">
+                  <span className="text-blue-300 block text-[8px] uppercase font-black truncate">2. Teknik</span>
+                  <span className="font-black text-blue-200 text-xs">{axisScores.teknik}</span>
                 </div>
-              )}
+                <div className="p-1.5 rounded-xl bg-purple-950/70 border border-purple-800/60">
+                  <span className="text-purple-300 block text-[8px] uppercase font-black truncate">3. Taktik</span>
+                  <span className="font-black text-purple-200 text-xs">{axisScores.taktik}</span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60">
+                  <span className="text-emerald-300 block text-[8px] uppercase font-black truncate">4. Mental</span>
+                  <span className="font-black text-emerald-200 text-xs">{axisScores.mental}</span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-amber-950/70 border border-amber-800/60">
+                  <span className="text-amber-300 block text-[8px] uppercase font-black truncate">5. Kom.</span>
+                  <span className="font-black text-amber-200 text-xs">{axisScores.komunikasi}</span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-cyan-950/70 border border-cyan-800/60">
+                  <span className="text-cyan-300 block text-[8px] uppercase font-black truncate">6. Dev.</span>
+                  <span className="font-black text-cyan-200 text-xs">{axisScores.perkembangan}</span>
+                </div>
+                <div className="p-1.5 rounded-xl bg-indigo-950/70 border border-indigo-800/60 col-span-2 sm:col-span-1">
+                  <span className="text-indigo-300 block text-[8px] uppercase font-black truncate">7. Posisi</span>
+                  <span className="font-black text-indigo-200 text-xs">{axisScores.khususPosisi}</span>
+                </div>
+              </div>
             </div>
 
-            {/* 2B. TATA LETAK GRID 2-KOLOM (KIRI & KANAN) */}
-            {selectedStudent ? (
-              <form onSubmit={handleSaveEvaluation} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                  
-                  {/* KOLOM KIRI: GRAFIK RADAR + FISIK + TEKNIK */}
-                  <div className="space-y-6">
-                    
-                    {/* 1. Grafik Scouting Radar */}
-                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                          <BarChart2 className="w-4 h-4" />
-                          <span>Profil Atlet / Scouting Radar</span>
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-semibold">Real-Time Scouting</span>
-                      </div>
+            {/* TAKTIS SEPAKBOLA */}
+            <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-emerald-600" />
+                  <span>Konfigurasi Posisi &amp; Peran</span>
+                </span>
+              </div>
 
-                      {/* Recharts Container */}
-                      <div className="h-60 w-full flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height={240}>
-                          <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
-                            <PolarGrid stroke="#334155" />
-                            <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 700 }} />
-                            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 9 }} />
-                            <Radar name="Skor Atlet" dataKey="A" stroke="#818cf8" fill="#6366f1" fillOpacity={0.5} />
-                          </RadarChart>
-                        </ResponsiveContainer>
-                      </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                    Posisi / Peran Bermain
+                  </label>
+                  <select
+                    value={selectedPosition}
+                    onChange={(e) => handlePositionChange(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                  >
+                    {availablePositions.map((p) => (
+                      <option key={p.code} value={p.code}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                      {/* Sub-Score Breakdown Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs pt-1 border-t border-slate-800/80">
-                        <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/60 text-center">
-                          <span className="text-rose-300 block text-[9px] font-bold uppercase truncate">1. Fisik</span>
-                          <span className="font-black text-rose-200 text-sm">{pillarScores.fisik}</span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-blue-950/60 border border-blue-800/60 text-center">
-                          <span className="text-blue-300 block text-[9px] font-bold uppercase truncate">2. Teknik</span>
-                          <span className="font-black text-blue-200 text-sm">{pillarScores.teknik}</span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-purple-950/60 border border-purple-800/60 text-center">
-                          <span className="text-purple-300 block text-[9px] font-bold uppercase truncate">3. Taktik</span>
-                          <span className="font-black text-purple-200 text-sm">{pillarScores.taktik}</span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-center">
-                          <span className="text-emerald-300 block text-[9px] font-bold uppercase truncate">4. Mental</span>
-                          <span className="font-black text-emerald-200 text-sm">{pillarScores.mental}</span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-center col-span-2 sm:col-span-1">
-                          <span className="text-indigo-300 block text-[9px] font-bold uppercase truncate">5. Posisi</span>
-                          <span className="font-black text-indigo-200 text-sm">{pillarScores.position}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 2. Pilar 1: Kondisi Fisik */}
-                    <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 space-y-3">
-                      <div className="flex items-center justify-between border-b border-rose-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
-                          <Dumbbell className="w-4 h-4 text-rose-600" />
-                          <span>1. Kondisi Fisik</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">
-                          Rata-rata: {pillarScores.fisik}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {(pillars.fisik || []).map((kpi) => {
-                          const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-                          return (
-                            <div key={kpi} className="p-3 bg-white border border-rose-100 rounded-xl space-y-1.5 shadow-2xs">
-                              <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-800 truncate" title={kpi}>{kpi}</span>
-                                <span className="font-black text-rose-600 text-sm">{val}</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={val}
-                                onChange={(e) => handleScoreChange(kpi, e.target.value)}
-                                className="w-full accent-rose-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* 3. Pilar 2: Kemampuan Teknik */}
-                    <div className="p-4 rounded-2xl border border-blue-200 bg-blue-50/30 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
-                          <Activity className="w-4 h-4 text-blue-600" />
-                          <span>2. Kemampuan Teknik</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-200">
-                          Rata-rata: {pillarScores.teknik}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {(pillars.teknik || []).map((kpi) => {
-                          const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-                          return (
-                            <div key={kpi} className="p-3 bg-white border border-blue-100 rounded-xl space-y-1.5 shadow-2xs">
-                              <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-800 truncate" title={kpi}>{kpi}</span>
-                                <span className="font-black text-blue-600 text-sm">{val}</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={val}
-                                onChange={(e) => handleScoreChange(kpi, e.target.value)}
-                                className="w-full accent-blue-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
+                {activeTier >= 3 && (
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                      Spesialisasi Peran
+                    </label>
+                    <select
+                      value={selectedSpecialization}
+                      onChange={(e) => setSelectedSpecialization(e.target.value)}
+                      className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                    >
+                      {(getPositionConfig(selectedPosition).specializations || []).map((spec) => (
+                        <option key={spec} value={spec}>
+                          {spec}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                )}
+              </div>
 
-                  {/* KOLOM KANAN: TAKTIK + MENTALITAS + SPESIFIK POSISI */}
-                  <div className="space-y-6">
-                    
-                    {/* 1. Pilar 3: Pemahaman Taktik */}
-                    <div className="p-4 rounded-2xl border border-purple-200 bg-purple-50/30 space-y-3">
-                      <div className="flex items-center justify-between border-b border-purple-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
-                          <Brain className="w-4 h-4 text-purple-600" />
-                          <span>3. Pemahaman Taktik</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200">
-                          Rata-rata: {pillarScores.taktik}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {(pillars.taktik || []).map((kpi) => {
-                          const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-                          return (
-                            <div key={kpi} className="p-3 bg-white border border-purple-100 rounded-xl space-y-1.5 shadow-2xs">
-                              <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-800 truncate" title={kpi}>{kpi}</span>
-                                <span className="font-black text-purple-600 text-sm">{val}</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={val}
-                                onChange={(e) => handleScoreChange(kpi, e.target.value)}
-                                className="w-full accent-purple-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
-                              />
-                            </div>
-                          );
-                        })}
+              {activeTier >= 3 && (
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                    Profil Gaya Bermain Taktis (STY)
+                  </label>
+                  <select
+                    value={selectedStyleCode}
+                    onChange={(e) => setSelectedStyleCode(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                  >
+                    {FOOTBALL_PLAYING_STYLES.map((st) => (
+                      <option key={st.code} value={st.code}>
+                        {st.code} — {st.name} ({st.desc})
+                      </option>
+                    ))}
+                  </select>
+
+                  {getStyleConfig(selectedStyleCode) && (
+                    <div className="mt-2 p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-xs flex items-center gap-2">
+                      <Radio className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="font-extrabold text-emerald-950">
+                          {getStyleConfig(selectedStyleCode).code} — {getStyleConfig(selectedStyleCode).name}:
+                        </span>{' '}
+                        <span className="text-emerald-800 font-medium">{getStyleConfig(selectedStyleCode).desc}</span>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
 
-                    {/* 2. Pilar 4: Mentalitas */}
-                    <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 space-y-3">
-                      <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
-                          <Shield className="w-4 h-4 text-emerald-600" />
-                          <span>4. Mentalitas</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                          Rata-rata: {pillarScores.mental}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {(pillars.mental || []).map((kpi) => {
-                          const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-                          return (
-                            <div key={kpi} className="p-3 bg-white border border-emerald-100 rounded-xl space-y-1.5 shadow-2xs">
-                              <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-800 truncate" title={kpi}>{kpi}</span>
-                                <span className="font-black text-emerald-600 text-sm">{val}</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={val}
-                                onChange={(e) => handleScoreChange(kpi, e.target.value)}
-                                className="w-full accent-emerald-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
+              <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                  <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Preset Nilai Cepat:</span>
+                </span>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSetAllGlobalValue(0)}
+                    className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                    title="Reset semua indikator ke 0"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset (0)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetAllGlobalValue(50)}
+                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                  >
+                    Standard (50)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetAllGlobalValue(75)}
+                    className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                  >
+                    Good (75)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetAllGlobalValue(90)}
+                    className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                  >
+                    Elite (90)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSmartProFill}
+                    className="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                    title="Muat riwayat atau baseline 75"
+                  >
+                    <Sparkles className="w-3 h-3 text-emerald-200" />
+                    <span>Smart Pro-Fill</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* SUB-TABS 7 KATEGORI */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+                <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                  Lembar Penilaian Indikator
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAllAtOnce(!showAllAtOnce)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer border ${
+                  showAllAtOnce
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>{showAllAtOnce ? 'Tutup (Kembali ke Tab)' : 'Tampilkan Semua Sekaligus'}</span>
+              </button>
+            </div>
+
+            {!showAllAtOnce && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('fisik')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'fisik'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                      : 'bg-rose-50/60 text-rose-900 border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  <Dumbbell className="w-3.5 h-3.5" />
+                  <span>Fisik ({filteredCategoryIndicators.fisik.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'fisik' ? 'bg-rose-700 text-white' : 'bg-rose-200 text-rose-900'}`}>
+                    {axisScores.fisik}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('teknik')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'teknik'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                      : 'bg-blue-50/60 text-blue-900 border-blue-200 hover:bg-blue-100'
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Teknik ({filteredCategoryIndicators.teknik.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'teknik' ? 'bg-blue-700 text-white' : 'bg-blue-200 text-blue-900'}`}>
+                    {axisScores.teknik}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('taktik')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'taktik'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-purple-50/60 text-purple-900 border-purple-200 hover:bg-purple-100'
+                  }`}
+                >
+                  <Brain className="w-3.5 h-3.5" />
+                  <span>Taktik ({filteredCategoryIndicators.taktik.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'taktik' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-900'}`}>
+                    {axisScores.taktik}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('mental')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'mental'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-emerald-50/60 text-emerald-900 border-emerald-200 hover:bg-emerald-100'
+                  }`}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>Mental ({filteredCategoryIndicators.mental.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'mental' ? 'bg-emerald-700 text-white' : 'bg-emerald-200 text-emerald-900'}`}>
+                    {axisScores.mental}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('komunikasi')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'komunikasi'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                      : 'bg-amber-50/60 text-amber-900 border-amber-200 hover:bg-amber-100'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Komunikasi ({filteredCategoryIndicators.komunikasi.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'komunikasi' ? 'bg-amber-700 text-white' : 'bg-amber-200 text-amber-900'}`}>
+                    {axisScores.komunikasi}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('perkembangan')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'perkembangan'
+                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-xs'
+                      : 'bg-cyan-50/60 text-cyan-900 border-cyan-200 hover:bg-cyan-100'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Perkembangan ({filteredCategoryIndicators.perkembangan.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'perkembangan' ? 'bg-cyan-700 text-white' : 'bg-cyan-200 text-cyan-900'}`}>
+                    {axisScores.perkembangan}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('posisi')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                    activeTab === 'posisi'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-indigo-50/60 text-indigo-900 border-indigo-200 hover:bg-indigo-100'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Khusus Posisi ({currentPosIndicatorsConfig.indicators.length})</span>
+                  <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'posisi' ? 'bg-indigo-700 text-white' : 'bg-indigo-200 text-indigo-900'}`}>
+                    {axisScores.khususPosisi}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {Object.entries(FOOTBALL_CORE_CATEGORIES).map(([catKey, catConfig]) => {
+                if (!showAllAtOnce && activeTab !== catKey) return null;
+                const activeInds = filteredCategoryIndicators[catKey] || [];
+
+                return (
+                  <div key={catKey} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/40 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${catConfig.badgeColor}`} />
+                        <span>{catConfig.title}</span>
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-800">
+                        Rata-rata: {axisScores[catKey]} / 100
+                      </span>
                     </div>
 
-                    {/* 3. Pilar 5: Parameter Spesifik Posisi (Midfielder / Playmaker dll.) */}
-                    <div className="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/30 space-y-3">
-                      <div className="flex items-center justify-between border-b border-indigo-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-1.5">
-                          <Zap className="w-4 h-4 text-indigo-600" />
-                          <span>5. Parameter Spesifik Posisi: {playerRole || 'Belum Ditentukan'}</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
-                          Rata-rata: {pillarScores.position}
-                        </span>
-                      </div>
-
-                      {roleKPIs.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {roleKPIs.map((kpi) => {
-                            const val = scores[kpi] !== undefined ? scores[kpi] : 75;
-                            return (
-                              <div key={kpi} className="p-3 bg-white border border-indigo-100 rounded-xl space-y-1.5 shadow-2xs">
-                                <div className="flex items-center justify-between text-xs font-bold">
-                                  <span className="text-slate-900 font-extrabold flex items-center gap-1 truncate" title={kpi}>
-                                    <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
-                                    <span className="truncate">{kpi}</span>
-                                  </span>
-                                  <span className="font-black text-indigo-600 text-sm">{val}</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="5"
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                            {activeInds.map((ind) => {
+                              const val = scores[ind] !== undefined ? scores[ind] : 0;
+                              return (
+                                <IndicatorCard
+                                  key={ind}
+                                  title={ind}
                                   value={val}
-                                  onChange={(e) => handleScoreChange(kpi, e.target.value)}
-                                  className="w-full accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
+                                  onScoreChange={(v) => handleScoreChange(ind, v)}
+                                  onAdjust={(delta) => handleAdjustScore(ind, delta)}
                                 />
-                              </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {(showAllAtOnce || activeTab === 'posisi') && (
+                      <div className="p-4 sm:p-5 rounded-2xl border border-indigo-200 bg-indigo-50/30 space-y-3">
+                        <div className="flex items-center justify-between border-b border-indigo-200 pb-2">
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
+                            <Star className="w-4 h-4 text-indigo-600 fill-indigo-100" />
+                            <span>Indikator Khusus: {currentPosIndicatorsConfig.label} ({currentPosIndicatorsConfig.indicators.length} Indikator)</span>
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            Rata-rata: {axisScores.khususPosisi} / 100
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                          {currentPosIndicatorsConfig.indicators.map((ind) => {
+                            const val = scores[ind] !== undefined ? scores[ind] : 0;
+                            return (
+                              <IndicatorCard
+                                key={ind}
+                                title={ind}
+                                value={val}
+                                isSpecial
+                                onScoreChange={(v) => handleScoreChange(ind, v)}
+                                onAdjust={(delta) => handleAdjustScore(ind, delta)}
+                              />
                             );
                           })}
                         </div>
-                      ) : (
-                        <div className="p-4 bg-white border border-dashed border-indigo-200 rounded-xl text-center space-y-2">
-                          <p className="text-xs text-indigo-900 font-medium">
-                            Posisi resmi atlet belum ditentukan (misal: <em>Midfielder / Playmaker, Defender, Flank, Forward</em>).
-                          </p>
-                          <button
-                            type="button"
-                            onClick={handleOpenMutationModal}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            <span>Tetapkan Posisi Atlet Sekarang</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
+                      </div>
+                    )}
                   </div>
-
                 </div>
 
-                {/* 2C. CATATAN EVALUASI PELATIH & TOMBOL SIMPAN (FULL WIDTH) */}
-                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                {/* CATATAN & SIMPAN */}
+                <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                      <MessageSquare className="w-4 h-4 text-indigo-600" />
-                      <span>Catatan Evaluasi Pelatih (Rapor Siswa)</span>
+                      <MessageSquare className="w-4 h-4 text-emerald-600" />
+                      <span>Catatan Evaluasi Taktis &amp; Rekomendasi Pelatih ({tierConfig.shortLabel})</span>
                     </label>
                     <button
                       type="button"
                       onClick={handleGenerateDraft}
-                      className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 text-emerald-800 border border-emerald-200 text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>⚡ Buat Draf Analisis Otomatis</span>
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Buat Draf Analisis Otomatis</span>
                     </button>
                   </div>
 
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={coachNote}
                     onChange={(e) => setCoachNote(e.target.value)}
-                    placeholder={`e.g. Sebagai ${playerRole || 'atlet'}, pergerakan dan pengambilan keputusannya sudah matang. Tingkatkan ketahanan fisik di set penutup.`}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800"
+                    placeholder={`Contoh: Atlet ${selectedStudent.studentName} menunjukkan penempatan posisi dan timing finishing yang tajam. Perlu peningkatan koordinasi pressing.`}
+                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800 leading-relaxed"
                   />
 
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                     <p className="text-[11px] text-slate-400">
-                      * Rapor evaluasi ini tersimpan secara permanen dan otomatis disinkronisasi ke Portal Wali Murid &amp; Atlet.
+                      * Hasil assessment ini tersimpan permanen dan otomatis dapat diakses oleh Wali Murid di Portal Resmi.
                     </p>
                     <button
                       type="submit"
-                      disabled={isSaving || !playerRole}
-                      className="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                      disabled={isSaving}
+                      className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isSaving ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin text-white" />
-                          <span>Menyimpan Rapor...</span>
+                          <span>Menyimpan Assessment...</span>
                         </>
                       ) : (
                         <>
-                          <Award className="w-4 h-4 text-cyan-200" />
-                          <span>Simpan Evaluasi {selectedStudent?.studentName || 'Atlet'}</span>
+                          <Award className="w-4 h-4 text-emerald-100" />
+                          <span>Simpan Assessment ({tierConfig.shortLabel})</span>
                         </>
                       )}
                     </button>
@@ -1024,234 +3489,563 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
                 </div>
 
               </form>
-            ) : (
-              <div className="py-12 text-center text-xs text-slate-400">
-                Pilih siswa dari dropdown di atas untuk mulai mengisi rapor evaluasi.
-              </div>
             )}
-          </div>
-        )}
+
+      {/* RIWAYAT */}
+      <HistorySection
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        students={students}
+        onDeleteEvaluation={onDeleteEvaluation}
+      />
+    </div>
+  );
+}
+
+// =====================================================================
+// COMPONENT: INDIVIDUAL INDICATOR CARD WITH +/- BUTTONS & TOUCH SLIDER
+// =====================================================================
+function IndicatorCard({ title, value, isSpecial = false, onScoreChange, onAdjust }) {
+  return (
+    <div className={`p-3.5 bg-white border ${isSpecial ? 'border-indigo-200 hover:border-indigo-400' : 'border-slate-200/90 hover:border-slate-300'} rounded-2xl space-y-2 shadow-2xs transition-all`}>
+      <div className="flex items-center justify-between text-xs font-bold gap-2">
+        <span className="text-slate-800 truncate" title={title}>
+          {isSpecial && <Star className="w-3 h-3 text-indigo-500 fill-indigo-200 inline mr-1" />}
+          {title}
+        </span>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => onAdjust(-5)}
+            className="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center text-xs transition-colors cursor-pointer"
+            title="Kurangi 5"
+          >
+            <Minus className="w-3 h-3" />
+          </button>
+
+          <span className={`w-8 text-center font-black text-sm ${isSpecial ? 'text-indigo-600' : 'text-emerald-600'}`}>
+            {value}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => onAdjust(5)}
+            className="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center text-xs transition-colors cursor-pointer"
+            title="Tambah 5"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
-      {/* ================================================================= */}
-      {/* 3. MODAL MUTASI POSISI ATLET */}
-      {/* ================================================================= */}
-      {showMutationModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-xl space-y-4 text-left">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-indigo-600" />
-                <span>Mutasi Posisi Atlet</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowMutationModal(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={value}
+        onChange={(e) => onScoreChange(e.target.value)}
+        className={`w-full cursor-pointer h-1.5 bg-slate-200 rounded-lg ${isSpecial ? 'accent-indigo-600' : 'accent-emerald-600'}`}
+      />
+    </div>
+  );
+}
 
-            <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-2xl text-xs space-y-1">
-              <p className="font-bold text-indigo-900">
-                Atlet: <strong className="text-slate-900">{selectedStudent?.studentName}</strong>
-              </p>
-              <p className="text-indigo-700">
-                Posisi Saat Ini: <strong className="font-extrabold">{playerRole || 'Belum Set Posisi'}</strong>
-              </p>
-            </div>
+// =====================================================================
+// COMPONENT 3: STANDARD 4-PILLAR EVALUATION ENGINE (FOR OTHER SPORTS)
+// =====================================================================
+function Standard4PillarView({
+  selectedClass,
+  classStudents,
+  tenantId,
+  activeAcademy,
+  history,
+  loadingHistory,
+  filterStudentId,
+  setFilterStudentId,
+  onDeleteEvaluation
+}) {
+  const [selectedStudentId, setSelectedStudentId] = useState('');
 
-            <form onSubmit={handleMutatePosition} className="space-y-4">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                  Posisi Baru ({categoryConfig.label})
-                </label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 cursor-pointer"
-                >
-                  {categoryConfig.roles.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  const selectedStudent = useMemo(() => {
+    if (classStudents.length === 0) return null;
+    return classStudents.find((s) => s.id === selectedStudentId) || classStudents[0];
+  }, [classStudents, selectedStudentId]);
 
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                  Alasan Perubahan / Catatan Mutasi
-                </label>
-                <textarea
-                  rows={3}
-                  value={mutationReason}
-                  onChange={(e) => setMutationReason(e.target.value)}
-                  placeholder="e.g. Uji coba visi bermain di lini tengah dan stamina pembacaan serangan babak kedua."
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800"
-                />
-              </div>
+  const sportCategoryKey = useMemo(() => {
+    return resolveSportCategoryKey(selectedClass, activeAcademy);
+  }, [selectedClass, activeAcademy]);
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowMutationModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isMutating || !newRole}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {isMutating ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                      <span>Menyimpan Mutasi...</span>
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-3 h-3 text-cyan-200" />
-                      <span>Simpan Mutasi Posisi</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+  const categoryConfig = SPORT_KPI_MATRIX[sportCategoryKey] || SPORT_KPI_MATRIX['field'];
+  const sportName = selectedClass?.sport || activeAcademy?.sport || categoryConfig.label;
 
-      {/* ================================================================= */}
-      {/* 4. RIWAYAT EVALUASI KELAS INI */}
-      {/* ================================================================= */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+  const playerRole = selectedStudent?.playerRole || selectedStudent?.position || '';
+
+  const pillars = categoryConfig.pillars || { fisik: [], teknik: [], taktik: [], mental: [] };
+  const roleKPIs = useMemo(() => (playerRole && ROLE_SPECIFIC_KPIS[playerRole]) || [], [playerRole]);
+
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [scores, setScores] = useState({});
+  const [coachNote, setCoachNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
+  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+
+  useEffect(() => {
+    if (!selectedStudent?.id) {
+      setLatestEvalDoc(null);
+      setScores({});
+      return;
+    }
+
+    setFetchingStudentHistory(true);
+    setScores({});
+    setCoachNote('');
+
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+
+    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
+
+    if (latest) {
+      setLatestEvalDoc(latest);
+      setScores(latest.scores || {});
+    } else {
+      setLatestEvalDoc(null);
+      setScores({});
+    }
+
+    setFetchingStudentHistory(false);
+  }, [selectedStudent?.id, history]);
+
+  const pillarScores = useMemo(() => {
+    const computeAvg = (kpiList) => {
+      if (!kpiList || kpiList.length === 0) return 0;
+      const total = kpiList.reduce((sum, kpi) => sum + (scores[kpi] !== undefined ? scores[kpi] : 0), 0);
+      return Math.round(total / kpiList.length);
+    };
+
+    const fisik = computeAvg(pillars.fisik);
+    const teknik = computeAvg(pillars.teknik);
+    const taktik = computeAvg(pillars.taktik);
+    const mental = computeAvg(pillars.mental);
+    const position = computeAvg(roleKPIs);
+    const overall = Math.round((fisik + teknik + taktik + mental + position) / 5);
+
+    const allActiveKPIs = Array.from(new Set([
+      ...(pillars.fisik || []),
+      ...(pillars.teknik || []),
+      ...(pillars.taktik || []),
+      ...(pillars.mental || []),
+      ...roleKPIs
+    ]));
+
+    return { fisik, teknik, taktik, mental, position, overall, allActiveKPIs };
+  }, [pillars, roleKPIs, scores]);
+
+  const overallScore = pillarScores.overall;
+
+  const radarData = useMemo(() => [
+    { subject: 'Fisik', A: pillarScores.fisik, fullMark: 100 },
+    { subject: 'Teknik', A: pillarScores.teknik, fullMark: 100 },
+    { subject: 'Taktik', A: pillarScores.taktik, fullMark: 100 },
+    { subject: 'Mental', A: pillarScores.mental, fullMark: 100 },
+    { subject: 'Posisi', A: pillarScores.position, fullMark: 100 }
+  ], [pillarScores]);
+
+  const handleScoreChange = (kpiName, value) => {
+    setScores((prev) => ({
+      ...prev,
+      [kpiName]: Math.min(100, Math.max(0, Number(value) || 0))
+    }));
+  };
+
+  const handleSetAllValues = (val) => {
+    const nextState = {};
+    pillarScores.allActiveKPIs.forEach((kpi) => {
+      nextState[kpi] = val;
+    });
+    setScores(nextState);
+  };
+
+  const handleGenerateDraft = () => {
+    if (!selectedStudent) return;
+    const items = [
+      { name: 'Kondisi Fisik', score: pillarScores.fisik },
+      { name: 'Kemampuan Teknik', score: pillarScores.teknik },
+      { name: 'Pemahaman Taktik', score: pillarScores.taktik },
+      { name: 'Mentalitas', score: pillarScores.mental },
+      { name: `Spesifik Posisi (${playerRole || 'Peran'})`, score: pillarScores.position }
+    ];
+    const sorted = [...items].sort((a, b) => b.score - a.score);
+    setCoachNote(`Atlet ${selectedStudent.studentName} (${playerRole || 'Umum'}) tertinggi pada ${sorted[0].name} (Skor: ${sorted[0].score}/100) dan perlu pengembangan pada ${sorted[sorted.length - 1].name} (Skor: ${sorted[sorted.length - 1].score}/100).`);
+  };
+
+  const handleSaveEvaluation = async (e) => {
+    e.preventDefault();
+    if (!selectedClass?.id || !tenantId || !selectedStudent?.id) return;
+    setIsSaving(true);
+    const finalScores = {};
+    pillarScores.allActiveKPIs.forEach((kpi) => {
+      finalScores[kpi] = scores[kpi] !== undefined ? scores[kpi] : 0;
+    });
+
+    try {
+      await addDoc(collection(db, 'academy_evaluations'), {
+        tenantId,
+        classId: selectedClass.id,
+        className: selectedClass.className || 'Kelas Akademi',
+        sportCategory: sportCategoryKey,
+        sportCategoryLabel: categoryConfig.label,
+        sportName,
+        playerRole: playerRole || 'Umum',
+        studentId: selectedStudent.id,
+        studentName: selectedStudent.studentName,
+        date: evaluationDate,
+        scores: finalScores,
+        pillarScores: {
+          fisik: pillarScores.fisik,
+          teknik: pillarScores.teknik,
+          taktik: pillarScores.taktik,
+          mental: pillarScores.mental,
+          position: pillarScores.position,
+          overall: pillarScores.overall
+        },
+        overallScore: pillarScores.overall,
+        coachNote: coachNote.trim(),
+        evaluator: selectedClass.coachName || 'Pelatih',
+        createdAt: serverTimestamp()
+      });
+      setSuccessMsg(`Rapor ${selectedStudent.studentName} berhasil disimpan!`);
+      setCoachNote('');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Gagal menyimpan evaluasi.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const evaluatedStudentIdsToday = new Set(
+    history.filter((h) => h.date === evaluationDate).map((h) => h.studentId)
+  );
+
+  return (
+    <div className="space-y-6 text-left">
+      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Award className="w-4.5 h-4.5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900">
-              Riwayat Rapor Evaluasi Atlet Disimpan ({filteredHistory.length})
-            </h3>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900">Engine Evaluasi Performa Atlet</h3>
+              <p className="text-xs text-slate-500">{categoryConfig.label} &bull; {selectedClass?.className}</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={filterStudentId}
-              onChange={(e) => setFilterStudentId(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer"
-            >
-              <option value="ALL">Semua Siswa Kelas Ini</option>
-              {classStudents.map((st) => (
-                <option key={st.id} value={st.id}>{st.studentName}</option>
-              ))}
-            </select>
+          <div>
+            {fetchingStudentHistory ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>Memuat riwayat...</span>
+              </span>
+            ) : latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Riwayat Terakhir Terpasang (Tanggal: {formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold">
+                <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
+                <span>Belum ada riwayat (Mulai dari 0)</span>
+              </span>
+            )}
           </div>
         </div>
 
-        {loadingHistory ? (
-          <p className="py-8 text-center text-xs text-slate-400 font-medium">Memuat riwayat evaluasi atlet...</p>
-        ) : filteredHistory.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl p-4">
-            Belum ada rekam evaluasi disimpan untuk siswa/kelas ini.
+        {successMsg && <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl">{successMsg}</div>}
+        {errorMsg && <div className="p-3 bg-rose-50 text-rose-800 text-xs font-bold rounded-xl">{errorMsg}</div>}
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Pilih Siswa</label>
+              <select
+                value={selectedStudent?.id || ''}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold cursor-pointer"
+              >
+                {classStudents.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {evaluatedStudentIdsToday.has(st.id) ? '✓ ' : ''}{st.studentName} ({st.playerRole || st.position || 'Umum'})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+              <input
+                type="date"
+                value={evaluationDate}
+                onChange={(e) => setEvaluationDate(e.target.value)}
+                className="px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredHistory.map((item) => {
-              const sc = item.scores || {};
-              const ps = item.pillarScores || {};
-              const gradeInfo = getScoreGrade(item.overallScore || 0);
+        </div>
 
-              return (
-                <div 
-                  key={item.id} 
-                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-400 transition-all space-y-3 relative group shadow-2xs"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-extrabold text-sm text-slate-900">{item.studentName}</h4>
-                        {item.playerRole && (
-                          <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200">
-                            {item.playerRole}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
-                        <Calendar className="w-3 h-3 text-indigo-600" />
-                        <span>Tgl: {item.date}</span> &bull; 
-                        <span>Cabang: {item.sportName || item.sport || '-'}</span> &bull; 
-                        <span>Pelatih: {item.evaluator || 'Pelatih'}</span>
-                      </p>
-                    </div>
+        {selectedStudent && (
+          <form onSubmit={handleSaveEvaluation} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-slate-900 rounded-2xl p-4 text-white space-y-3">
+                <span className="text-xs font-bold uppercase text-indigo-400">Scouting Radar</span>
+                <div className="h-56 w-full">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="#334155" />
+                      <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" />
+                      <Radar name="Skor" dataKey="A" stroke="#818cf8" fill="#6366f1" fillOpacity={0.5} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2.5 py-1 text-xs font-black rounded-xl border ${gradeInfo.badge}`}>
-                        {item.overallScore || 0} / 100
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteEvaluation(item.id, item.studentName)}
-                        title="Hapus Evaluasi"
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+                    <span className="text-xs font-bold uppercase text-slate-800">Kategori Key Performance</span>
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => handleSetAllValues(0)} className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded text-[10px] font-bold">Reset (0)</button>
+                      <button type="button" onClick={() => handleSetAllValues(50)} className="px-2 py-0.5 bg-slate-100 text-slate-800 rounded text-[10px] font-bold">50</button>
+                      <button type="button" onClick={() => handleSetAllValues(75)} className="px-2 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-bold">75</button>
+                      <button type="button" onClick={() => handleSetAllValues(90)} className="px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded text-[10px] font-bold">90</button>
                     </div>
                   </div>
 
-                  {/* 5-Pillar Breakdown Badges */}
-                  {ps.fisik !== undefined ? (
-                    <div className="grid grid-cols-5 gap-1 text-[10px] text-center font-bold">
-                      <div className="p-1.5 bg-rose-50 text-rose-800 rounded-lg border border-rose-100">
-                        <span className="block text-[8px] uppercase text-rose-600 font-black">Fisik</span>
-                        <span>{ps.fisik}</span>
-                      </div>
-                      <div className="p-1.5 bg-blue-50 text-blue-800 rounded-lg border border-blue-100">
-                        <span className="block text-[8px] uppercase text-blue-600 font-black">Teknik</span>
-                        <span>{ps.teknik}</span>
-                      </div>
-                      <div className="p-1.5 bg-purple-50 text-purple-800 rounded-lg border border-purple-100">
-                        <span className="block text-[8px] uppercase text-purple-600 font-black">Taktik</span>
-                        <span>{ps.taktik}</span>
-                      </div>
-                      <div className="p-1.5 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-100">
-                        <span className="block text-[8px] uppercase text-emerald-600 font-black">Mental</span>
-                        <span>{ps.mental}</span>
-                      </div>
-                      <div className="p-1.5 bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-100">
-                        <span className="block text-[8px] uppercase text-indigo-600 font-black">Posisi</span>
-                        <span>{ps.position}</span>
+                  {Object.entries(pillars).map(([pillarKey, kpiList]) => (
+                    <div key={pillarKey} className="space-y-2">
+                      <span className="text-[11px] font-extrabold uppercase text-slate-600">{pillarKey}</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {kpiList.map((kpi) => (
+                          <div key={kpi} className="p-2.5 bg-white border border-slate-200 rounded-xl space-y-1">
+                            <div className="flex justify-between text-xs font-bold">
+                              <span className="truncate">{kpi}</span>
+                              <span className="text-indigo-600">{scores[kpi] !== undefined ? scores[kpi] : 0}</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value={scores[kpi] !== undefined ? scores[kpi] : 0}
+                              onChange={(e) => handleScoreChange(kpi, e.target.value)}
+                              className="w-full accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
+                            />
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] bg-white p-3 rounded-xl border border-slate-200/80">
-                      {Object.entries(sc).map(([kpiName, kpiVal]) => (
-                        <div key={kpiName} className="p-1.5 bg-slate-50 rounded-lg">
-                          <span className="text-slate-500 block text-[10px] uppercase font-bold truncate" title={kpiName}>
-                            {kpiName}
-                          </span>
-                          <strong className="text-slate-900 text-xs font-black">{kpiVal}</strong>
-                          <span className="text-[10px] text-slate-400">/100</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {item.coachNote && (
-                    <div className="p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 leading-relaxed">
-                      <strong className="block text-[10px] uppercase font-black text-amber-800 mb-0.5">Catatan Pelatih:</strong>
-                      "{item.coachNote}"
-                    </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase text-slate-800">Catatan Pelatih</label>
+                <button type="button" onClick={handleGenerateDraft} className="text-xs font-bold text-indigo-600">⚡ Buat Draf</button>
+              </div>
+              <textarea
+                rows={3}
+                value={coachNote}
+                onChange={(e) => setCoachNote(e.target.value)}
+                className="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl font-medium"
+              />
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-6 py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl"
+              >
+                Simpan Evaluasi
+              </button>
+            </div>
+          </form>
         )}
       </div>
+
+      <HistorySection
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        students={classStudents}
+        onDeleteEvaluation={onDeleteEvaluation}
+      />
+    </div>
+  );
+}
+
+// =====================================================================
+// REUSABLE HISTORY SECTION
+// =====================================================================
+function HistorySection({
+  history,
+  loadingHistory,
+  filterStudentId,
+  setFilterStudentId,
+  students,
+  onDeleteEvaluation
+}) {
+  const filteredHistory = filterStudentId === 'ALL'
+    ? history
+    : history.filter((h) => h.studentId === filterStudentId);
+
+  return (
+    <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-2">
+          <Award className="w-4.5 h-4.5 text-emerald-600" />
+          <h3 className="font-extrabold text-sm text-slate-900">
+            Riwayat Rapor Assessment Tersimpan ({filteredHistory.length})
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <select
+            value={filterStudentId}
+            onChange={(e) => setFilterStudentId(e.target.value)}
+            className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-700 cursor-pointer"
+          >
+            <option value="ALL">Semua Siswa Kelas Ini</option>
+            {students.map((st) => (
+              <option key={st.id} value={st.id}>{st.studentName}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loadingHistory ? (
+        <p className="py-8 text-center text-xs text-slate-400 font-medium">Memuat riwayat assessment...</p>
+      ) : filteredHistory.length === 0 ? (
+        <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl p-4">
+          Belum ada rekam assessment disimpan untuk siswa/kelas ini.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredHistory.map((item) => {
+            const ps = item.pillarScores || {};
+            const gradeInfo = getScoreGrade(item.overallScore || 0);
+
+            return (
+              <div 
+                key={item.id} 
+                className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-emerald-400 transition-all space-y-3 relative group shadow-2xs"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-slate-900">{item.studentName}</h4>
+                      {item.playerRole && (
+                        <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {item.playerRole} {item.specialization && item.specialization !== 'N/A' && item.specialization !== 'Eksplorasi/Dasar' && item.specialization !== 'Eksplorasi Futsal' ? `• ${item.specialization}` : ''}
+                        </span>
+                      )}
+                      {item.activeTier && (
+                        <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                          Tier {item.activeTier}
+                        </span>
+                      )}
+                      {item.styleCode && item.styleCode !== 'N/A' && (
+                        <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-slate-800 text-slate-100">
+                          {item.styleCode}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
+                      <Calendar className="w-3 h-3 text-emerald-600" />
+                      <span>Tgl: {formatDateIndonesian(item.date)}</span> &bull; 
+                      <span>Pelatih: {item.evaluator || 'Pelatih'}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2.5 py-1 text-xs font-black rounded-xl border ${gradeInfo.badge}`}>
+                      {item.overallScore || 0} / 100
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteEvaluation(item.id, item.studentName)}
+                      title="Hapus Evaluasi"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Breakdown Badges */}
+                {ps.fisik !== undefined && ps.komunikasi !== undefined ? (
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 text-[9px] text-center font-bold">
+                    <div className="p-1 bg-rose-50 text-rose-800 rounded-lg border border-rose-100">
+                      <span className="block text-[7px] uppercase font-black text-rose-600">Fisik</span>
+                      <span>{ps.fisik}</span>
+                    </div>
+                    <div className="p-1 bg-blue-50 text-blue-800 rounded-lg border border-blue-100">
+                      <span className="block text-[7px] uppercase font-black text-blue-600">Teknik</span>
+                      <span>{ps.teknik}</span>
+                    </div>
+                    <div className="p-1 bg-purple-50 text-purple-800 rounded-lg border border-purple-100">
+                      <span className="block text-[7px] uppercase font-black text-purple-600">Taktik</span>
+                      <span>{ps.taktik}</span>
+                    </div>
+                    <div className="p-1 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-100">
+                      <span className="block text-[7px] uppercase font-black text-emerald-600">Mental</span>
+                      <span>{ps.mental}</span>
+                    </div>
+                    <div className="p-1 bg-cyan-50 text-cyan-800 rounded-lg border border-cyan-100">
+                      <span className="block text-[7px] uppercase font-black text-cyan-600">Dev.</span>
+                      <span>{ps.perkembangan}</span>
+                    </div>
+                    <div className="p-1 bg-amber-50 text-amber-800 rounded-lg border border-amber-100">
+                      <span className="block text-[7px] uppercase font-black text-amber-600">Kom.</span>
+                      <span>{ps.komunikasi}</span>
+                    </div>
+                    <div className="p-1 bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-100 col-span-2 sm:col-span-1">
+                      <span className="block text-[7px] uppercase font-black text-indigo-600">Posisi</span>
+                      <span>{ps.khususPosisi || ps.position}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-5 gap-1 text-[10px] text-center font-bold">
+                    <div className="p-1.5 bg-rose-50 text-rose-800 rounded-lg">Fisik: {ps.fisik || 0}</div>
+                    <div className="p-1.5 bg-blue-50 text-blue-800 rounded-lg">Teknik: {ps.teknik || 0}</div>
+                    <div className="p-1.5 bg-purple-50 text-purple-800 rounded-lg">Taktik: {ps.taktik || 0}</div>
+                    <div className="p-1.5 bg-emerald-50 text-emerald-800 rounded-lg">Mental: {ps.mental || 0}</div>
+                    <div className="p-1.5 bg-indigo-50 text-indigo-800 rounded-lg">Posisi: {ps.position || 0}</div>
+                  </div>
+                )}
+
+                {item.coachNote && (
+                  <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-xs text-emerald-950 leading-relaxed whitespace-pre-line">
+                    <strong className="block text-[10px] uppercase font-black text-emerald-800 mb-0.5">Catatan Pelatih:</strong>
+                    "{item.coachNote}"
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

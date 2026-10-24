@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   LogOut, 
@@ -8,8 +8,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ShieldCheck
 } from 'lucide-react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 import { logoutUser } from '../services/authService';
 import useArenaData from '../hooks/useArenaData';
 import {
@@ -36,9 +39,90 @@ const ALL_NAV_ITEMS = [
 
 export default function Layout({ userProfile }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { tenantProfile } = useArenaData(userProfile);
+
+  const isAkademiActive = location.pathname.startsWith('/akademi');
+  const currentTab = new URLSearchParams(location.search).get('tab') || 'dasbor';
+  const [isAkademiOpen, setIsAkademiOpen] = useState(true);
+  const [academyCounts, setAcademyCounts] = useState({ students: 0, coaches: 0, classes: 0 });
+
+  // Auto-expand Akademi accordion when navigating to /akademi
+  useEffect(() => {
+    if (isAkademiActive) {
+      setIsAkademiOpen(true);
+    }
+  }, [isAkademiActive]);
+
+  // Listen to accurate counts emitted by AcademyPage
+  useEffect(() => {
+    const handleCounts = (e) => {
+      if (e.detail) {
+        setAcademyCounts({
+          students: e.detail.students ?? 0,
+          coaches: e.detail.coaches ?? 0,
+          classes: e.detail.classes ?? 0,
+        });
+      }
+    };
+    window.addEventListener('simak_academy_counts', handleCounts);
+    return () => window.removeEventListener('simak_academy_counts', handleCounts);
+  }, []);
+
+  const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
+
+  // Real-time Firestore fallback counts
+  useEffect(() => {
+    if (!tenantId) return;
+
+    const activeAcId = localStorage.getItem('activeAcademyId');
+
+    const unsubStudents = onSnapshot(
+      query(collection(db, 'students'), where('tenantId', '==', tenantId)),
+      (snap) => {
+        const list = snap.docs.map((d) => d.data());
+        const count = activeAcId ? list.filter((s) => s.academyId === activeAcId).length : list.length;
+        setAcademyCounts((prev) => ({ ...prev, students: count }));
+      },
+      (err) => console.error('Students count error:', err)
+    );
+
+    const unsubCoaches = onSnapshot(
+      query(collection(db, 'coaches'), where('tenantId', '==', tenantId)),
+      (snap) => {
+        const list = snap.docs.map((d) => d.data());
+        const count = activeAcId ? list.filter((c) => c.academyId === activeAcId).length : list.length;
+        setAcademyCounts((prev) => ({ ...prev, coaches: count }));
+      },
+      (err) => console.error('Coaches count error:', err)
+    );
+
+    const unsubClasses = onSnapshot(
+      query(collection(db, 'academy_classes'), where('tenantId', '==', tenantId)),
+      (snap) => {
+        const list = snap.docs.map((d) => d.data());
+        const count = activeAcId ? list.filter((c) => c.academyId === activeAcId).length : list.length;
+        setAcademyCounts((prev) => ({ ...prev, classes: count }));
+      },
+      (err) => console.error('Classes count error:', err)
+    );
+
+    return () => {
+      unsubStudents();
+      unsubCoaches();
+      unsubClasses();
+    };
+  }, [tenantId]);
+
+  const academySubMenuItems = [
+    { id: 'dasbor', label: 'Dasbor & Laporan', path: '/akademi?tab=dasbor', count: null },
+    { id: 'siswa', label: 'Siswa & SPP', path: '/akademi?tab=siswa', count: academyCounts.students },
+    { id: 'pelatih', label: 'Pelatih', path: '/akademi?tab=pelatih', count: academyCounts.coaches },
+    { id: 'kelas', label: 'Kelas & Kelompok', path: '/akademi?tab=kelas', count: academyCounts.classes },
+    { id: 'presensi', label: 'Presensi & Evaluasi', path: '/akademi?tab=presensi', count: null },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -77,14 +161,8 @@ export default function Layout({ userProfile }) {
         <div className={`py-3.5 border-b border-slate-100 flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'flex-col gap-2 px-2 justify-center' : 'px-4 justify-between'}`}>
           {!isSidebarCollapsed ? (
             <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="w-32 h-auto object-contain" />
-          ) : tenantLogo ? (
-            <div className="w-10 h-10 rounded-md overflow-hidden flex items-center justify-center shadow-xs">
-              <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
-            </div>
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs rounded-md flex items-center justify-center shadow-xs">
-              {tenantName?.trim() ? tenantName.trim().charAt(0).toUpperCase() : 'G'}
-            </div>
+            <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="w-9 h-9 object-contain mx-auto" />
           )}
           <button
             type="button"
@@ -97,32 +175,106 @@ export default function Layout({ userProfile }) {
           </button>
         </div>
 
-        {/* Tenant Profile Banner */}
-        <div className={`m-3 p-2.5 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'justify-center' : 'space-x-3'}`} title={tenantName}>
-          {tenantLogo ? (
-            <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 shadow-2xs">
-              <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="w-10 h-10 rounded-md bg-white border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 font-bold shadow-2xs">
-              <Building2 className="w-5 h-5" />
-            </div>
-          )}
-          {!isSidebarCollapsed && (
-            <div className="overflow-hidden flex-1">
-              <p className="text-xs font-bold text-slate-800 truncate">{tenantName}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="w-3 h-3 text-blue-600" />
-                <span className="text-[10px] text-blue-600 font-bold">{roleDisplay}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Sidebar Navigation */}
         <nav className="flex-1 px-2.5 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
+
+            // SPECIAL ACCORDION FOR AKADEMI
+            if (item.path === '/akademi') {
+              if (isSidebarCollapsed) {
+                return (
+                  <NavLink
+                    key={item.path}
+                    to="/akademi"
+                    title={item.label}
+                    className={({ isActive }) =>
+                      `flex items-center justify-center px-2 py-2.5 rounded-xl text-xs transition-all duration-150 ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs ring-2 ring-blue-500/20'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                  </NavLink>
+                );
+              }
+
+              return (
+                <div key={item.path} className="space-y-1">
+                  <div
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 cursor-pointer ${
+                      isAkademiActive
+                        ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs border-r-4 border-blue-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
+                    }`}
+                    onClick={() => {
+                      if (!isAkademiActive) {
+                        navigate('/akademi?tab=dasbor');
+                        setIsAkademiOpen(true);
+                      } else {
+                        setIsAkademiOpen(!isAkademiOpen);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-3 truncate">
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAkademiOpen(!isAkademiOpen);
+                      }}
+                      className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
+                      aria-label="Toggle submenu"
+                    >
+                      {isAkademiOpen ? (
+                        <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Expandable Sub-Menu (Accordion) */}
+                  {isAkademiOpen && (
+                    <div className="border-l-2 border-slate-200 ml-5 pl-2.5 space-y-1 my-1">
+                      {academySubMenuItems.map((sub) => {
+                        const isSubActive = isAkademiActive && currentTab === sub.id;
+                        return (
+                          <Link
+                            key={sub.id}
+                            to={sub.path}
+                            className={`rounded-lg px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
+                              isSubActive
+                                ? 'bg-blue-50 text-blue-700 font-semibold'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                          >
+                            <span className="truncate">{sub.label}</span>
+                            {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
+                                  isSubActive
+                                    ? 'bg-blue-200/80 text-blue-800'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {sub.count}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <NavLink
                 key={item.path}
