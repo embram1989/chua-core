@@ -593,14 +593,6 @@ function FutsalAssessmentView({
     setTimeout(() => setSuccessMsg(null), 2500);
   };
 
-  const handleSmartProFill = () => {
-    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
-      setScores(latestEvalDoc.scores);
-      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat Futsal terakhir!');
-    } else {
-      handleSetAllGlobalValue(75);
-    }
-  };
 
   const handleGenerateDraft = () => {
     if (!selectedStudent) return;
@@ -810,88 +802,77 @@ function FutsalAssessmentView({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, JENJANG, & SKOR REALTIME */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/90 items-center">
+            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, & JENJANG (RATA 3 KOLOM) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
               {/* 1. Pilih Atlet */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-orange-600" />
-                  <span>Pilih Atlet</span>
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-orange-600" />
+                  <span>Pilih Atlet ({students.length})</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStudent?.id || ''}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer appearance-none pr-8"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
                   >
                     {students.map((st) => {
                       const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
                       const pos = st.playerRole || st.position || 'FIXO';
                       return (
                         <option key={st.id} value={st.id}>
-                          {isEvaluatedToday ? '✓ ' : ''}{st.studentName} ({pos})
+                          {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}
                         </option>
                       );
                     })}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
               </div>
 
               {/* 2. Tanggal Evaluasi */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-orange-600" />
                   <span>Tanggal Evaluasi</span>
                 </label>
                 <input
                   type="date"
                   value={evaluationDate}
                   onChange={(e) => setEvaluationDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
                 />
               </div>
 
               {/* 3. Jenjang Evaluasi */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <GraduationCap className="w-3.5 h-3.5 text-orange-600" />
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-orange-600" />
                   <span>Jenjang Evaluasi</span>
                 </label>
                 <select
                   value={overrideFutsalTier}
                   onChange={(e) => setOverrideFutsalTier(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-orange-500 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-orange-500 shadow-2xs cursor-pointer"
                 >
-                  <option value="AUTO">Otomatis: Tier {detectedFutsalTier} ({studentAge} Thn)</option>
+                  <option value="AUTO">Otomatis: Tier {detectedFutsalTier} (Usia {studentAge} Thn)</option>
                   <option value="1">Tier 1 — Usia Dini Futsal (6–12 Thn)</option>
                   <option value="2">Tier 2 — Youth Futsal (13–15 Thn)</option>
                   <option value="3">Tier 3 — Junior Futsal (16–19 Thn)</option>
                   <option value="4">Tier 4 — Fase Profesional (&gt;19 Thn)</option>
                 </select>
               </div>
-
-              {/* 4. Skor Realtime */}
-              <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-slate-200">
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Skor Realtime</span>
-                  <span className="text-base font-black text-slate-900">{axisScores.overall} / 100</span>
-                </div>
-                <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${overallGrade.badge}`}>
-                  {overallGrade.grade}
-                </span>
-              </div>
             </div>
 
             {/* 2. PANEL ATAS: SCOUTING RADAR & KONFIGURASI POSISI */}
             {selectedStudent && (
               <form onSubmit={handleSaveEvaluation} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   
                   {/* RADAR 7-AXIS */}
-                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
+                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                       <span className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
                         <BarChart2 className="w-4 h-4 text-orange-400" />
@@ -902,7 +883,7 @@ function FutsalAssessmentView({
                       </span>
                     </div>
 
-                    <div className="h-64 w-full flex items-center justify-center">
+                    <div className="h-64 w-full flex items-center justify-center my-auto">
                       <ResponsiveContainer width="100%" height={250}>
                         <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                           <PolarGrid stroke="#334155" />
@@ -912,20 +893,55 @@ function FutsalAssessmentView({
                         </RadarChart>
                       </ResponsiveContainer>
                     </div>
+
+                    <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
+                      <span>Rata-Rata 7 Kategori:</span>
+                      <strong className="text-orange-400 font-black">{axisScores.overall} / 100</strong>
+                    </div>
                   </div>
 
                   {/* KONFIGURASI POSISI & PERAN */}
-                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs h-full flex flex-col justify-between space-y-4">
                     <div className="space-y-4">
+                      {/* Header Kartu */}
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                           <Target className="w-4 h-4 text-orange-600" />
                           <span>Konfigurasi Posisi &amp; Peran</span>
                         </span>
-                        <span className="text-[10px] text-slate-400 font-semibold">{futsalTierConfig.shortLabel}</span>
+                        <span className="text-[10px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-bold">
+                          {futsalTierConfig.shortLabel}
+                        </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Banner Skor Realtime & Predikat Evaluasi */}
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                              Skor Realtime
+                            </span>
+                            <div className="flex items-baseline gap-1 mt-0.5">
+                              <span className="text-xl font-black text-slate-900 tracking-tight">
+                                {axisScores.overall}
+                              </span>
+                              <span className="text-xs font-bold text-slate-400">/ 100</span>
+                            </div>
+                          </div>
+                          <span className={`px-2.5 py-1 text-xs font-black rounded-lg border shadow-2xs shrink-0 ${overallGrade.badge}`}>
+                            {overallGrade.grade}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500 rounded-full transition-all duration-300" 
+                            style={{ width: `${Math.min(100, Math.max(0, axisScores.overall))}%` }} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dropdown Posisi & Gaya Bermain */}
+                      <div className="space-y-3">
                         {/* POSISI FUTSAL */}
                         <div>
                           <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
@@ -967,51 +983,42 @@ function FutsalAssessmentView({
                     </div>
 
                     {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
-                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Sliders className="w-3.5 h-3.5 text-orange-600" />
                         <span>Preset Nilai Cepat:</span>
                       </span>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(0)}
-                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                           title="Reset semua indikator ke 0"
                         >
-                          <RotateCcw className="w-3 h-3" />
+                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                           <span>Reset (0)</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(50)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Standard (50)
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(75)}
-                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Good (75)
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(90)}
-                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Elite (90)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleSmartProFill}
-                          className="px-2.5 py-1 bg-orange-600 text-white hover:bg-orange-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
-                          title="Muat riwayat atau baseline 75"
-                        >
-                          <Sparkles className="w-3 h-3 text-orange-200" />
-                          <span>Smart Pro-Fill</span>
                         </button>
                       </div>
                     </div>
@@ -1614,14 +1621,6 @@ function BadmintonAssessmentView({
     setTimeout(() => setSuccessMsg(null), 2500);
   };
 
-  const handleSmartProFill = () => {
-    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
-      setScores(latestEvalDoc.scores);
-      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat Badminton terakhir!');
-    } else {
-      handleSetAllGlobalValue(75);
-    }
-  };
 
   const handleGenerateDraft = () => {
     if (!selectedStudent) return;
@@ -1836,19 +1835,19 @@ function BadmintonAssessmentView({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, JENJANG, & SKOR REALTIME */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/90 items-center">
+            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, & JENJANG (RATA 3 KOLOM) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
               {/* 1. Pilih Atlet */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Pilih Atlet</span>
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-teal-600" />
+                  <span>Pilih Atlet ({students.length})</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStudentId}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer appearance-none pr-8"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
                   >
                     {students.map((st) => (
                       <option key={st.id} value={st.id}>
@@ -1857,35 +1856,35 @@ function BadmintonAssessmentView({
                     ))}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
               </div>
 
               {/* 2. Tanggal Evaluasi */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-teal-600" />
                   <span>Tanggal Evaluasi</span>
                 </label>
                 <input
                   type="date"
                   value={evaluationDate}
                   onChange={(e) => setEvaluationDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
                 />
               </div>
 
               {/* 3. Jenjang Evaluasi */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <GraduationCap className="w-3.5 h-3.5 text-teal-600" />
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-teal-600" />
                   <span>Jenjang Evaluasi</span>
                 </label>
                 <select
                   value={overrideBadmintonTier}
                   onChange={(e) => setOverrideBadmintonTier(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 shadow-2xs cursor-pointer"
                 >
                   <option value="AUTO">Otomatis: Tier {detectedBadmintonTier} ({pbsiLevelInfo.name})</option>
                   <option value="1">Tier 1 — Pra-Usia Dini &amp; Usia Dini (&le;10 Thn)</option>
@@ -1894,67 +1893,89 @@ function BadmintonAssessmentView({
                   <option value="4">Tier 4 — Taruna &amp; Dewasa / Sirnas U-19 &amp; Pro (&ge;18 Thn)</option>
                 </select>
               </div>
-
-              {/* 4. Skor Realtime */}
-              <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-slate-200">
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Skor Realtime</span>
-                  <span className="text-base font-black text-slate-900">{axisScores.overall} / 100</span>
-                </div>
-                <span className={`px-2 py-0.5 text-[10px] font-black rounded-md border ${gradeInfo.badge}`}>
-                  {gradeInfo.grade}
-                </span>
-              </div>
             </div>
 
             {/* 2. PANEL ATAS: SCOUTING RADAR & KONFIGURASI NOMOR */}
             {selectedStudent && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* RADAR CHART */}
-                <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-                      <BarChart2 className="w-4 h-4 text-teal-400" />
-                      <span>Scouting Radar</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
-                      Total: {axisScores.overall}/100
-                    </span>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  {/* RADAR CHART */}
+                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+                        <BarChart2 className="w-4 h-4 text-teal-400" />
+                        <span>Scouting Radar</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+                        Total: {axisScores.overall}/100
+                      </span>
+                    </div>
+
+                    <div className="h-64 w-full flex items-center justify-center my-auto">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
+                          <PolarGrid stroke="#334155" />
+                          <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
+                          <Radar
+                            name="Performa"
+                            dataKey="A"
+                            stroke="#0d9488"
+                            fill="#14b8a6"
+                            fillOpacity={0.45}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
+                      <span>Rata-Rata 7 Kategori:</span>
+                      <strong className="text-teal-400 font-black">{axisScores.overall} / 100</strong>
+                    </div>
                   </div>
 
-                  <div className="h-64 w-full flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height={250}>
-                      <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                        <PolarGrid stroke="#334155" />
-                        <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
-                        <Radar
-                          name="Performa"
-                          dataKey="A"
-                          stroke="#0d9488"
-                          fill="#14b8a6"
-                          fillOpacity={0.45}
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* KONFIGURASI NOMOR & PERAN + HEALTH PANEL */}
-                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+                  {/* KONFIGURASI NOMOR & PERAN + HEALTH PANEL */}
+                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs h-full flex flex-col justify-between space-y-4">
                     <div className="space-y-4">
+                      {/* Header Kartu */}
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                           <Layers className="w-4 h-4 text-teal-600" />
                           <span>Konfigurasi Nomor &amp; Peran</span>
                         </span>
-                        <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full font-bold">
+                        <span className="text-[10px] text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full font-bold">
                           {eventConfig.shortLabel}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      {/* Banner Skor Realtime & Predikat Evaluasi */}
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                              Skor Realtime
+                            </span>
+                            <div className="flex items-baseline gap-1 mt-0.5">
+                              <span className="text-xl font-black text-slate-900 tracking-tight">
+                                {axisScores.overall}
+                              </span>
+                              <span className="text-xs font-bold text-slate-400">/ 100</span>
+                            </div>
+                          </div>
+                          <span className={`px-2.5 py-1 text-xs font-black rounded-lg border shadow-2xs shrink-0 ${gradeInfo.badge}`}>
+                            {gradeInfo.grade}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-teal-500 rounded-full transition-all duration-300" 
+                            style={{ width: `${Math.min(100, Math.max(0, axisScores.overall))}%` }} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dropdown Nomor & Peran */}
+                      <div className="space-y-3">
                         {/* NOMOR PERTANDINGAN */}
                         <div>
                           <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
@@ -1995,7 +2016,7 @@ function BadmintonAssessmentView({
 
                         {/* SPESIALISASI GANDA - RENDER ONLY IF DOUBLES & UNLOCKED */}
                         {isDoubles && isDoublesSpecUnlocked && (
-                          <div className="md:col-span-2">
+                          <div>
                             <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
                               3. Spesialisasi Nomor Ganda
                             </label>
@@ -2029,7 +2050,7 @@ function BadmintonAssessmentView({
                             <select
                               value={healthPhysicalReadiness}
                               onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                              className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
                             >
                               <option value="Fit 100%">Fit 100% (Prima)</option>
                               <option value="Sangat Fit">Sangat Fit</option>
@@ -2046,7 +2067,7 @@ function BadmintonAssessmentView({
                               value={healthInjuryNotes}
                               onChange={(e) => setHealthInjuryNotes(e.target.value)}
                               placeholder="Misal: Nyeri lutut ringan..."
-                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                              className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
                             />
                           </div>
 
@@ -2055,7 +2076,7 @@ function BadmintonAssessmentView({
                             <select
                               value={healthRecoveryQuality}
                               onChange={(e) => setHealthRecoveryQuality(e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                              className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
                             >
                               <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
                               <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
@@ -2067,51 +2088,42 @@ function BadmintonAssessmentView({
                     </div>
 
                     {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
-                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Sliders className="w-3.5 h-3.5 text-teal-600" />
                         <span>Preset Nilai Cepat:</span>
                       </span>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(0)}
-                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                           title="Reset semua indikator ke 0"
                         >
-                          <RotateCcw className="w-3 h-3" />
+                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                           <span>Reset (0)</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(50)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Standard (50)
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(75)}
-                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Good (75)
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(90)}
-                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                         >
                           Elite (90)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleSmartProFill}
-                          className="px-2.5 py-1 bg-teal-600 text-white hover:bg-teal-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
-                          title="Muat riwayat atau baseline 75"
-                        >
-                          <Sparkles className="w-3 h-3 text-teal-200" />
-                          <span>Smart Pro-Fill</span>
                         </button>
                       </div>
                     </div>
@@ -2772,15 +2784,6 @@ function FootballAssessmentView({
     setTimeout(() => setSuccessMsg(null), 2500);
   };
 
-  // Smart Pro-Fill
-  const handleSmartProFill = () => {
-    if (latestEvalDoc && latestEvalDoc.scores && Object.keys(latestEvalDoc.scores).length > 0) {
-      setScores(latestEvalDoc.scores);
-      setSuccessMsg('Smart Pro-Fill: Berhasil memuat riwayat penilaian terakhir!');
-    } else {
-      handleSetAllGlobalValue(75);
-    }
-  };
 
   // Generate Auto-Draft Coach Note
   const handleGenerateDraft = () => {
@@ -2993,8 +2996,8 @@ function FootballAssessmentView({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
-              <div className="lg:col-span-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
+              <div>
                 <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                   <UserCheck className="w-4 h-4 text-emerald-600" />
                   <span>Pilih Atlet ({students.length})</span>
@@ -3021,7 +3024,7 @@ function FootballAssessmentView({
                 </div>
               </div>
 
-              <div className="lg:col-span-3">
+              <div>
                 <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-emerald-600" />
                   <span>Tanggal Evaluasi</span>
@@ -3034,7 +3037,7 @@ function FootballAssessmentView({
                 />
               </div>
 
-              <div className="lg:col-span-3">
+              <div>
                 <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                   <GraduationCap className="w-4 h-4 text-emerald-600" />
                   <span>Jenjang Evaluasi</span>
@@ -3051,13 +3054,6 @@ function FootballAssessmentView({
                   <option value="4">Tier 4 — Elit &amp; Profesional (U-16+)</option>
                 </select>
               </div>
-
-              <div className="lg:col-span-2 flex justify-end">
-                <div className="w-full px-3.5 py-2 bg-emerald-600 text-white rounded-xl flex items-center justify-between shadow-xs">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-100">Total:</span>
-                  <span className="text-sm font-black">{axisScores.overall} / 100</span>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -3066,10 +3062,10 @@ function FootballAssessmentView({
       {/* PANEL ATAS */}
       {selectedStudent && (
         <form onSubmit={handleSaveEvaluation} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             {/* RADAR 7-AXIS */}
-            <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md space-y-4">
+            <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                   <BarChart2 className="w-4 h-4 text-emerald-400" />
@@ -3090,135 +3086,167 @@ function FootballAssessmentView({
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
+
+              <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
+                <span>Rata-Rata 7 Kategori:</span>
+                <strong className="text-emerald-400 font-black">{axisScores.overall} / 100</strong>
+              </div>
             </div>
 
             {/* TAKTIS SEPAKBOLA */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-emerald-600" />
-                  <span>Konfigurasi Posisi &amp; Peran</span>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                    Posisi / Peran Bermain
-                  </label>
-                  <select
-                    value={selectedPosition}
-                    onChange={(e) => handlePositionChange(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
-                  >
-                    {availablePositions.map((p) => (
-                      <option key={p.code} value={p.code}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+            <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs h-full flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                    <Target className="w-4 h-4 text-emerald-600" />
+                    <span>Konfigurasi Posisi &amp; Peran</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">
+                    Tier {activeTier}
+                  </span>
                 </div>
 
-                {activeTier >= 3 && (
+                {/* Banner Skor Realtime & Predikat Evaluasi */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                        Skor Realtime
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-xl font-black text-slate-900 tracking-tight">
+                          {axisScores.overall}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400">/ 100</span>
+                      </div>
+                    </div>
+                    {(() => {
+                      const g = getScoreGrade(axisScores.overall);
+                      return (
+                        <span className={`px-2.5 py-1 text-xs font-black rounded-lg border shadow-2xs shrink-0 ${g.badge}`}>
+                          {g.grade}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-300" 
+                      style={{ width: `${Math.min(100, Math.max(0, axisScores.overall))}%` }} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                      Spesialisasi Peran
+                      Posisi / Peran Bermain
                     </label>
                     <select
-                      value={selectedSpecialization}
-                      onChange={(e) => setSelectedSpecialization(e.target.value)}
+                      value={selectedPosition}
+                      onChange={(e) => handlePositionChange(e.target.value)}
                       className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
                     >
-                      {(getPositionConfig(selectedPosition).specializations || []).map((spec) => (
-                        <option key={spec} value={spec}>
-                          {spec}
+                      {availablePositions.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.label}
                         </option>
                       ))}
                     </select>
                   </div>
-                )}
-              </div>
 
-              {activeTier >= 3 && (
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                    Profil Gaya Bermain Taktis (STY)
-                  </label>
-                  <select
-                    value={selectedStyleCode}
-                    onChange={(e) => setSelectedStyleCode(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
-                  >
-                    {FOOTBALL_PLAYING_STYLES.map((st) => (
-                      <option key={st.code} value={st.code}>
-                        {st.code} — {st.name} ({st.desc})
-                      </option>
-                    ))}
-                  </select>
+                  {activeTier >= 3 && (
+                    <div>
+                      <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                        Spesialisasi Peran
+                      </label>
+                      <select
+                        value={selectedSpecialization}
+                        onChange={(e) => setSelectedSpecialization(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                      >
+                        {(getPositionConfig(selectedPosition).specializations || []).map((spec) => (
+                          <option key={spec} value={spec}>
+                            {spec}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
-                  {getStyleConfig(selectedStyleCode) && (
-                    <div className="mt-2 p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-xs flex items-center gap-2">
-                      <Radio className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <div>
-                        <span className="font-extrabold text-emerald-950">
-                          {getStyleConfig(selectedStyleCode).code} — {getStyleConfig(selectedStyleCode).name}:
-                        </span>{' '}
-                        <span className="text-emerald-800 font-medium">{getStyleConfig(selectedStyleCode).desc}</span>
-                      </div>
+                  {activeTier >= 3 && (
+                    <div>
+                      <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                        Profil Gaya Bermain Taktis (STY)
+                      </label>
+                      <select
+                        value={selectedStyleCode}
+                        onChange={(e) => setSelectedStyleCode(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                      >
+                        {FOOTBALL_PLAYING_STYLES.map((st) => (
+                          <option key={st.code} value={st.code}>
+                            {st.code} — {st.name} ({st.desc})
+                          </option>
+                        ))}
+                      </select>
+
+                      {getStyleConfig(selectedStyleCode) && (
+                        <div className="mt-2 p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-xs flex items-center gap-2">
+                          <Radio className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <div>
+                            <span className="font-extrabold text-emerald-950">
+                              {getStyleConfig(selectedStyleCode).code} — {getStyleConfig(selectedStyleCode).name}:
+                            </span>{' '}
+                            <span className="text-emerald-800 font-medium">{getStyleConfig(selectedStyleCode).desc}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+              {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Preset Nilai Cepat:</span>
                 </span>
 
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(0)}
-                    className="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1"
+                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                     title="Reset semua indikator ke 0"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                     <span>Reset (0)</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(50)}
-                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                   >
                     Standard (50)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(75)}
-                    className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                   >
                     Good (75)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(90)}
-                    className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black transition-all cursor-pointer"
+                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                   >
                     Elite (90)
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSmartProFill}
-                    className="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg text-xs font-extrabold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
-                    title="Muat riwayat atau baseline 75"
-                  >
-                    <Sparkles className="w-3 h-3 text-emerald-200" />
-                    <span>Smart Pro-Fill</span>
-                  </button>
                 </div>
               </div>
-
             </div>
           </div>
 
