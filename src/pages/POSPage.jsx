@@ -598,8 +598,8 @@ export default function POSPage({ userProfile }) {
                   HID Scanner Ready
                 </span>
               </h3>
-              <p className="text-[11px] text-slate-500">
-                Pindai barcode fisik barang dengan scanner, atau ketik manual kode lalu tekan <kbd className="px-1.5 py-0.5 bg-slate-200 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Enter</kbd>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Pindai barcode fisik barang dengan scanner, atau ketik manual kode lalu tekan <kbd className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded text-xs font-mono">Enter</kbd>
               </p>
             </div>
           </div>
@@ -1085,7 +1085,7 @@ export default function POSPage({ userProfile }) {
                 type="button"
                 onClick={handleCheckout}
                 disabled={cart.length === 0 || submittingCheckout}
-                className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold text-xs rounded-xl shadow-md disabled:shadow-none transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:border dark:disabled:border-slate-700/80 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl shadow-md disabled:shadow-none transition-all cursor-pointer flex items-center justify-center space-x-2"
               >
                 <CreditCard className="w-4 h-4" />
                 <span>{submittingCheckout ? 'Memproses Transaksi...' : 'Bayar & Cetak Struk'}</span>

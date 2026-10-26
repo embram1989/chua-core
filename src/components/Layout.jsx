@@ -9,12 +9,15 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ShieldCheck
+  ShieldCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logoutUser } from '../services/authService';
 import useArenaData from '../hooks/useArenaData';
+import { useTheme } from '../context/ThemeContext';
 import {
   Dashboard3DIcon,
   Booking3DIcon,
@@ -43,29 +46,31 @@ export default function Layout({ userProfile }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { tenantProfile } = useArenaData(userProfile);
+  const { theme, isDark, toggleTheme } = useTheme();
 
   const isAkademiActive = location.pathname.startsWith('/akademi');
   const currentTab = new URLSearchParams(location.search).get('tab') || 'dasbor';
-  const [isAkademiOpen, setIsAkademiOpen] = useState(true);
-  const [academyCounts, setAcademyCounts] = useState({ students: 0, coaches: 0, classes: 0 });
 
   const isProfilActive = location.pathname.startsWith('/pengaturan');
   const currentProfileTab = new URLSearchParams(location.search).get('tab') || 'profil';
-  const [isProfilOpen, setIsProfilOpen] = useState(true);
 
-  // Auto-expand Akademi accordion when navigating to /akademi
+  // State single-open accordion: default tertutup rapat (null) saat pertama kali dimuat
+  const [expandedMenu, setExpandedMenu] = useState(null); // 'akademi' | 'profil' | null
+  const isAkademiOpen = expandedMenu === 'akademi';
+  const isProfilOpen = expandedMenu === 'profil';
+
+  const [academyCounts, setAcademyCounts] = useState({ students: 0, coaches: 0, classes: 0 });
+
+  // Sinkronisasi accordion dengan navigasi rute (auto-expand saat di rute terkait, collapse saat di menu lain)
   useEffect(() => {
     if (isAkademiActive) {
-      setIsAkademiOpen(true);
+      setExpandedMenu('akademi');
+    } else if (isProfilActive) {
+      setExpandedMenu('profil');
+    } else {
+      setExpandedMenu(null);
     }
-  }, [isAkademiActive]);
-
-  // Auto-expand Profil accordion when navigating to /pengaturan
-  useEffect(() => {
-    if (isProfilActive) {
-      setIsProfilOpen(true);
-    }
-  }, [isProfilActive]);
+  }, [location.pathname]);
 
   // Listen to accurate counts emitted by AcademyPage
   useEffect(() => {
@@ -189,13 +194,15 @@ export default function Layout({ userProfile }) {
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
 
-          <div className="flex flex-col items-center justify-center text-center w-full px-4 py-5">
+          <div className="flex flex-col items-center justify-center text-center w-full px-4 py-4">
             {!isSidebarCollapsed ? (
-              <div className="flex flex-col items-center justify-center text-center mx-auto">
-                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-32 h-auto object-contain mx-auto" />
+              <div className="flex flex-col items-center justify-center text-center mx-auto chuvator-logo-badge p-2 rounded-xl shadow-2xs border border-slate-100">
+                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-28 h-auto object-contain mx-auto" />
               </div>
             ) : (
-              <img src="/logo_2.jpg" alt="CHUVATOR" className="w-9 h-9 object-contain mx-auto" />
+              <div className="chuvator-logo-badge p-1 rounded-lg shadow-2xs">
+                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-7 h-7 object-contain mx-auto" />
+              </div>
             )}
           </div>
         </div>
@@ -237,9 +244,9 @@ export default function Layout({ userProfile }) {
                     onClick={() => {
                       if (!isAkademiActive) {
                         navigate('/akademi?tab=dasbor');
-                        setIsAkademiOpen(true);
+                        setExpandedMenu('akademi');
                       } else {
-                        setIsAkademiOpen(!isAkademiOpen);
+                        setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
                       }
                     }}
                   >
@@ -251,7 +258,7 @@ export default function Layout({ userProfile }) {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setIsAkademiOpen(!isAkademiOpen);
+                        setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
                       }}
                       className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
                       aria-label="Toggle submenu"
@@ -332,9 +339,9 @@ export default function Layout({ userProfile }) {
                     onClick={() => {
                       if (!isProfilActive) {
                         navigate('/pengaturan?tab=profil');
-                        setIsProfilOpen(true);
+                        setExpandedMenu('profil');
                       } else {
-                        setIsProfilOpen(!isProfilOpen);
+                        setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
                       }
                     }}
                   >
@@ -346,7 +353,7 @@ export default function Layout({ userProfile }) {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setIsProfilOpen(!isProfilOpen);
+                        setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
                       }}
                       className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
                       aria-label="Toggle submenu"
@@ -396,6 +403,7 @@ export default function Layout({ userProfile }) {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => setExpandedMenu(null)}
                 title={isSidebarCollapsed ? item.label : undefined}
                 className={({ isActive }) =>
                   `flex items-center ${isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'space-x-3 px-3 py-2'} rounded-xl text-xs transition-all duration-150 ${
@@ -411,6 +419,46 @@ export default function Layout({ userProfile }) {
             );
           })}
         </nav>
+
+        {/* Sidebar Theme Switcher Footer */}
+        <div className="p-2.5 border-t border-slate-100">
+          {!isSidebarCollapsed ? (
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+              title={isDark ? "Beralih ke Mode Terang (Light Mode)" : "Beralih ke Mode Gelap (Dark Mode)"}
+            >
+              <div className="flex items-center gap-2">
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+                ) : (
+                  <Moon className="w-4 h-4 text-blue-600 shrink-0" />
+                )}
+                <span>{isDark ? 'Mode Gelap' : 'Mode Terang'}</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600 tracking-wider">
+                {isDark ? 'DARK' : 'LIGHT'}
+              </span>
+            </button>
+          ) : (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs"
+                title={isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"}
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5 text-amber-400" />
+                ) : (
+                  <Moon className="w-5 h-5 text-blue-600" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* MOBILE HEADER (< 1024px) */}
@@ -429,13 +477,24 @@ export default function Layout({ userProfile }) {
           </div>
         </div>
 
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
-          aria-label="Toggle Menu"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
+            title={isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-blue-600" />}
+          </button>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </header>
 
       {/* MOBILE SLIDE-OUT MENU OVERLAY */}
@@ -573,6 +632,20 @@ export default function Layout({ userProfile }) {
               </div>
 
               <div className="pt-4 border-t border-slate-200 space-y-3 bg-white -mx-5 -mb-5 p-5 mt-6 shadow-2xs">
+                {/* Mobile Drawer Theme Toggle */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-600" />}
+                    <span>{isDark ? 'Mode Gelap (Dark Mode)' : 'Mode Terang (Light Mode)'}</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600 tracking-wider">
+                    {isDark ? 'DARK' : 'LIGHT'}
+                  </span>
+                </button>
                 <div className="flex items-center space-x-3 px-1">
                   {userProfile?.photoURL ? (
                     <img src={userProfile.photoURL} alt="Avatar" className="w-9 h-9 rounded-full border border-slate-200" />

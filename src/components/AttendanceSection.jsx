@@ -295,23 +295,23 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
               </div>
             ) : (
               /* CLEAN STUDENT LIST WITH SEGMENTED CONTROL */
-              <div className="border border-slate-100 rounded-xl overflow-hidden divide-y divide-slate-100 bg-white">
+              <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                 {classStudents.map((st, idx) => {
                   const currentStatus = studentAttendance[st.id] || 'Hadir';
 
                   return (
                     <div 
                       key={st.id} 
-                      className="p-2.5 sm:px-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+                      className="p-2.5 sm:px-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <div className="truncate">
-                          <p className="font-semibold text-xs text-slate-800 truncate">{st.studentName}</p>
+                          <p className="font-semibold text-xs text-slate-800 dark:text-slate-100 truncate">{st.studentName}</p>
                           {calculateAge(st.birthDate) !== '-' && (
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500">
                               Usia: {calculateAge(st.birthDate)} thn
                             </p>
                           )}
@@ -319,16 +319,16 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                       </div>
 
                       {/* SEGMENTED CONTROL (HADIR, IZIN, SAKIT, ALPA) */}
-                      <div className="p-0.5 bg-slate-100/90 rounded-lg inline-flex items-center gap-0.5 shrink-0">
+                      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 p-1 rounded-xl inline-flex items-center gap-1 shrink-0">
                         
                         {/* 1. HADIR */}
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Hadir')}
-                          className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             currentStatus === 'Hadir'
-                              ? 'bg-emerald-500 text-white font-semibold shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                              ? 'bg-emerald-500 text-white shadow-sm'
+                              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
                           }`}
                         >
                           Hadir
@@ -338,10 +338,10 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Izin')}
-                          className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             currentStatus === 'Izin'
-                              ? 'bg-amber-500 text-white font-semibold shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                              ? 'bg-blue-500 text-white shadow-sm'
+                              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
                           }`}
                         >
                           Izin
@@ -351,10 +351,10 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Sakit')}
-                          className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             currentStatus === 'Sakit'
-                              ? 'bg-blue-500 text-white font-semibold shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                              ? 'bg-amber-500 text-white shadow-sm'
+                              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
                           }`}
                         >
                           Sakit
@@ -364,10 +364,10 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Alpa')}
-                          className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             currentStatus === 'Alpa' || currentStatus === 'Alpha'
-                              ? 'bg-rose-500 text-white font-semibold shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                              ? 'bg-rose-500 text-white shadow-sm'
+                              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
                           }`}
                         >
                           Alpa

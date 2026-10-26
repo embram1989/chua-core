@@ -1156,16 +1156,16 @@ export default function DashboardPage({ userProfile }) {
           </div>
 
           {/* LEGEND / BREAKDOWN LIST */}
-          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
             {divisionPieData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 border border-slate-100">
+              <div key={item.name} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 rounded-xl px-3.5 py-2.5">
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                  <span className="font-bold text-slate-700">{item.name}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100">{item.name}</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-extrabold text-slate-900 block">{formatRupiah(item.value)}</span>
-                  <span className="text-[10px] text-slate-400 font-bold">{item.percent}%</span>
+                  <span className="font-extrabold text-slate-800 dark:text-slate-100 block">{formatRupiah(item.value)}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{item.percent}%</span>
                 </div>
               </div>
             ))}

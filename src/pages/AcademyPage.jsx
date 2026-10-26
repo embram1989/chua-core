@@ -781,10 +781,10 @@ export default function AcademyPage({ userProfile }) {
             {/* Switcher & Secondary Action */}
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Dropdown Selector */}
-              <div className="flex items-center gap-2 bg-gradient-to-r from-slate-50 to-blue-50/50 px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-blue-300 transition-all">
-                <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 shadow-2xs hover:border-blue-300 transition-all">
+                <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Akademi Aktif</span>
+                  <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-none mb-0.5">Akademi Aktif</span>
                   <select
                     value={activeAcademyId}
                     onChange={(e) => {
@@ -792,10 +792,10 @@ export default function AcademyPage({ userProfile }) {
                       setActiveAcademyId(id);
                       localStorage.setItem('activeAcademyId', id);
                     }}
-                    className="bg-transparent text-slate-900 text-xs font-black focus:outline-none cursor-pointer pr-2"
+                    className="bg-transparent text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none cursor-pointer pr-2"
                   >
                     {academies.map((ac) => (
-                      <option key={ac.id} value={ac.id}>
+                      <option key={ac.id} value={ac.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                         {ac.name} ({ac.sport || 'Umum'})
                       </option>
                     ))}
@@ -1290,39 +1290,39 @@ export default function AcademyPage({ userProfile }) {
               {filteredClasses.map((cls) => {
                 const scheduleItems = parseScheduleItems(cls);
                 return (
-                  <div key={cls.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-blue-500 hover:shadow-sm transition-all space-y-3 flex flex-col justify-between">
+                  <div key={cls.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-2xl p-4 hover:border-blue-500 transition-all space-y-3 flex flex-col justify-between">
                     <div className="space-y-2.5">
                       {/* Header Kelas */}
                       <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-md uppercase border border-blue-100/80">
+                        <span className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold text-[10px] rounded-md uppercase border border-blue-100/80 dark:border-blue-800/50">
                           {cls.sport || 'Sports'}
                         </span>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">Aktif</span>
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/50">Aktif</span>
                       </div>
 
                       {/* Judul & Pelatih */}
                       <div>
-                        <h4 className="font-bold text-base text-slate-900 tracking-tight">{cls.className}</h4>
-                        <p className="text-xs text-slate-600 font-medium mt-0.5 flex items-center gap-1">
+                        <h4 className="font-bold text-base text-slate-900 dark:text-slate-100 tracking-tight">{cls.className}</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5 flex items-center gap-1">
                           <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>Pelatih: <strong className="text-slate-800">{cls.coachName || 'Pelatih Utama'}</strong></span>
+                          <span>Pelatih: <strong className="text-slate-800 dark:text-slate-200">{cls.coachName || 'Pelatih Utama'}</strong></span>
                         </p>
                       </div>
 
                       {/* Daftar Jadwal Per Hari (Vertical List) */}
-                      <div className="pt-2 border-t border-slate-200/70 space-y-2">
+                      <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 space-y-2">
                         <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                             <span>Jadwal Latihan Rutin</span>
                           </span>
-                          <span className="text-[10px] text-slate-400 font-medium">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                             {scheduleItems.length} Sesi/Minggu
                           </span>
                         </div>
 
                         {scheduleItems.length === 0 ? (
-                          <div className="text-[11px] text-slate-400 italic bg-white p-2.5 rounded-lg border border-slate-200/80">
+                          <div className="text-[11px] text-slate-400 dark:text-slate-500 italic bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-700">
                             Belum ada jadwal
                           </div>
                         ) : (
@@ -1330,21 +1330,21 @@ export default function AcademyPage({ userProfile }) {
                             {scheduleItems.map((item, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs text-xs"
+                                className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/70 flex items-center justify-between gap-2 p-2 rounded-lg shadow-2xs text-xs"
                               >
                                 <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
-                                  <span className="text-blue-600 font-bold text-xs shrink-0">📅 {item.day}</span>
+                                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs shrink-0">📅 {item.day}</span>
                                   {item.time && (
                                     <>
-                                      <span className="text-slate-300 font-bold text-[10px] hidden sm:inline">&bull;</span>
-                                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono text-[11px] font-semibold border border-slate-200/60 shrink-0">
+                                      <span className="text-slate-300 dark:text-slate-600 font-bold text-[10px] hidden sm:inline">&bull;</span>
+                                      <span className="bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 px-2 py-0.5 rounded font-mono text-[11px] font-semibold border border-slate-200/60 dark:border-slate-600/70 shrink-0">
                                         {item.time}
                                       </span>
                                     </>
                                   )}
                                 </div>
                                 {item.court && (
-                                  <span className="text-[11px] text-slate-500 font-medium truncate bg-slate-50 px-2 py-0.5 rounded border border-slate-100 text-right shrink-0">
+                                  <span className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 rounded-md text-xs font-medium whitespace-nowrap ml-2 shrink-0">
                                     ({item.court})
                                   </span>
                                 )}
@@ -1356,13 +1356,13 @@ export default function AcademyPage({ userProfile }) {
                     </div>
 
                     {/* Tombol Kunci Jadwal */}
-                    <div className="pt-2.5 border-t border-slate-200/70">
+                    <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800">
                       <button
                         type="button"
                         onClick={() => setGenerateModalClass(cls)}
-                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1.5 border border-blue-200/80 shadow-2xs"
+                        className="w-full py-2 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/70 hover:bg-blue-100 dark:hover:bg-blue-900/60 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-2xs"
                       >
-                        <Lock className="w-3.5 h-3.5 text-blue-600" />
+                        <Lock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         <span>Kunci Jadwal Lapangan</span>
                       </button>
                     </div>
@@ -1477,33 +1477,33 @@ export default function AcademyPage({ userProfile }) {
                   if (!currentClass) return null;
 
                   return (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-xl">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 rounded-xl px-4 py-2.5">
                       <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="font-bold text-sm text-slate-800 tracking-tight">
+                        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 tracking-tight">
                           {currentClass.className}
                         </h3>
 
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-medium text-[11px] rounded-full border border-blue-100/80">
+                          <span className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-medium text-[11px] rounded-full border border-blue-100/80 dark:border-blue-800/50">
                             {currentClass.sport || 'Sports'}
                           </span>
                           {currentClass.ageGroup && (
-                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-medium text-[11px] rounded-full border border-emerald-100/80">
+                            <span className="px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-medium text-[11px] rounded-full border border-emerald-100/80 dark:border-emerald-800/50">
                               {currentClass.ageGroup}
                             </span>
                           )}
                         </div>
 
-                        <div className="h-3.5 w-px bg-slate-300 hidden sm:block" />
+                        <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-600 hidden sm:block" />
 
-                        <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
+                        <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 flex-wrap">
                           <span className="flex items-center gap-1" title="Pelatih">
                             <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="font-medium text-slate-700">{currentClass.coachName || 'Instruktur'}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-200">{currentClass.coachName || 'Instruktur'}</span>
                           </span>
                           <span className="flex items-center gap-1" title="Jadwal Latihan">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="font-medium text-slate-700">{currentClass.schedule || '-'}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-200">{currentClass.schedule || '-'}</span>
                           </span>
                         </div>
                       </div>

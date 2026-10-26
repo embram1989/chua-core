@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { subscribeToAuthChanges } from './services/authService';
+import { ThemeProvider } from './context/ThemeContext';
 
 import LoadingScreen from './components/LoadingScreen';
 import LoginPage from './pages/LoginPage';
@@ -47,13 +48,25 @@ const queryClient = new QueryClient({
 export default function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [firebaseUser, setFirebaseUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      const savedDemo = localStorage.getItem('demo_user_profile');
+      return savedDemo ? JSON.parse(savedDemo) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   useEffect(() => {
     // Subscribe to Firebase Auth and Firestore role verification
     const unsubscribe = subscribeToAuthChanges((authUser, profile, errorMessage) => {
-      setFirebaseUser(authUser);
-      setUserProfile(profile);
+      if (authUser && profile) {
+        setFirebaseUser(authUser);
+        setUserProfile(profile);
+      } else if (!localStorage.getItem('demo_user_profile')) {
+        setFirebaseUser(null);
+        setUserProfile(null);
+      }
       setIsAuthLoading(false);
     });
 

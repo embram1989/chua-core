@@ -186,6 +186,9 @@ export async function loginWithEmailAndPassword(email, password) {
  * Sign out current user
  */
 export async function logoutUser() {
+  try {
+    localStorage.removeItem('demo_user_profile');
+  } catch (e) {}
   await signOut(auth);
 }
 
