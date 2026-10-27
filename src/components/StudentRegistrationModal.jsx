@@ -467,7 +467,7 @@ export default function StudentRegistrationModal({
                   <img
                     src={photoPreview}
                     alt="Preview Siswa"
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-blue-500/30 shadow-xs"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#354944]/30 shadow-xs"
                   />
                   <button
                     type="button"
@@ -479,7 +479,7 @@ export default function StudentRegistrationModal({
                   </button>
                 </div>
               ) : (
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#354944]/10 border-2 border-dashed border-[#354944]/30 flex flex-col items-center justify-center text-[#354944]">
                   <Camera className="w-6 h-6" />
                   <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
                 </div>
@@ -494,7 +494,7 @@ export default function StudentRegistrationModal({
                 Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> dan <strong>Barcode presensi</strong> siswa.
               </p>
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#354944]/10 text-[#354944] border border-[#354944]/20 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
                   <input
@@ -521,7 +521,7 @@ export default function StudentRegistrationModal({
             {/* KOLOM KIRI: DATA DIRI SISWA */}
             <div className="space-y-3.5">
               <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1.5">
+                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
                   <User className="w-3.5 h-3.5" />
                   <span>Data Diri &amp; Identitas Siswa</span>
                 </h4>
@@ -529,7 +529,7 @@ export default function StudentRegistrationModal({
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Lengkap Siswa <span className="text-blue-600">*</span>
+                  Nama Lengkap Siswa <span className="text-[#C89D32]">*</span>
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -539,14 +539,14 @@ export default function StudentRegistrationModal({
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
                     placeholder="Nama calon siswa"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Tanggal Lahir Siswa <span className="text-blue-600">*</span>
+                  Tanggal Lahir Siswa <span className="text-[#C89D32]">*</span>
                 </label>
                 <div className="relative">
                   <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -555,7 +555,7 @@ export default function StudentRegistrationModal({
                     required
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium text-slate-800"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-medium text-slate-800"
                   />
                 </div>
               </div>
@@ -571,7 +571,7 @@ export default function StudentRegistrationModal({
                     value={nikKk}
                     onChange={(e) => setNikKk(e.target.value)}
                     placeholder="16 digit NIK atau Nomor Kartu Keluarga"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-mono"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export default function StudentRegistrationModal({
                     value={schoolOrigin}
                     onChange={(e) => setSchoolOrigin(e.target.value)}
                     placeholder="misal: SD Negeri 01 / SMP Nusantara"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
               </div>
@@ -599,7 +599,7 @@ export default function StudentRegistrationModal({
                 <button
                   type="button"
                   onClick={() => alert('Fitur Upload Berkas KK akan tersedia pada Fase Cloud Storage.')}
-                  className="w-full py-2.5 px-3 border-2 border-dashed border-gray-300 hover:border-blue-500 bg-gray-50/50 hover:bg-blue-50/20 text-gray-600 hover:text-blue-600 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full py-2.5 px-3 border-2 border-dashed border-gray-300 hover:border-[#354944] bg-gray-50/50 hover:bg-[#354944]/10 text-gray-600 hover:text-[#354944] text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <Upload className="w-4 h-4" />
                   <span>Upload Berkas KK (Fase Storage)</span>
@@ -610,7 +610,7 @@ export default function StudentRegistrationModal({
             {/* KOLOM KANAN: KONTAK, KELAS RELASIONAL & ALAMAT */}
             <div className="space-y-3.5">
               <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1.5">
+                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
                   <GraduationCap className="w-3.5 h-3.5" />
                   <span>Kontak, Kelas &amp; Cabang Akademi</span>
                 </h4>
@@ -626,7 +626,7 @@ export default function StudentRegistrationModal({
                     value={parentName}
                     onChange={(e) => setParentName(e.target.value)}
                     placeholder="Nama wali murid"
-                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
 
@@ -641,7 +641,7 @@ export default function StudentRegistrationModal({
                       value={parentPhone}
                       onChange={(e) => setParentPhone(e.target.value)}
                       placeholder="081234567890"
-                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                     />
                   </div>
                 </div>
@@ -655,7 +655,7 @@ export default function StudentRegistrationModal({
                 <select
                   value={studentClassId}
                   onChange={(e) => handleClassSelectionChange(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                  className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
                 >
                   <option value="">-- Pilih Kelas / Kelompok Latihan (Opsional) --</option>
                   {classesList.map((cls) => (
@@ -665,7 +665,7 @@ export default function StudentRegistrationModal({
                   ))}
                 </select>
                 {currentSelectedClass && (
-                  <div className="mt-1 px-2.5 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-[10px] text-blue-800 flex items-center justify-between">
+                  <div className="mt-1 px-2.5 py-1.5 bg-[#354944]/10 border border-[#354944]/20 rounded-lg text-[10px] text-[#354944] flex items-center justify-between">
                     <span>Pelatih Utama: <strong>{currentSelectedClass.coachName || '-'}</strong></span>
                     <span>Jadwal: <strong>{currentSelectedClass.schedule || '-'}</strong></span>
                   </div>
@@ -675,12 +675,12 @@ export default function StudentRegistrationModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Cabang Olahraga <span className="text-blue-600">*</span>
+                    Cabang Olahraga <span className="text-[#C89D32]">*</span>
                   </label>
                   <select
                     value={sportCategory}
                     onChange={(e) => setSportCategory(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
                   >
                     {uniqueSports.length === 0 ? (
                       <option value="">Belum ada lapangan terdaftar</option>
@@ -696,14 +696,14 @@ export default function StudentRegistrationModal({
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Tgl Bergabung <span className="text-blue-600">*</span>
+                    Tgl Bergabung <span className="text-[#C89D32]">*</span>
                   </label>
                   <input
                     type="date"
                     required
                     value={joinDate}
                     onChange={(e) => setJoinDate(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
               </div>
@@ -711,9 +711,9 @@ export default function StudentRegistrationModal({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-gray-700 uppercase">
-                    Tarif SPP Bulanan (Rp) <span className="text-blue-600">*</span>
+                    Tarif SPP Bulanan (Rp) <span className="text-[#C89D32]">*</span>
                   </label>
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-md flex items-center gap-1 shrink-0">
+                  <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] text-[10px] font-extrabold rounded-md flex items-center gap-1 shrink-0">
                     <Lock className="w-3 h-3" /> Master Data
                   </span>
                 </div>
@@ -723,7 +723,7 @@ export default function StudentRegistrationModal({
                     type="text"
                     readOnly
                     value={Number(monthlyFee || 0).toLocaleString('id-ID')}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-100 border border-gray-200 rounded-xl font-bold text-blue-700 cursor-not-allowed"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-100 border border-gray-200 rounded-xl font-bold text-[#354944] cursor-not-allowed"
                   />
                 </div>
                 <p className="text-[10px] text-gray-400 mt-0.5">Otomatis dari Master Data Tarif cabang {sportCategory}</p>
@@ -753,7 +753,7 @@ export default function StudentRegistrationModal({
               {/* Wilayah Tempat Tinggal (Emsifa API) */}
               <div className="space-y-2 pt-1 border-t border-gray-100">
                 <label className="block text-xs font-bold text-gray-700 uppercase flex items-center space-x-1">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  <MapPin className="w-3.5 h-3.5 text-[#354944]" />
                   <span>Wilayah Tempat Tinggal (Emsifa API)</span>
                 </label>
 
@@ -763,7 +763,7 @@ export default function StudentRegistrationModal({
                       value={selectedProvince?.id || ''}
                       onChange={handleProvinceChange}
                       disabled={loadingProvinces}
-                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                     >
                       <option value="">
                         {selectedProvince?.name ? selectedProvince.name : (loadingProvinces ? 'Memuat Provinsi...' : '-- Pilih Provinsi --')}
@@ -781,7 +781,7 @@ export default function StudentRegistrationModal({
                       value={selectedRegency?.id || ''}
                       onChange={handleRegencyChange}
                       disabled={!selectedProvince?.id || loadingRegencies}
-                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                     >
                       <option value="">
                         {selectedRegency?.name ? selectedRegency.name : (loadingRegencies ? 'Memuat Kab/Kota...' : '-- Pilih Kota/Kab --')}
@@ -801,7 +801,7 @@ export default function StudentRegistrationModal({
                       value={selectedDistrict?.id || ''}
                       onChange={handleDistrictChange}
                       disabled={!selectedRegency?.id || loadingDistricts}
-                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                     >
                       <option value="">
                         {selectedDistrict?.name ? selectedDistrict.name : (loadingDistricts ? 'Memuat Kecamatan...' : '-- Pilih Kecamatan --')}
@@ -819,7 +819,7 @@ export default function StudentRegistrationModal({
                       value={selectedVillage?.id || ''}
                       onChange={handleVillageChange}
                       disabled={!selectedDistrict?.id || loadingVillages}
-                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="w-full px-2.5 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                     >
                       <option value="">
                         {selectedVillage?.name ? selectedVillage.name : (loadingVillages ? 'Memuat Kelurahan...' : '-- Pilih Kelurahan --')}
@@ -839,7 +839,7 @@ export default function StudentRegistrationModal({
                     value={addressDetail}
                     onChange={(e) => setAddressDetail(e.target.value)}
                     placeholder="Alamat jalan, nomor rumah, RT/RW..."
-                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] resize-none"
                   />
                 </div>
               </div>
@@ -859,7 +859,7 @@ export default function StudentRegistrationModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
+              className="px-6 py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? (
                 <>

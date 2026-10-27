@@ -13,7 +13,8 @@ import {
   AlertCircle, 
   Zap, 
   BarChart3, 
-  Share2 
+  Share2,
+  Sparkles
 } from 'lucide-react';
 import { AIInsight3DIcon } from '../components/icons/App3DIcons';
 
@@ -98,13 +99,13 @@ export default function IntelligencePage({ userProfile }) {
     <div className="space-y-6 text-[#333333]">
       
       {/* FUTURISTIC HEADER BANNER */}
-      <div className="bg-[#212121] text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-800 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#1E2B28] via-[#243531] to-[#1A2623] text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-[#354944] relative overflow-hidden">
         {/* Background glow effects */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#354944]/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#C89D32]/25 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-950/80 border border-blue-800/60 rounded-full text-blue-400 text-xs font-extrabold tracking-wider">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#16221F] border border-[#C89D32]/50 rounded-full text-[#C89D32] text-xs font-extrabold tracking-wider">
             <AIInsight3DIcon className="w-4 h-4 shrink-0" />
             <span>CHUA INTELLIGENCE &bull; AI BUSINESS ENGINE</span>
           </div>
@@ -123,7 +124,7 @@ export default function IntelligencePage({ userProfile }) {
               type="button"
               onClick={handleGenerateInsight}
               disabled={analyzing}
-              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-900/30 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center space-x-2.5 shrink-0 border border-blue-500/30"
+              className="px-6 py-3.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-[#354944]/30 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center space-x-2.5 shrink-0 border-b-2 border-[#C89D32]"
             >
               {analyzing ? (
                 <>
@@ -182,10 +183,10 @@ export default function IntelligencePage({ userProfile }) {
       {analyzing && (
         <div className="bg-white rounded-2xl p-12 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center space-y-4">
           <div className="relative">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-md animate-bounce">
-              <BrainCircuit className="w-8 h-8" />
+            <div className="w-16 h-16 bg-[#354944]/10 text-[#354944] rounded-2xl flex items-center justify-center shadow-md border border-[#354944]/20 animate-bounce">
+              <BrainCircuit className="w-8 h-8 text-[#354944]" />
             </div>
-            <Sparkles className="w-6 h-6 text-blue-600 absolute -top-2 -right-2 animate-spin" />
+            <Sparkles className="w-6 h-6 text-[#C89D32] absolute -top-2 -right-2 animate-spin" />
           </div>
           <div>
             <h3 className="text-base font-bold text-[#333333]">Chua Intelligence sedang menganalisa data venue Anda...</h3>
@@ -202,8 +203,8 @@ export default function IntelligencePage({ userProfile }) {
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold shadow-xs">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-10 h-10 bg-[#354944] text-[#C89D32] rounded-xl flex items-center justify-center font-bold shadow-xs border border-[#C89D32]/30">
+                <Sparkles className="w-5 h-5 text-[#C89D32]" />
               </div>
               <div>
                 <h2 className="font-bold text-base text-[#333333]">Laporan Rekomendasi Chua Intelligence</h2>
@@ -221,13 +222,13 @@ export default function IntelligencePage({ userProfile }) {
           </div>
 
           {/* Markdown Content Rendering */}
-          <div className="prose prose-sm max-w-none text-[#333333] leading-relaxed space-y-4 font-sans border-l-4 border-blue-600 pl-4 sm:pl-6 bg-blue-50/20 py-2 rounded-r-xl">
+          <div className="prose prose-sm max-w-none text-[#333333] leading-relaxed space-y-4 font-sans border-l-4 border-[#354944] pl-4 sm:pl-6 bg-[#354944]/5 py-2 rounded-r-xl">
             <ReactMarkdown
               components={{
-                h1: ({ node, ...props }) => <h1 className="text-lg font-bold text-blue-600 mt-4 mb-2" {...props} />,
+                h1: ({ node, ...props }) => <h1 className="text-lg font-bold text-[#354944] mt-4 mb-2" {...props} />,
                 h2: ({ node, ...props }) => <h2 className="text-base font-bold text-[#333333] mt-4 mb-2 border-b pb-1" {...props} />,
-                h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-blue-600 mt-3 mb-1" {...props} />,
-                strong: ({ node, ...props }) => <strong className="font-bold text-[#333333] bg-amber-100/60 px-1 rounded" {...props} />,
+                h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-[#354944] mt-3 mb-1" {...props} />,
+                strong: ({ node, ...props }) => <strong className="font-bold text-[#333333] bg-[#C89D32]/20 px-1 rounded" {...props} />,
                 ul: ({ node, ...props }) => <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm text-gray-700" {...props} />,
                 li: ({ node, ...props }) => <li className="leading-snug" {...props} />,
                 p: ({ node, ...props }) => <p className="text-xs sm:text-sm text-gray-700" {...props} />
@@ -242,8 +243,10 @@ export default function IntelligencePage({ userProfile }) {
 
       {/* PROMPT PLACEHOLDER WHEN NO INSIGHT GENERATED YET */}
       {!aiInsight && !analyzing && (
-        <div className="bg-white rounded-2xl p-10 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center p-6 space-y-3">
-          <Zap className="w-12 h-12 text-blue-600 mb-1" />
+        <div className="bg-white rounded-2xl p-10 border border-gray-200 shadow-sm text-center flex flex-col items-center justify-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-[#354944]/10 border border-[#354944]/20 flex items-center justify-center text-[#C89D32] mb-1">
+            <Zap className="w-7 h-7 fill-current" />
+          </div>
           <h3 className="text-base font-bold text-[#333333]">Siap Memulai Analisa Intelligence?</h3>
           <p className="text-xs text-gray-400 max-w-md">
             Klik tombol "Generate Analisa AI - Chua Intelligence" di atas untuk memproses evaluasi performa bisnis arena olahraga Anda.

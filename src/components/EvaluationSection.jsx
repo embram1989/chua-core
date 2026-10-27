@@ -38,6 +38,8 @@ import {
   Lock,
   RefreshCw,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Plus,
   Minus,
   Sliders,
@@ -48,7 +50,10 @@ import {
   History,
   RotateCcw,
   GraduationCap,
-  Flame
+  Flame,
+  Edit3,
+  Check,
+  X
 } from 'lucide-react';
 
 import {
@@ -206,7 +211,7 @@ export function resolveSportCategoryKey(selectedClass, activeAcademy) {
 
 function getScoreGrade(score) {
   if (score >= 85) return { grade: 'A (Sangat Baik)', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
-  if (score >= 75) return { grade: 'B (Baik)', badge: 'bg-blue-100 text-blue-800 border-blue-300' };
+  if (score >= 75) return { grade: 'B (Baik)', badge: 'bg-[#354944]/10 text-[#354944] border-[#354944]/30' };
   if (score >= 60) return { grade: 'C (Cukup)', badge: 'bg-amber-100 text-amber-800 border-amber-300' };
   return { grade: 'D (Perlu Bimbingan)', badge: 'bg-rose-100 text-rose-800 border-rose-300' };
 }
@@ -448,9 +453,12 @@ function FutsalAssessmentView({
   const [selectedPosition, setSelectedPosition] = useState('FIXO');
   const [selectedStyleCode, setSelectedStyleCode] = useState('STY01');
 
-  // Active Category Tab
+  // Active Category Tab & Modal States
   const [activeTab, setActiveTab] = useState('fisik');
   const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
+  const [showAllInline, setShowAllInline] = useState(false);
 
   // Scores state: { [indicatorName]: number }
   const [scores, setScores] = useState({});
@@ -579,6 +587,30 @@ function FutsalAssessmentView({
       overall
     };
   }, [scores, filteredCategoryIndicators, currentPosIndicatorsConfig]);
+
+  // Structured Category List for Interactive Cards & Focus Modal
+  const futsalCategoryList = useMemo(() => [
+    { key: 'fisik', label: '1. Kondisi Fisik', shortLabel: 'Fisik', count: filteredCategoryIndicators.fisik.length, score: axisScores.fisik, indicators: filteredCategoryIndicators.fisik },
+    { key: 'teknik', label: '2. Kemampuan Teknik', shortLabel: 'Teknik', count: filteredCategoryIndicators.teknik.length, score: axisScores.teknik, indicators: filteredCategoryIndicators.teknik },
+    { key: 'taktik', label: '3. Pemahaman Taktik', shortLabel: 'Taktik', count: filteredCategoryIndicators.taktik.length, score: axisScores.taktik, indicators: filteredCategoryIndicators.taktik },
+    { key: 'mental', label: '4. Mentalitas', shortLabel: 'Mental', count: filteredCategoryIndicators.mental.length, score: axisScores.mental, indicators: filteredCategoryIndicators.mental },
+    { key: 'perkembangan', label: '5. Perkembangan Atlet', shortLabel: 'Perkembangan', count: filteredCategoryIndicators.perkembangan.length, score: axisScores.perkembangan, indicators: filteredCategoryIndicators.perkembangan },
+    { key: 'komunikasi', label: '6. Komunikasi Lapangan', shortLabel: 'Komunikasi', count: filteredCategoryIndicators.komunikasi.length, score: axisScores.komunikasi, indicators: filteredCategoryIndicators.komunikasi },
+    { key: 'posisi', label: `7. Khusus Posisi (${currentPosIndicatorsConfig.shortLabel || 'Posisi'})`, shortLabel: 'Khusus Posisi', count: currentPosIndicatorsConfig.indicators.length, score: axisScores.khususPosisi, indicators: currentPosIndicatorsConfig.indicators, isSpecial: true }
+  ], [filteredCategoryIndicators, currentPosIndicatorsConfig, axisScores]);
+
+  const handleSetCategoryPreset = (catKey, presetScore) => {
+    const catObj = futsalCategoryList.find((c) => c.key === catKey);
+    if (!catObj || !catObj.indicators) return;
+
+    setScores((prev) => {
+      const updated = { ...prev };
+      catObj.indicators.forEach((ind) => {
+        updated[ind] = presetScore;
+      });
+      return updated;
+    });
+  };
 
   // Recharts radar data for Futsal
   const radarData = useMemo(() => [
@@ -1040,7 +1072,7 @@ function FutsalAssessmentView({
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(75)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-[#354944]/10 hover:bg-[#354944] hover:text-white text-[#354944] border border-[#354944]/20 transition-all cursor-pointer shadow-2xs"
                         >
                           Good (75)
                         </button>
@@ -1057,45 +1089,110 @@ function FutsalAssessmentView({
                   </div>
                 </div>
 
-                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
-                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs w-full">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                      <BarChart2 className="w-4 h-4 text-orange-600" />
-                      <span>Ringkasan Skor Kategori</span>
-                    </span>
-                    <span className="text-xs font-bold text-slate-600">
-                      Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
-                    </span>
+                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4 text-[#354944]" />
+                        <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                          Ringkasan Skor Kategori
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xs font-bold text-slate-600 mr-1">
+                        Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveModalCategoryKey(futsalCategoryList[0]?.key);
+                          setIsModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
+                        <span>✎ Edit / Input Penilaian</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAllInline(!showAllInline)}
+                        className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                          showAllInline
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-                    {[
-                      { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
-                      { label: 'Kemampuan Teknik', score: axisScores.teknik, dot: 'bg-blue-500' },
-                      { label: 'Pemahaman Taktik', score: axisScores.taktik, dot: 'bg-purple-500' },
-                      { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
-                      { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
-                      { label: 'Komunikasi Lapangan', score: axisScores.komunikasi, dot: 'bg-amber-500' },
-                      { label: `Khusus (${currentPosIndicatorsConfig.shortLabel || 'Posisi'})`, score: axisScores.khususPosisi, dot: 'bg-indigo-500' },
-                    ].map((item, idx) => (
-                      <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
-                          <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
-                            {item.label}
-                          </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
+                    {futsalCategoryList.map((cat) => {
+                      const isFilled = (cat.score || 0) > 0;
+                      return (
+                        <div
+                          key={cat.key}
+                          onClick={() => {
+                            setActiveModalCategoryKey(cat.key);
+                            setIsModalOpen(true);
+                          }}
+                          className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1 min-w-0">
+                              <span className="font-extrabold text-xs text-slate-900 block leading-snug">
+                                {cat.label}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                                {cat.count} Indikator
+                              </span>
+                            </div>
+
+                            {isFilled ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Terisi</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
+                                <span>Belum Dinilai</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1.5 pt-1">
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
+                              <span className="text-base font-black text-slate-900 font-mono">
+                                {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-[#354944] rounded-full transition-all duration-300"
+                                style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-xs font-bold text-slate-900 shrink-0">
-                          {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* 3. SUB-TABS 7 KATEGORI */}
-                <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+                {/* 3. SUB-TABS 7 KATEGORI (OPSIONAL HANYA SAAT showAllInline = true) */}
+                {showAllInline && (
+                  <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5 animate-fadeIn">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-2">
                       <SlidersHorizontal className="w-4 h-4 text-orange-600" />
@@ -1141,13 +1238,13 @@ function FutsalAssessmentView({
                         onClick={() => setActiveTab('teknik')}
                         className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
                           activeTab === 'teknik'
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                            : 'bg-blue-50/60 text-blue-900 border-blue-200 hover:bg-blue-100'
+                            ? 'bg-[#354944] text-white border-[#354944] shadow-xs'
+                            : 'bg-[#354944]/10 text-[#354944] border-[#354944]/20 hover:bg-[#354944]/20'
                         }`}
                       >
                         <Activity className="w-3.5 h-3.5" />
                         <span>Teknik ({filteredCategoryIndicators.teknik.length})</span>
-                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'teknik' ? 'bg-blue-700 text-white' : 'bg-blue-200 text-blue-900'}`}>
+                        <span className={`px-1.5 py-0.2 text-[10px] rounded-md font-black ${activeTab === 'teknik' ? 'bg-[#2B3D38] text-white' : 'bg-[#354944]/20 text-[#354944]'}`}>
                           {axisScores.teknik}
                         </span>
                       </button>
@@ -1300,20 +1397,21 @@ function FutsalAssessmentView({
                     )}
                   </div>
                 </div>
+                )}
 
                 {/* 4. CATATAN & SIMPAN */}
                 <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                      <MessageSquare className="w-4 h-4 text-orange-600" />
+                      <MessageSquare className="w-4 h-4 text-[#354944]" />
                       <span>Catatan Evaluasi Pelatih ({futsalTierConfig.shortLabel})</span>
                     </label>
                     <button
                       type="button"
                       onClick={handleGenerateDraft}
-                      className="px-3.5 py-1.5 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 text-orange-800 border border-orange-200 text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+                      className="px-3.5 py-1.5 bg-[#354944]/10 hover:bg-[#354944]/20 text-[#354944] border border-[#354944]/20 text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                      <Sparkles className="w-3.5 h-3.5 text-[#C89D32]" />
                       <span>Buat Draf Analisis Otomatis</span>
                     </button>
                   </div>
@@ -1323,7 +1421,7 @@ function FutsalAssessmentView({
                     value={coachNote}
                     onChange={(e) => setCoachNote(e.target.value)}
                     placeholder={`Contoh: Atlet ${selectedStudent.studentName} sangat kuat pada posisi ${currentPosIndicatorsConfig.shortLabel} dengan kontrol sole dan rotasi passing cepat. Perlu peningkatan stamina transisi.`}
-                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium text-slate-800 leading-relaxed"
+                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-medium text-slate-800 leading-relaxed"
                   />
 
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
@@ -1333,7 +1431,7 @@ function FutsalAssessmentView({
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-8 py-3.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-black text-xs rounded-2xl border-b-2 border-[#C89D32] shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isSaving ? (
                         <>
@@ -1342,13 +1440,26 @@ function FutsalAssessmentView({
                         </>
                       ) : (
                         <>
-                          <Award className="w-4 h-4 text-orange-100" />
+                          <Award className="w-4 h-4 text-[#C89D32]" />
                           <span>Simpan Assessment Futsal ({futsalTierConfig.shortLabel})</span>
                         </>
                       )}
                     </button>
                   </div>
                 </div>
+
+                {/* MODAL FOKUS PENILAIAN KATEGORI */}
+                <CategoryAssessmentModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  categoryList={futsalCategoryList}
+                  activeCategoryKey={activeModalCategoryKey}
+                  setActiveCategoryKey={setActiveModalCategoryKey}
+                  scores={scores}
+                  onScoreChange={handleScoreChange}
+                  onAdjustScore={handleAdjustScore}
+                  onSetCategoryPreset={handleSetCategoryPreset}
+                />
 
               </form>
             )}
@@ -1444,9 +1555,12 @@ function BadmintonAssessmentView({
   const [healthInjuryNotes, setHealthInjuryNotes] = useState('');
   const [healthRecoveryQuality, setHealthRecoveryQuality] = useState('Bagus (8+ Jam)');
 
-  // Active Category Tab
+  // Active Category Tab & Modal States
   const [activeTab, setActiveTab] = useState('fisik');
   const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
+  const [showAllInline, setShowAllInline] = useState(false);
 
   // Scores state: { [indicatorName]: number }
   const [scores, setScores] = useState({});
@@ -1604,6 +1718,40 @@ function BadmintonAssessmentView({
       };
     }
   }, [scores, filteredCategoryIndicators, isDoubles, activeBadmintonTier]);
+
+  // Structured Category List for Interactive Cards & Focus Modal
+  const badmintonCategoryList = useMemo(() => {
+    const list = [
+      { key: 'fisik', label: '1. Kondisi Fisik', shortLabel: 'Fisik', count: filteredCategoryIndicators.fisik.length, score: axisScores.fisik, indicators: filteredCategoryIndicators.fisik },
+      { key: 'teknik', label: '2. Kemampuan Teknik', shortLabel: 'Teknik', count: filteredCategoryIndicators.teknik.length, score: axisScores.teknik, indicators: filteredCategoryIndicators.teknik },
+      { key: 'taktik', label: '3. Pemahaman Taktik', shortLabel: 'Taktik', count: filteredCategoryIndicators.taktik.length, score: axisScores.taktik, indicators: filteredCategoryIndicators.taktik },
+      { key: 'mental', label: '4. Mentalitas', shortLabel: 'Mental', count: filteredCategoryIndicators.mental.length, score: axisScores.mental, indicators: filteredCategoryIndicators.mental }
+    ];
+
+    if (isDoubles && activeBadmintonTier >= 2) {
+      list.push({ key: 'komunikasi', label: '5. Komunikasi Lapangan', shortLabel: 'Komunikasi', count: filteredCategoryIndicators.komunikasi.length, score: axisScores.komunikasi || 0, indicators: filteredCategoryIndicators.komunikasi });
+    }
+
+    list.push(
+      { key: 'perkembangan', label: `${isDoubles && activeBadmintonTier >= 2 ? '6' : '5'}. Perkembangan Atlet`, shortLabel: 'Perkembangan', count: filteredCategoryIndicators.perkembangan.length, score: axisScores.perkembangan, indicators: filteredCategoryIndicators.perkembangan },
+      { key: 'khususNomor', label: `${isDoubles && activeBadmintonTier >= 2 ? '7' : '6'}. Khusus Nomor (${eventSpecificConfig.shortLabel || 'Nomor'})`, shortLabel: 'Khusus Nomor', count: filteredCategoryIndicators.khususNomor.length, score: axisScores.khususNomor, indicators: filteredCategoryIndicators.khususNomor, isSpecial: true }
+    );
+
+    return list;
+  }, [filteredCategoryIndicators, axisScores, isDoubles, activeBadmintonTier, eventSpecificConfig]);
+
+  const handleSetCategoryPreset = (catKey, presetScore) => {
+    const catObj = badmintonCategoryList.find((c) => c.key === catKey);
+    if (!catObj || !catObj.indicators) return;
+
+    setScores((prev) => {
+      const updated = { ...prev };
+      catObj.indicators.forEach((ind) => {
+        updated[ind] = presetScore;
+      });
+      return updated;
+    });
+  };
 
   // Recharts radar data for Badminton
   const radarData = useMemo(() => {
@@ -2162,40 +2310,104 @@ function BadmintonAssessmentView({
                   </div>
                 </div>
 
-                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
-                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs w-full">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                      <BarChart2 className="w-4 h-4 text-teal-600" />
-                      <span>Ringkasan Skor Kategori</span>
-                    </span>
-                    <span className="text-xs font-bold text-slate-600">
-                      Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
-                    </span>
+                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4 text-[#354944]" />
+                        <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                          Ringkasan Skor Kategori
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xs font-bold text-slate-600 mr-1">
+                        Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveModalCategoryKey(badmintonCategoryList[0]?.key);
+                          setIsModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
+                        <span>✎ Edit / Input Penilaian</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAllInline(!showAllInline)}
+                        className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                          showAllInline
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-                    {[
-                      { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
-                      { label: 'Teknik & Footwork', score: axisScores.teknik, dot: 'bg-blue-500' },
-                      { label: 'Taktik Reli', score: axisScores.taktik, dot: 'bg-purple-500' },
-                      { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
-                      { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
-                      ...(isDoubles && activeBadmintonTier >= 2 ? [{ label: 'Komunikasi Ganda', score: axisScores.komunikasi || 0, dot: 'bg-amber-500' }] : []),
-                      { label: `Khusus (${eventSpecificConfig.shortLabel || 'Nomor'})`, score: axisScores.khususNomor, dot: 'bg-teal-500' },
-                    ].map((item, idx) => (
-                      <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
-                          <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
-                            {item.label}
-                          </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
+                    {badmintonCategoryList.map((cat) => {
+                      const isFilled = (cat.score || 0) > 0;
+                      return (
+                        <div
+                          key={cat.key}
+                          onClick={() => {
+                            setActiveModalCategoryKey(cat.key);
+                            setIsModalOpen(true);
+                          }}
+                          className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1 min-w-0">
+                              <span className="font-extrabold text-xs text-slate-900 block leading-snug">
+                                {cat.label}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                                {cat.count} Indikator
+                              </span>
+                            </div>
+
+                            {isFilled ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Terisi</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
+                                <span>Belum Dinilai</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1.5 pt-1">
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
+                              <span className="text-base font-black text-slate-900 font-mono">
+                                {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-[#354944] rounded-full transition-all duration-300"
+                                style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-xs font-bold text-slate-900 shrink-0">
-                          {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -2204,9 +2416,9 @@ function BadmintonAssessmentView({
         )}
       </div>
 
-      {/* 3. SUB-TAB KATEGORI & SLIDER INDIKATOR */}
-      {selectedStudent && (
-        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+      {/* 3. SUB-TAB KATEGORI & SLIDER INDIKATOR (OPSIONAL HANYA SAAT showAllInline = true) */}
+      {selectedStudent && showAllInline && (
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5 animate-fadeIn">
           {/* Sub-Tab Navigation Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div className="flex flex-wrap items-center gap-1.5">
@@ -2534,6 +2746,19 @@ function BadmintonAssessmentView({
               )}
             </button>
           </div>
+
+          {/* MODAL FOKUS PENILAIAN KATEGORI */}
+          <CategoryAssessmentModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            categoryList={badmintonCategoryList}
+            activeCategoryKey={activeModalCategoryKey}
+            setActiveCategoryKey={setActiveModalCategoryKey}
+            scores={scores}
+            onScoreChange={handleScoreChange}
+            onAdjustScore={handleAdjustScore}
+            onSetCategoryPreset={handleSetCategoryPreset}
+          />
         </div>
       )}
 
@@ -2610,9 +2835,12 @@ function FootballAssessmentView({
   const [selectedSpecialization, setSelectedSpecialization] = useState('Poacher');
   const [selectedStyleCode, setSelectedStyleCode] = useState('STY07');
 
-  // Active Category Tab
+  // Active Category Tab & Modal States
   const [activeTab, setActiveTab] = useState('fisik');
   const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
+  const [showAllInline, setShowAllInline] = useState(false);
 
   // Scores state: { [indicatorName]: number }
   const [scores, setScores] = useState({});
@@ -2768,6 +2996,30 @@ function FootballAssessmentView({
       overall
     };
   }, [scores, filteredCategoryIndicators, currentPosIndicatorsConfig]);
+
+  // Structured Category List for Interactive Cards & Focus Modal
+  const footballCategoryList = useMemo(() => [
+    { key: 'fisik', label: '1. Kondisi Fisik', shortLabel: 'Fisik', count: filteredCategoryIndicators.fisik.length, score: axisScores.fisik, indicators: filteredCategoryIndicators.fisik },
+    { key: 'teknik', label: '2. Kemampuan Teknik', shortLabel: 'Teknik', count: filteredCategoryIndicators.teknik.length, score: axisScores.teknik, indicators: filteredCategoryIndicators.teknik },
+    { key: 'taktik', label: '3. Pemahaman Taktik', shortLabel: 'Taktik', count: filteredCategoryIndicators.taktik.length, score: axisScores.taktik, indicators: filteredCategoryIndicators.taktik },
+    { key: 'mental', label: '4. Mentalitas', shortLabel: 'Mental', count: filteredCategoryIndicators.mental.length, score: axisScores.mental, indicators: filteredCategoryIndicators.mental },
+    { key: 'komunikasi', label: '5. Komunikasi Lapangan', shortLabel: 'Komunikasi', count: filteredCategoryIndicators.komunikasi.length, score: axisScores.komunikasi, indicators: filteredCategoryIndicators.komunikasi },
+    { key: 'perkembangan', label: '6. Perkembangan Atlet', shortLabel: 'Perkembangan', count: filteredCategoryIndicators.perkembangan.length, score: axisScores.perkembangan, indicators: filteredCategoryIndicators.perkembangan },
+    { key: 'posisi', label: `7. Khusus Posisi (${currentPosIndicatorsConfig.shortLabel || selectedPosition})`, shortLabel: 'Khusus Posisi', count: currentPosIndicatorsConfig.indicators.length, score: axisScores.khususPosisi, indicators: currentPosIndicatorsConfig.indicators, isSpecial: true }
+  ], [filteredCategoryIndicators, currentPosIndicatorsConfig, axisScores, selectedPosition]);
+
+  const handleSetCategoryPreset = (catKey, presetScore) => {
+    const catObj = footballCategoryList.find((c) => c.key === catKey);
+    if (!catObj || !catObj.indicators) return;
+
+    setScores((prev) => {
+      const updated = { ...prev };
+      catObj.indicators.forEach((ind) => {
+        updated[ind] = presetScore;
+      });
+      return updated;
+    });
+  };
 
   // Recharts radar data for 7 corners
   const radarData = useMemo(() => [
@@ -3281,45 +3533,110 @@ function FootballAssessmentView({
             </div>
           </div>
 
-          {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH STANDALONE CARD) */}
-          <div className="w-full bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <BarChart2 className="w-4 h-4 text-emerald-600" />
-                <span>Ringkasan Skor Kategori</span>
-              </span>
-              <span className="text-xs font-bold text-slate-600">
-                Rata-Rata Performa: <strong className="text-slate-900 font-bold">{axisScores.overall} / 100</strong>
-              </span>
+          {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-[#354944]" />
+                  <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                    Ringkasan Skor Kategori
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-xs font-bold text-slate-600 mr-1">
+                  Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveModalCategoryKey(footballCategoryList[0]?.key);
+                    setIsModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
+                  <span>✎ Edit / Input Penilaian</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAllInline(!showAllInline)}
+                  className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showAllInline
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-              {[
-                { label: 'Kondisi Fisik', score: axisScores.fisik, dot: 'bg-rose-500' },
-                { label: 'Kemampuan Teknik', score: axisScores.teknik, dot: 'bg-blue-500' },
-                { label: 'Pemahaman Taktik', score: axisScores.taktik, dot: 'bg-purple-500' },
-                { label: 'Mentalitas', score: axisScores.mental, dot: 'bg-emerald-500' },
-                { label: 'Komunikasi Lapangan', score: axisScores.komunikasi, dot: 'bg-amber-500' },
-                { label: 'Perkembangan Atlet', score: axisScores.perkembangan, dot: 'bg-cyan-500' },
-                { label: `Khusus (${currentPosIndicatorsConfig.shortLabel || selectedPosition})`, score: axisScores.khususPosisi, dot: 'bg-indigo-500' },
-              ].map((item, idx) => (
-                <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-2 min-w-0">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
-                    <span className="text-xs font-semibold text-slate-700 truncate" title={item.label}>
-                      {item.label}
-                    </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
+              {footballCategoryList.map((cat) => {
+                const isFilled = (cat.score || 0) > 0;
+                return (
+                  <div
+                    key={cat.key}
+                    onClick={() => {
+                      setActiveModalCategoryKey(cat.key);
+                      setIsModalOpen(true);
+                    }}
+                    className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <span className="font-extrabold text-xs text-slate-900 block leading-snug">
+                          {cat.label}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                          {cat.count} Indikator
+                        </span>
+                      </div>
+
+                      {isFilled ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Terisi</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
+                          <span>Belum Dinilai</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
+                        <span className="text-base font-black text-slate-900 font-mono">
+                          {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#354944] rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-900 shrink-0">
-                    {item.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* SUB-TABS 7 KATEGORI */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
+          {/* SUB-TABS 7 KATEGORI (OPSIONAL HANYA SAAT showAllInline = true) */}
+          {showAllInline && (
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5 animate-fadeIn">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
@@ -3524,6 +3841,7 @@ function FootballAssessmentView({
                     )}
                   </div>
                 </div>
+              )}
 
                 {/* CATATAN & SIMPAN */}
                 <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
@@ -3574,6 +3892,19 @@ function FootballAssessmentView({
                   </div>
                 </div>
 
+                {/* MODAL FOKUS PENILAIAN KATEGORI */}
+                <CategoryAssessmentModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  categoryList={footballCategoryList}
+                  activeCategoryKey={activeModalCategoryKey}
+                  setActiveCategoryKey={setActiveModalCategoryKey}
+                  scores={scores}
+                  onScoreChange={handleScoreChange}
+                  onAdjustScore={handleAdjustScore}
+                  onSetCategoryPreset={handleSetCategoryPreset}
+                />
+
               </form>
             )}
 
@@ -3586,6 +3917,407 @@ function FootballAssessmentView({
         students={students}
         onDeleteEvaluation={onDeleteEvaluation}
       />
+    </div>
+  );
+}
+
+// =====================================================================
+// COMPONENT: CATEGORY ASSESSMENT MODAL / FOCUS DRAWER
+// =====================================================================
+export function CategoryAssessmentModal({
+  isOpen,
+  onClose,
+  categoryList = [],
+  activeCategoryKey,
+  setActiveCategoryKey,
+  scores = {},
+  onScoreChange,
+  onAdjustScore,
+  onSetCategoryPreset
+}) {
+  const [currentKey, setCurrentKey] = useState(activeCategoryKey || categoryList[0]?.key);
+
+  useEffect(() => {
+    if (activeCategoryKey) {
+      setCurrentKey(activeCategoryKey);
+    } else if (!currentKey && categoryList.length > 0) {
+      setCurrentKey(categoryList[0].key);
+    }
+  }, [activeCategoryKey, categoryList]);
+
+  // Overall average
+  const overallAvg = useMemo(() => {
+    if (!categoryList || categoryList.length === 0) return 0;
+    const sum = categoryList.reduce((acc, c) => acc + (c.score || 0), 0);
+    return Math.round(sum / categoryList.length);
+  }, [categoryList]);
+
+  // Active Category Index & Object
+  const activeIndex = useMemo(() => {
+    const idx = categoryList.findIndex((c) => c.key === currentKey);
+    return idx >= 0 ? idx : 0;
+  }, [categoryList, currentKey]);
+
+  const activeCategory = categoryList[activeIndex] || categoryList[0];
+
+  const handleSelectCategory = (key) => {
+    setCurrentKey(key);
+    if (setActiveCategoryKey) setActiveCategoryKey(key);
+  };
+
+  const handlePrevCategory = () => {
+    if (activeIndex > 0) {
+      handleSelectCategory(categoryList[activeIndex - 1].key);
+    }
+  };
+
+  const handleNextCategory = () => {
+    if (activeIndex < categoryList.length - 1) {
+      handleSelectCategory(categoryList[activeIndex + 1].key);
+    }
+  };
+
+  // Helper to compute progress per category
+  const getCategoryProgress = (cat) => {
+    const indicators = cat?.indicators || [];
+    const total = indicators.length;
+    if (total === 0) return { total: 0, rated: 0, percent: 100, isCompleted: true };
+    const rated = indicators.filter((ind) => {
+      const s = scores[ind];
+      return s !== undefined && s !== null && s > 0;
+    }).length;
+    const percent = Math.round((rated / total) * 100);
+    const isCompleted = rated === total && total > 0;
+    return { total, rated, percent, isCompleted };
+  };
+
+  const completedCategoriesCount = categoryList.filter(
+    (c) => getCategoryProgress(c).isCompleted
+  ).length;
+
+  // Render nothing if modal is not open (evaluated strictly after all hooks)
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 animate-fadeIn">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 overflow-hidden">
+        
+        {/* HEADER MODAL */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 border-2 border-[#C89D32] shadow-sm">
+                <Edit3 className="w-5 h-5 text-[#C89D32]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
+                    Edit &amp; Input Penilaian Indikator
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#354944]/10 dark:bg-[#C89D32]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 dark:border-[#C89D32]/20">
+                    {categoryList.length} Kategori
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    {completedCategoriesCount}/{categoryList.length} Selesai
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Pilih kategori di menu kiri, isi nilai indikator per kategori, dan gunakan navigasi berikutnya untuk alur kerja cepat.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden sm:flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Rata-rata:</span>
+                <span className="font-mono font-black text-sm text-[#354944] dark:text-[#C89D32]">
+                  {overallAvg} / 100
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                title="Tutup Jendela"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE HORIZONTAL CATEGORY SELECTOR (< md) */}
+        <div className="flex md:hidden items-center gap-1.5 overflow-x-auto p-2.5 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 scrollbar-none shrink-0">
+          {categoryList.map((cat, idx) => {
+            const isActive = cat.key === activeCategory?.key;
+            const { total, rated, isCompleted } = getCategoryProgress(cat);
+            return (
+              <button
+                key={cat.key}
+                type="button"
+                onClick={() => handleSelectCategory(cat.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 border ${
+                  isActive
+                    ? 'bg-[#354944] text-white border-[#354944] shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                }`}
+              >
+                <span>{idx + 1}. {cat.shortLabel || cat.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                  isCompleted 
+                    ? (isActive ? 'bg-emerald-500/30 text-emerald-200' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300')
+                    : (isActive ? 'bg-black/20 text-[#C89D32]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400')
+                }`}>
+                  {rated}/{total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* BODY MODAL: MASTER-DETAIL SPLIT VIEW */}
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+          
+          {/* LEFT SIDE VERTICAL CATEGORY MENU (w-64 DESKTOP) */}
+          <div className="hidden md:flex flex-col w-64 shrink-0 border-r border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 p-3 space-y-2 overflow-y-auto scrollbar-thin">
+            <div className="flex items-center justify-between px-2 pb-0.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Pilih Kategori
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">
+                {completedCategoriesCount}/{categoryList.length} lengkap
+              </span>
+            </div>
+
+            {categoryList.map((cat, idx) => {
+              const isActive = cat.key === activeCategory?.key;
+              const { total, rated, percent, isCompleted } = getCategoryProgress(cat);
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => handleSelectCategory(cat.key)}
+                  className={`w-full text-left p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer flex flex-col gap-2 border ${
+                    isActive
+                      ? 'bg-[#354944] text-white border-[#354944] shadow-md ring-2 ring-[#C89D32]/30'
+                      : 'bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100/90 dark:hover:bg-slate-700/70 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex items-center gap-2">
+                      <span className={`w-5 h-5 rounded-lg text-[10px] font-black flex items-center justify-center shrink-0 ${
+                        isActive ? 'bg-[#C89D32] text-slate-900' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                      }`}>
+                        {idx + 1}
+                      </span>
+                      <span className="truncate font-extrabold">{cat.shortLabel || cat.label}</span>
+                    </div>
+
+                    {/* Score badge */}
+                    <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-lg shrink-0 ${
+                      isActive ? 'bg-black/25 text-[#C89D32]' : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                    }`}>
+                      {cat.score || 0}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar & Status Badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 bg-slate-200/80 dark:bg-slate-700/60 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isCompleted
+                            ? 'bg-emerald-500'
+                            : percent > 0
+                            ? (isActive ? 'bg-[#C89D32]' : 'bg-amber-500')
+                            : 'bg-transparent'
+                        }`}
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isCompleted ? (
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-md ${
+                          isActive ? 'bg-emerald-500/30 text-emerald-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        }`}>
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                          <span>{rated}/{total}</span>
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md ${
+                          isActive ? 'bg-white/10 text-slate-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                        }`}>
+                          {rated}/{total}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* RIGHT EXCLUSIVE CATEGORY DETAIL PANEL */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 text-left">
+            {activeCategory ? (
+              <div
+                key={activeCategory.key}
+                className="space-y-4 animate-fade-category"
+              >
+                {/* ACTIVE CATEGORY HEADER */}
+                <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-black text-sm shrink-0 border-2 border-[#C89D32] shadow-xs">
+                      {activeIndex + 1}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                          {activeCategory.label}
+                        </h4>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200/70 dark:bg-slate-700 border border-slate-300/80 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                          {(activeCategory.indicators || []).length} Indikator
+                        </span>
+                        {getCategoryProgress(activeCategory).isCompleted && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                            <span>Lengkap</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Fokus penilaian kategori {activeIndex + 1} dari {categoryList.length}.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* Realtime Category Score Badge */}
+                    <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                      <span className="text-[11px] font-bold text-slate-400">Skor Kategori:</span>
+                      <span className="font-mono font-black text-sm text-[#354944] dark:text-[#C89D32]">
+                        {activeCategory.score || 0} / 100
+                      </span>
+                    </div>
+
+                    {/* Quick Preset Buttons */}
+                    <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 px-1 hidden sm:inline">Preset:</span>
+                      <button
+                        type="button"
+                        onClick={() => onSetCategoryPreset(activeCategory.key, 0)}
+                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-bold text-[10px] sm:text-[11px] rounded-lg border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
+                        title="Reset semua nilai di kategori ini ke 0"
+                      >
+                        Reset 0
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onSetCategoryPreset(activeCategory.key, 50)}
+                        className="px-2 py-1 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-[10px] sm:text-[11px] rounded-lg border border-slate-200 dark:border-slate-600 transition-colors cursor-pointer"
+                      >
+                        50
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onSetCategoryPreset(activeCategory.key, 75)}
+                        className="px-2 py-1 bg-[#354944]/10 hover:bg-[#354944]/20 dark:bg-[#C89D32]/20 text-[#354944] dark:text-[#C89D32] font-bold text-[10px] sm:text-[11px] rounded-lg border border-[#354944]/20 dark:border-[#C89D32]/30 transition-colors cursor-pointer"
+                      >
+                        75
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onSetCategoryPreset(activeCategory.key, 90)}
+                        className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-bold text-[10px] sm:text-[11px] rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
+                      >
+                        90
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ONLY RENDER ACTIVE CATEGORY'S INDICATORS */}
+                {(activeCategory.indicators || []).length === 0 ? (
+                  <div className="py-12 text-center text-xs text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    Tidak ada indikator aktif untuk kategori ini.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {(activeCategory.indicators || []).map((ind) => {
+                      const val = scores[ind] !== undefined ? scores[ind] : 0;
+                      return (
+                        <IndicatorCard
+                          key={ind}
+                          title={ind}
+                          value={val}
+                          isSpecial={activeCategory.isSpecial}
+                          onScoreChange={(v) => onScoreChange(ind, v)}
+                          onAdjust={(delta) => onAdjustScore(ind, delta)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+        </div>
+
+        {/* FOOTER MODAL: STEPPER NAVIGATION (PREV / NEXT) & DONE BUTTON */}
+        <div className="p-3.5 sm:p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-900/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          
+          {/* STEPPER BUTTONS */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+            <button
+              type="button"
+              onClick={handlePrevCategory}
+              disabled={activeIndex === 0}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                activeIndex === 0
+                  ? 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800/50 dark:text-slate-600 dark:border-slate-800 cursor-not-allowed opacity-50'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs cursor-pointer'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>← Kategori Sebelumnya</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextCategory}
+              disabled={activeIndex === categoryList.length - 1}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                activeIndex === categoryList.length - 1
+                  ? 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800/50 dark:text-slate-600 dark:border-slate-800 cursor-not-allowed opacity-50'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs cursor-pointer'
+              }`}
+            >
+              <span>Kategori Berikutnya →</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <span className="text-[11px] font-bold text-slate-400 hidden lg:inline ml-2">
+              Kategori {activeIndex + 1} dari {categoryList.length}
+            </span>
+          </div>
+
+          {/* DONE ACTION */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-6 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white text-xs sm:text-sm font-extrabold rounded-xl border-b-2 border-[#C89D32] shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Check className="w-4 h-4 text-[#C89D32]" />
+              <span>✓ Selesai &amp; Tutup</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -3679,6 +4411,8 @@ function Standard4PillarView({
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
 
   const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
   const [latestEvalDoc, setLatestEvalDoc] = useState(null);
@@ -3744,6 +4478,39 @@ function Standard4PillarView({
     { subject: 'Mental', A: pillarScores.mental, fullMark: 100 },
     { subject: 'Posisi', A: pillarScores.position, fullMark: 100 }
   ], [pillarScores]);
+
+  const standardCategoryList = useMemo(() => {
+    const list = [
+      { key: 'fisik', label: '1. Kondisi Fisik', shortLabel: 'Fisik', count: (pillars.fisik || []).length, score: pillarScores.fisik, indicators: pillars.fisik || [] },
+      { key: 'teknik', label: '2. Kemampuan Teknik', shortLabel: 'Teknik', count: (pillars.teknik || []).length, score: pillarScores.teknik, indicators: pillars.teknik || [] },
+      { key: 'taktik', label: '3. Pemahaman Taktik', shortLabel: 'Taktik', count: (pillars.taktik || []).length, score: pillarScores.taktik, indicators: pillars.taktik || [] },
+      { key: 'mental', label: '4. Mentalitas', shortLabel: 'Mental', count: (pillars.mental || []).length, score: pillarScores.mental, indicators: pillars.mental || [] },
+    ];
+    if (roleKPIs && roleKPIs.length > 0) {
+      list.push({
+        key: 'position',
+        label: `5. Spesifik Posisi (${playerRole || 'Peran'})`,
+        shortLabel: 'Posisi',
+        count: roleKPIs.length,
+        score: pillarScores.position,
+        indicators: roleKPIs,
+        isSpecial: true
+      });
+    }
+    return list;
+  }, [pillars, roleKPIs, pillarScores, playerRole]);
+
+  const handleSetCategoryPreset = (categoryKey, presetVal) => {
+    const cat = standardCategoryList.find((c) => c.key === categoryKey);
+    if (!cat) return;
+    setScores((prev) => {
+      const next = { ...prev };
+      cat.indicators.forEach((ind) => {
+        next[ind] = presetVal;
+      });
+      return next;
+    });
+  };
 
   const handleScoreChange = (kpiName, value) => {
     setScores((prev) => ({
@@ -3906,46 +4673,72 @@ function Standard4PillarView({
                   </div>
                 </div>
 
-                {/* PANEL RINGKASAN SKOR KATEGORI (CLEAN CARD LAYOUT) */}
+                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
                 <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                      <BarChart2 className="w-4 h-4 text-indigo-600" />
-                      <span>Ringkasan Skor Kategori</span>
-                    </span>
-                    <span className="text-xs font-bold text-slate-600">
-                      Rata-Rata: <strong className="text-slate-900 font-black">{pillarScores.overall} / 100</strong>
-                    </span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200/80 pb-2.5">
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <BarChart2 className="w-4 h-4 text-[#354944]" />
+                        <span>Ringkasan Skor Kategori</span>
+                      </span>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Klik kartu kategori atau tombol di kanan untuk mengisi indikator
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xs font-bold text-slate-600 mr-1">
+                        Rata-Rata: <strong className="text-slate-900 font-black">{pillarScores.overall} / 100</strong>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveModalCategoryKey(standardCategoryList[0]?.key);
+                          setIsModalOpen(true);
+                        }}
+                        className="px-3.5 py-1.5 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
+                        <span>✎ Edit / Input Penilaian</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {[
-                      { label: 'Kondisi Fisik', score: pillarScores.fisik, dot: 'bg-rose-500', bar: 'bg-rose-500' },
-                      { label: 'Kemampuan Teknik', score: pillarScores.teknik, dot: 'bg-blue-500', bar: 'bg-blue-500' },
-                      { label: 'Pemahaman Taktik', score: pillarScores.taktik, dot: 'bg-purple-500', bar: 'bg-purple-500' },
-                      { label: 'Mentalitas', score: pillarScores.mental, dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
-                      { label: `Spesifik Posisi (${playerRole || 'Peran'})`, score: pillarScores.position, dot: 'bg-indigo-500', bar: 'bg-indigo-500' },
-                    ].map((item, idx) => (
-                      <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs space-y-1.5">
-                        <div className="flex items-center justify-between gap-1">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} />
-                            <span className="text-xs font-bold text-slate-800 truncate" title={item.label}>
-                              {item.label}
+                    {standardCategoryList.map((cat) => {
+                      return (
+                        <div
+                          key={cat.key}
+                          onClick={() => {
+                            setActiveModalCategoryKey(cat.key);
+                            setIsModalOpen(true);
+                          }}
+                          className="bg-white p-3 rounded-xl border border-slate-200/90 hover:border-[#354944] shadow-2xs transition-all cursor-pointer group flex flex-col justify-between space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-1.5">
+                            <div className="space-y-0.5 min-w-0">
+                              <span className="text-xs font-bold text-slate-800 block leading-snug">
+                                {cat.label}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-medium block">
+                                {cat.count} Indikator
+                              </span>
+                            </div>
+                            <span className="text-xs font-black text-slate-900 shrink-0 ml-1 font-mono">
+                              {cat.score || 0} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
                             </span>
                           </div>
-                          <span className="text-xs font-black text-slate-900 shrink-0 ml-1">
-                            {item.score} <span className="text-[10px] font-normal text-slate-400">/ 100</span>
-                          </span>
+
+                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#354944] rounded-full transition-all duration-300" 
+                              style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }} 
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-300 ${item.bar}`} 
-                            style={{ width: `${Math.min(100, Math.max(0, item.score))}%` }} 
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -4004,11 +4797,29 @@ function Standard4PillarView({
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-6 py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl"
+                className="px-6 py-2.5 bg-[#354944] text-white font-bold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm cursor-pointer"
               >
                 Simpan Evaluasi
               </button>
             </div>
+
+            {/* MODAL FOKUS PENILAIAN KATEGORI */}
+            <CategoryAssessmentModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              categoryList={standardCategoryList}
+              activeCategoryKey={activeModalCategoryKey}
+              setActiveCategoryKey={setActiveModalCategoryKey}
+              scores={scores}
+              onScoreChange={handleScoreChange}
+              onAdjustScore={(ind, delta) => {
+                setScores((prev) => {
+                  const curr = prev[ind] !== undefined ? prev[ind] : 0;
+                  return { ...prev, [ind]: Math.min(100, Math.max(0, curr + delta)) };
+                });
+              }}
+              onSetCategoryPreset={handleSetCategoryPreset}
+            />
           </form>
         )}
       </div>

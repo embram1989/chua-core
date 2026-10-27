@@ -32,8 +32,12 @@ import {
   Check,
   ChevronRight,
   Flame,
-  Radio
+  Radio,
+  Edit3,
+  LayoutGrid
 } from 'lucide-react';
+
+import { CategoryAssessmentModal } from './EvaluationSection';
 
 import {
   Radar,
@@ -987,544 +991,475 @@ export default function TennisAssessmentView({
       {/* 3. KARTU RINGKASAN SKOR KATEGORI TERPISAH (W-FULL GRID 1/2/3 COLS)  */}
       {/* =================================================================== */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
             <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
               <Award className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
               <span>Ringkasan Skor Kategori Performa</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Rata-rata kumulatif per pilar evaluasi untuk atlet {selectedStudent?.studentName || selectedStudent?.name}
+              Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
             </p>
           </div>
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-xl border border-slate-200/70 dark:border-slate-700">
-            Total Indikator Aktif: {
-              activeIndicatorsByCategory.fisik.length +
-              activeIndicatorsByCategory.teknik.length +
-              activeIndicatorsByCategory.taktik.length +
-              activeIndicatorsByCategory.mental.length +
-              (categoryScores.includeKomunikasi ? activeIndicatorsByCategory.komunikasi.length : 0) +
-              activeIndicatorsByCategory.perkembangan.length
-            } Item
-          </span>
+          
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">
+              Rata-Rata: <strong className="text-slate-900 dark:text-slate-100 font-black">{categoryScores.overall} / 100</strong>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveModalCategoryKey(tennisCategoryList[0]?.key);
+                setIsModalOpen(true);
+              }}
+              className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
+              <span>✎ Edit / Input Penilaian</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAllInline(!showAllInline)}
+              className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                showAllInline
+                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* 6 Kategori Core + 1 Kategori Penekanan Nomor dalam Grid Luas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          
-          {/* 1. FISIK */}
-          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                Physical / Fisik ({activeIndicatorsByCategory.fisik.length})
-              </span>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">Kebugaran, Agility, Footwork</p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${categoryScores.fisik}%` }} />
-              </div>
-            </div>
-            <span className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400">
-              {categoryScores.fisik}
-            </span>
-          </div>
-
-          {/* 2. TEKNIK */}
-          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                Technical / Teknik ({activeIndicatorsByCategory.teknik.length})
-              </span>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">Stroke, Servis, Voli, Slice</p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${categoryScores.teknik}%` }} />
-              </div>
-            </div>
-            <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-              {categoryScores.teknik}
-            </span>
-          </div>
-
-          {/* 3. TAKTIK */}
-          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                Tactical / Taktik ({activeIndicatorsByCategory.taktik.length})
-              </span>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">Membaca Lawan, Reli, Baseline</p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-purple-500 rounded-full" style={{ width: `${categoryScores.taktik}%` }} />
-              </div>
-            </div>
-            <span className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400">
-              {categoryScores.taktik}
-            </span>
-          </div>
-
-          {/* 4. MENTAL */}
-          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                Mental / Karakter ({activeIndicatorsByCategory.mental.length})
-              </span>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">Fokus Poin Kritis, Daya Juang</p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${categoryScores.mental}%` }} />
-              </div>
-            </div>
-            <span className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400">
-              {categoryScores.mental}
-            </span>
-          </div>
-
-          {/* 5. KOMUNIKASI */}
-          <div className={`rounded-2xl p-4 border flex items-center justify-between gap-3 ${
-            categoryScores.includeKomunikasi
-              ? 'bg-slate-50 dark:bg-slate-800/70 border-slate-200/70 dark:border-slate-800'
-              : 'bg-slate-50/50 dark:bg-slate-800/30 border-dashed border-slate-200 dark:border-slate-800 opacity-60'
-          }`}>
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                  Komunikasi ({activeIndicatorsByCategory.komunikasi.length})
-                </span>
-                {!categoryScores.includeKomunikasi && (
-                  <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-1.5 py-0.2 rounded font-semibold">
-                    Opsional
+        {/* Interactive Category Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {tennisCategoryList.map((cat) => (
+            <div
+              key={cat.key}
+              onClick={() => {
+                setActiveModalCategoryKey(cat.key);
+                setIsModalOpen(true);
+              }}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 relative group shadow-2xs ${
+                cat.isSpecial
+                  ? 'bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/40 dark:to-teal-950/40 border-emerald-200 dark:border-emerald-800/80 hover:border-emerald-400'
+                  : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200/70 dark:border-slate-800 hover:border-[#354944] hover:bg-white dark:hover:bg-slate-800'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 min-w-0">
+                  <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200 block leading-snug">
+                    {cat.label}
                   </span>
-                )}
-              </div>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">
-                {isDoubles ? 'Koordinasi & Rotasi Ganda' : 'Non-aktif di Nomor Tunggal'}
-              </p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-pink-500 rounded-full" style={{ width: `${categoryScores.komunikasi}%` }} />
-              </div>
-            </div>
-            <span className="text-2xl font-black font-mono text-pink-600 dark:text-pink-400">
-              {categoryScores.includeKomunikasi ? categoryScores.komunikasi : '-'}
-            </span>
-          </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-[#354944] dark:text-[#C89D32] inline-block">
+                    {cat.count} Indikator
+                  </span>
+                </div>
 
-          {/* 6. PERKEMBANGAN */}
-          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block tracking-wider">
-                Development ({activeIndicatorsByCategory.perkembangan.length})
-              </span>
-              <p className="font-bold text-xs text-slate-700 dark:text-slate-200 line-clamp-1">Kepatuhan, Kehadiran, Progres</p>
-              <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mt-1">
-                <div className="h-full bg-teal-500 rounded-full" style={{ width: `${categoryScores.perkembangan}%` }} />
+                <div className="text-right shrink-0">
+                  <span className={`text-xl font-black font-mono ${cat.isSpecial ? 'text-[#C89D32]' : 'text-[#354944] dark:text-emerald-400'}`}>
+                    {cat.score}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-bold block">/ 100</span>
+                </div>
+              </div>
+
+              <div className="space-y-1 pt-1">
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      cat.isSpecial ? 'bg-[#C89D32]' : 'bg-[#354944]'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
+                  />
+                </div>
               </div>
             </div>
-            <span className="text-2xl font-black font-mono text-teal-600 dark:text-teal-400">
-              {categoryScores.perkembangan}
-            </span>
-          </div>
-
-          {/* 7. PENEKANAN KHUSUS NOMOR (ANALITICAL HIGHLIGHT) */}
-          <div className="sm:col-span-2 lg:col-span-3 bg-gradient-to-r from-emerald-50/70 to-teal-50/70 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-2xl p-4 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400 tracking-wider">
-                  Penekanan Khusus Nomor: {activeEvent.label} ({activeEvent.indicators.length} Item)
-                </span>
-                <span className="text-[9px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
-                  Assessment Emphasis
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                {activeEvent.description}
-              </p>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-300 block">
-                {categoryScores.penekananNomor}
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold">Rata-Rata</span>
-            </div>
-          </div>
-
+          ))}
         </div>
 
       </div>
 
       {/* =================================================================== */}
-      {/* 4. TAB NAVIGASI KATEGORI INDIKATOR (7 TABS + TOGGLE LIHAT SEMUA)    */}
+      {/* 4. TAB NAVIGASI KATEGORI INDIKATOR (SEMBUNYI BY DEFAULT)            */}
       {/* =================================================================== */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-        
-        {/* Navigation Tabs Header */}
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+      {showAllInline && (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
           
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0 scrollbar-none">
+          {/* Navigation Tabs Header */}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
             
-            {/* Tab 1: Fisik */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('fisik')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'fisik' && !showAllAtOnce
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Fisik ({activeIndicatorsByCategory.fisik.length})</span>
-            </button>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0 scrollbar-none">
+              
+              {/* Tab 1: Fisik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('fisik')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'fisik' && !showAllAtOnce
+                    ? 'bg-blue-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>Fisik ({activeIndicatorsByCategory.fisik.length})</span>
+              </button>
 
-            {/* Tab 2: Teknik */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('teknik')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'teknik' && !showAllAtOnce
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Teknik ({activeIndicatorsByCategory.teknik.length})</span>
-            </button>
+              {/* Tab 2: Teknik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('teknik')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'teknik' && !showAllAtOnce
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Teknik ({activeIndicatorsByCategory.teknik.length})</span>
+              </button>
 
-            {/* Tab 3: Taktik */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('taktik')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'taktik' && !showAllAtOnce
-                  ? 'bg-purple-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Brain className="w-3.5 h-3.5" />
-              <span>Taktik ({activeIndicatorsByCategory.taktik.length})</span>
-            </button>
+              {/* Tab 3: Taktik */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('taktik')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'taktik' && !showAllAtOnce
+                    ? 'bg-purple-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Brain className="w-3.5 h-3.5" />
+                <span>Taktik ({activeIndicatorsByCategory.taktik.length})</span>
+              </button>
 
-            {/* Tab 4: Mental */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('mental')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'mental' && !showAllAtOnce
-                  ? 'bg-amber-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Mental ({activeIndicatorsByCategory.mental.length})</span>
-            </button>
+              {/* Tab 4: Mental */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('mental')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'mental' && !showAllAtOnce
+                    ? 'bg-amber-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Mental ({activeIndicatorsByCategory.mental.length})</span>
+              </button>
 
-            {/* Tab 5: Komunikasi (Ganda) */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('komunikasi')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'komunikasi' && !showAllAtOnce
-                  ? 'bg-pink-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Komunikasi ({activeIndicatorsByCategory.komunikasi.length})</span>
-              {isDoubles && (
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block" />
-              )}
-            </button>
+              {/* Tab 5: Komunikasi (Ganda) */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('komunikasi')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'komunikasi' && !showAllAtOnce
+                    ? 'bg-pink-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Komunikasi ({activeIndicatorsByCategory.komunikasi.length})</span>
+                {isDoubles && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block" />
+                )}
+              </button>
 
-            {/* Tab 6: Perkembangan */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('perkembangan')}
-              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'perkembangan' && !showAllAtOnce
-                  ? 'bg-teal-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span>Perkembangan ({activeIndicatorsByCategory.perkembangan.length})</span>
-            </button>
+              {/* Tab 6: Perkembangan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('perkembangan')}
+                className={`px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'perkembangan' && !showAllAtOnce
+                    ? 'bg-teal-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <BarChart2 className="w-3.5 h-3.5" />
+                <span>Perkembangan ({activeIndicatorsByCategory.perkembangan.length})</span>
+              </button>
 
-            {/* Tab 7: Khusus Nomor */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('khususNomor')}
-              className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border ${
-                activeTab === 'khususNomor' && !showAllAtOnce
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <Target className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Khusus {activeEvent.code} ({activeEvent.indicators.length})</span>
-            </button>
+              {/* Tab 7: Khusus Nomor */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('khususNomor')}
+                className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border ${
+                  activeTab === 'khususNomor' && !showAllAtOnce
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Target className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Khusus {activeEvent.code} ({activeEvent.indicators.length})</span>
+              </button>
+
+            </div>
+
+            {/* Toggle Tampilkan Semua */}
+            <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 self-end xl:self-auto bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs">
+              <input
+                type="checkbox"
+                checked={showAllAtOnce}
+                onChange={(e) => setShowAllAtOnce(e.target.checked)}
+                className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
+              />
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                Tampilkan Semua Kategori Sekaligus
+              </span>
+            </label>
 
           </div>
 
-          {/* Toggle Tampilkan Semua */}
-          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 self-end xl:self-auto bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs">
-            <input
-              type="checkbox"
-              checked={showAllAtOnce}
-              onChange={(e) => setShowAllAtOnce(e.target.checked)}
-              className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
-            />
-            <span className="font-bold text-slate-700 dark:text-slate-300">
-              Tampilkan Semua Kategori Sekaligus
-            </span>
-          </label>
-
-        </div>
-
-        {/* FEEDBACK ALERT MESSAGES */}
-        {successMsg && (
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-        )}
-
-        {errorMsg && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
-            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* KONTEN TAB INDIKATOR                                              */}
-        {/* ================================================================= */}
-        <div className="space-y-6">
-          
-          {/* RENDER KHUSUS: TAB PENEKANAN NOMOR */}
-          {(showAllAtOnce || activeTab === 'khususNomor') && (
-            <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/20 dark:from-slate-800/40 dark:via-emerald-950/20 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 dark:border-emerald-800/40 pb-3">
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <h4 className="font-black text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Penekanan Khusus Nomor Pertandingan: {activeEvent.label}
-                  </h4>
-                </div>
-
-                {/* Toggle Anti-Duplikasi */}
-                <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-700 text-xs shadow-2xs">
-                  <input
-                    type="checkbox"
-                    checked={syncEmphasisWithCore}
-                    onChange={(e) => setSyncEmphasisWithCore(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
-                  />
-                  <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
-                    Mode Penekanan / Sinkronisasi Indikator Umum (Anti-Duplikasi)
-                  </span>
-                </label>
-              </div>
-
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                Indikator berikut merupakan fokus spesifik nomor {activeEvent.name}. Saat Mode Sinkronisasi aktif, nilai indikator yang beririsan dengan kurikulum inti (Teknik/Taktik/Komunikasi) otomatis terhubung tanpa menduplikasi pembagi skor total.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 pt-1">
-                {activeEvent.indicators.map((ind) => (
-                  <IndicatorCard
-                    key={`emp-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                    mappedCore={syncEmphasisWithCore ? TENNIS_EMPHASIS_SYNC_MAP[ind] : null}
-                  />
-                ))}
-              </div>
+          {/* FEEDBACK ALERT MESSAGES */}
+          {successMsg && (
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>{successMsg}</span>
             </div>
           )}
 
-          {/* RENDER KATEGORI FISIK */}
-          {(showAllAtOnce || activeTab === 'fisik') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-blue-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Physical / Fisik ({activeIndicatorsByCategory.fisik.length} Indikator Aktif)
-                  </h4>
-                </div>
-                <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
-                  Rata-Rata: {categoryScores.fisik} / 100
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.fisik.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.fisik.map((ind) => (
-                  <IndicatorCard
-                    key={`fisik-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
+          {errorMsg && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* RENDER KATEGORI TEKNIK */}
-          {(showAllAtOnce || activeTab === 'teknik') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-emerald-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Technical / Teknik ({activeIndicatorsByCategory.teknik.length} Indikator Aktif)
-                  </h4>
-                </div>
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  Rata-Rata: {categoryScores.teknik} / 100
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.teknik.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.teknik.map((ind) => (
-                  <IndicatorCard
-                    key={`teknik-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* ================================================================= */}
+          {/* KONTEN TAB INDIKATOR                                              */}
+          {/* ================================================================= */}
+          <div className="space-y-6">
+            
+            {/* RENDER KHUSUS: TAB PENEKANAN NOMOR */}
+            {(showAllAtOnce || activeTab === 'khususNomor') && (
+              <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/20 dark:from-slate-800/40 dark:via-emerald-950/20 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 dark:border-emerald-800/40 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <h4 className="font-black text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Penekanan Khusus Nomor Pertandingan: {activeEvent.label}
+                    </h4>
+                  </div>
 
-          {/* RENDER KATEGORI TAKTIK */}
-          {(showAllAtOnce || activeTab === 'taktik') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-purple-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Tactical / Taktik ({activeIndicatorsByCategory.taktik.length} Indikator Aktif)
-                  </h4>
+                  {/* Toggle Anti-Duplikasi */}
+                  <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-700 text-xs shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={syncEmphasisWithCore}
+                      onChange={(e) => setSyncEmphasisWithCore(e.target.checked)}
+                      className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
+                    />
+                    <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
+                      Mode Penekanan / Sinkronisasi Indikator Umum (Anti-Duplikasi)
+                    </span>
+                  </label>
                 </div>
-                <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
-                  Rata-Rata: {categoryScores.taktik} / 100
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.taktik.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.taktik.map((ind) => (
-                  <IndicatorCard
-                    key={`taktik-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* RENDER KATEGORI MENTAL */}
-          {(showAllAtOnce || activeTab === 'mental') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-amber-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Mental / Karakter ({activeIndicatorsByCategory.mental.length} Indikator Aktif)
-                  </h4>
-                </div>
-                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                  Rata-Rata: {categoryScores.mental} / 100
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.mental.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.mental.map((ind) => (
-                  <IndicatorCard
-                    key={`mental-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* RENDER KATEGORI KOMUNIKASI */}
-          {(showAllAtOnce || activeTab === 'komunikasi') && (
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-pink-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Communication / Komunikasi ({activeIndicatorsByCategory.komunikasi.length} Indikator Aktif)
-                  </h4>
-                </div>
-                <span className="text-xs font-mono font-bold text-pink-600 dark:text-pink-400">
-                  Rata-Rata: {categoryScores.komunikasi} / 100
-                </span>
-              </div>
-
-              {/* Informational badge */}
-              <div className="p-3 bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800/60 rounded-xl text-xs text-pink-900 dark:text-pink-200 flex items-start gap-2">
-                <Info className="w-4 h-4 text-pink-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-relaxed">
-                  Kategori Komunikasi terutama ditujukan untuk nomor ganda (<strong>MD, WD, XD</strong>). Untuk nomor tunggal (<strong>MS, WS</strong>), kategori ini opsional dan tidak membebani rata-rata jika dibiarkan 0.
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Indikator berikut merupakan fokus spesifik nomor {activeEvent.name}. Saat Mode Sinkronisasi aktif, nilai indikator yang beririsan dengan kurikulum inti (Teknik/Taktik/Komunikasi) otomatis terhubung tanpa menduplikasi pembagi skor total.
                 </p>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.komunikasi.map((ind) => (
-                  <IndicatorCard
-                    key={`komunikasi-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* RENDER KATEGORI PERKEMBANGAN */}
-          {(showAllAtOnce || activeTab === 'perkembangan') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart2 className="w-4 h-4 text-teal-600" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Development / Perkembangan ({activeIndicatorsByCategory.perkembangan.length} Indikator Aktif)
-                  </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 pt-1">
+                  {activeEvent.indicators.map((ind) => (
+                    <IndicatorCard
+                      key={`emp-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                      mappedCore={syncEmphasisWithCore ? TENNIS_EMPHASIS_SYNC_MAP[ind] : null}
+                    />
+                  ))}
                 </div>
-                <span className="text-xs font-mono font-bold text-teal-600 dark:text-teal-400">
-                  Rata-Rata: {categoryScores.perkembangan} / 100
-                </span>
               </div>
-              <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.perkembangan.description}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                {activeIndicatorsByCategory.perkembangan.map((ind) => (
-                  <IndicatorCard
-                    key={`perkembangan-${ind}`}
-                    name={ind}
-                    value={scores[ind] !== undefined ? scores[ind] : 0}
-                    onChange={(val) => handleScoreChange(ind, val)}
-                    onDelta={(delta) => handleAdjustDelta(ind, delta)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
+            {/* RENDER KATEGORI FISIK */}
+            {(showAllAtOnce || activeTab === 'fisik') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Physical / Fisik ({activeIndicatorsByCategory.fisik.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                    Rata-Rata: {categoryScores.fisik} / 100
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.fisik.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.fisik.map((ind) => (
+                    <IndicatorCard
+                      key={`fisik-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RENDER KATEGORI TEKNIK */}
+            {(showAllAtOnce || activeTab === 'teknik') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-emerald-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Technical / Teknik ({activeIndicatorsByCategory.teknik.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    Rata-Rata: {categoryScores.teknik} / 100
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.teknik.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.teknik.map((ind) => (
+                    <IndicatorCard
+                      key={`teknik-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RENDER KATEGORI TAKTIK */}
+            {(showAllAtOnce || activeTab === 'taktik') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-purple-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Tactical / Taktik ({activeIndicatorsByCategory.taktik.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                    Rata-Rata: {categoryScores.taktik} / 100
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.taktik.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.taktik.map((ind) => (
+                    <IndicatorCard
+                      key={`taktik-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RENDER KATEGORI MENTAL */}
+            {(showAllAtOnce || activeTab === 'mental') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-amber-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Mental / Karakter ({activeIndicatorsByCategory.mental.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                    Rata-Rata: {categoryScores.mental} / 100
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.mental.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.mental.map((ind) => (
+                    <IndicatorCard
+                      key={`mental-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RENDER KATEGORI KOMUNIKASI */}
+            {(showAllAtOnce || activeTab === 'komunikasi') && (
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-pink-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Communication / Komunikasi ({activeIndicatorsByCategory.komunikasi.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-pink-600 dark:text-pink-400">
+                    Rata-Rata: {categoryScores.komunikasi} / 100
+                  </span>
+                </div>
+
+                {/* Informational badge */}
+                <div className="p-3 bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800/60 rounded-xl text-xs text-pink-900 dark:text-pink-200 flex items-start gap-2">
+                  <Info className="w-4 h-4 text-pink-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] leading-relaxed">
+                    Kategori Komunikasi terutama ditujukan untuk nomor ganda (<strong>MD, WD, XD</strong>). Untuk nomor tunggal (<strong>MS, WS</strong>), kategori ini opsional dan tidak membebani rata-rata jika dibiarkan 0.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.komunikasi.map((ind) => (
+                    <IndicatorCard
+                      key={`komunikasi-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* RENDER KATEGORI PERKEMBANGAN */}
+            {(showAllAtOnce || activeTab === 'perkembangan') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <BarChart2 className="w-4 h-4 text-teal-600" />
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Development / Perkembangan ({activeIndicatorsByCategory.perkembangan.length} Indikator Aktif)
+                    </h4>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-teal-600 dark:text-teal-400">
+                    Rata-Rata: {categoryScores.perkembangan} / 100
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">{TENNIS_CORE_CATEGORIES.perkembangan.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  {activeIndicatorsByCategory.perkembangan.map((ind) => (
+                    <IndicatorCard
+                      key={`perkembangan-${ind}`}
+                      name={ind}
+                      value={scores[ind] !== undefined ? scores[ind] : 0}
+                      onChange={(val) => handleScoreChange(ind, val)}
+                      onDelta={(delta) => handleAdjustDelta(ind, delta)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-      </div>
+      )}
 
       {/* =================================================================== */}
       {/* 5. CATATAN PELATIH & TOMBOL SIMPAN EVALUASI                         */}
@@ -1568,6 +1503,19 @@ export default function TennisAssessmentView({
             )}
           </button>
         </div>
+
+        {/* MODAL FOKUS PENILAIAN KATEGORI */}
+        <CategoryAssessmentModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          categoryList={tennisCategoryList}
+          activeCategoryKey={activeModalCategoryKey}
+          setActiveCategoryKey={setActiveModalCategoryKey}
+          scores={scores}
+          onScoreChange={handleScoreChange}
+          onAdjustScore={handleAdjustDelta}
+          onSetCategoryPreset={handleSetCategoryPreset}
+        />
       </form>
 
       {/* =================================================================== */}
@@ -1637,7 +1585,6 @@ export default function TennisAssessmentView({
           </div>
         )}
       </div>
-
     </div>
   );
 }

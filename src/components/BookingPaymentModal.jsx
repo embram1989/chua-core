@@ -109,7 +109,7 @@ export default function BookingPaymentModal({
           </div>
           <div className="pt-2.5 border-t border-gray-200 flex justify-between items-center">
             <span className="text-xs font-bold uppercase text-gray-700">Total Biaya</span>
-            <span className="text-lg font-black text-blue-600">
+            <span className="text-lg font-black text-[#354944]">
               Rp {totalBiaya.toLocaleString('id-ID')}
             </span>
           </div>
@@ -126,7 +126,7 @@ export default function BookingPaymentModal({
               onClick={() => setPaymentMethod('QRIS')}
               className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                 paymentMethod === 'QRIS'
-                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  ? 'bg-[#354944]/10 border-[#354944] text-[#354944] shadow-xs'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -139,7 +139,7 @@ export default function BookingPaymentModal({
               onClick={() => setPaymentMethod('Transfer Bank')}
               className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                 paymentMethod === 'Transfer Bank'
-                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  ? 'bg-[#354944]/10 border-[#354944] text-[#354944] shadow-xs'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -152,7 +152,7 @@ export default function BookingPaymentModal({
               onClick={() => setPaymentMethod('Cash')}
               className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                 paymentMethod === 'Cash'
-                  ? 'bg-blue-50 border-blue-600 text-blue-600 shadow-xs'
+                  ? 'bg-[#354944]/10 border-[#354944] text-[#354944] shadow-xs'
                   : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -180,14 +180,14 @@ export default function BookingPaymentModal({
         )}
 
         {paymentMethod === 'Transfer Bank' && (
-          <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-2 text-xs">
-            <p className="font-bold text-blue-900">Informasi Rekening Bank GOR:</p>
-            <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
+          <div className="p-4 bg-[#354944]/5 border border-[#354944]/20 rounded-2xl space-y-2 text-xs">
+            <p className="font-bold text-[#354944]">Informasi Rekening Bank GOR:</p>
+            <div className="bg-white p-3 rounded-xl border border-[#354944]/15 space-y-1">
               <p className="text-gray-500 text-[11px]">Bank: <span className="font-bold text-gray-900">{bankName}</span></p>
-              <p className="text-gray-500 text-[11px]">No. Rekening: <span className="font-black text-blue-700 text-sm">{accountNumber}</span></p>
+              <p className="text-gray-500 text-[11px]">No. Rekening: <span className="font-black text-[#354944] text-sm">{accountNumber}</span></p>
               <p className="text-gray-500 text-[11px]">Atas Nama: <span className="font-bold text-gray-900">{accountHolder}</span></p>
             </div>
-            <p className="text-[10px] text-blue-700 italic">Transfer sesuai total tagihan dan simpan bukti transfer.</p>
+            <p className="text-[10px] text-[#354944] italic">Transfer sesuai total tagihan dan simpan bukti transfer.</p>
           </div>
         )}
 
@@ -239,10 +239,10 @@ export default function BookingPaymentModal({
             type="button"
             disabled={isSubmitting || !isCashValid}
             onClick={handleConfirmPayment}
-            className={`flex-1 py-3 text-white font-bold text-xs rounded-xl shadow-md transition-all ${
+            className={`flex-1 py-3 text-white font-bold text-xs rounded-xl shadow-sm transition-all ${
               !isCashValid || isSubmitting
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 shadow-none'
-                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 cursor-pointer'
+                : 'bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] cursor-pointer'
             }`}
           >
             {isSubmitting ? 'Memproses...' : 'Konfirmasi & Bayar Lunas'}

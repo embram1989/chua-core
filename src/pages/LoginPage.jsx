@@ -63,7 +63,7 @@ export default function LoginPage({ onLoginSuccess }) {
 
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-sans selection:bg-[#354944] selection:text-white">
       
       {/* KOLOM KIRI (Fokus Login Form) */}
       <div className="bg-white flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 w-full">
@@ -93,7 +93,7 @@ export default function LoginPage({ onLoginSuccess }) {
               onClick={() => { setActiveTab('email'); setErrorMessage(null); }}
               className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeTab === 'email'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-[#354944] text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -106,7 +106,7 @@ export default function LoginPage({ onLoginSuccess }) {
               onClick={() => { setActiveTab('google'); setErrorMessage(null); }}
               className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeTab === 'google'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-[#354944] text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -138,7 +138,7 @@ export default function LoginPage({ onLoginSuccess }) {
                     placeholder="nama@chuasport.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-slate-800"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ export default function LoginPage({ onLoginSuccess }) {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-slate-800"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function LoginPage({ onLoginSuccess }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full py-3.5 px-6 bg-[#354944] hover:bg-[#2B3D38] active:bg-[#1E2C28] text-white font-bold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
@@ -172,7 +172,7 @@ export default function LoginPage({ onLoginSuccess }) {
                   </div>
                 ) : (
                   <>
-                    <UserCheck className="w-4 h-4" />
+                    <UserCheck className="w-4 h-4 text-[#C89D32]" />
                     <span>Masuk ke Sistem Staf</span>
                   </>
                 )}
@@ -191,7 +191,7 @@ export default function LoginPage({ onLoginSuccess }) {
               >
                 {loading ? (
                   <div className="flex items-center space-x-2.5">
-                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-[#354944] border-t-transparent rounded-full animate-spin" />
                     <span className="text-slate-600 text-xs">Memproses Akun Google...</span>
                   </div>
                 ) : (
@@ -221,15 +221,13 @@ export default function LoginPage({ onLoginSuccess }) {
             </div>
           )}
 
-
-
           {/* Tautan ke Portal Wali Murid & Atlet */}
           <div className="mt-5 pt-4 border-t border-slate-100 w-full text-center">
             <Link
               to="/portal"
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 rounded-xl transition-all duration-200 group shadow-2xs hover:shadow-xs cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-[#354944] hover:text-[#2B3D38] bg-[#354944]/10 hover:bg-[#354944]/15 border border-[#354944]/20 rounded-xl transition-all duration-200 group shadow-2xs hover:shadow-xs cursor-pointer"
             >
-              <GraduationCap className="w-4 h-4 text-blue-600 group-hover:scale-105 transition-transform" />
+              <GraduationCap className="w-4 h-4 text-[#C89D32] group-hover:scale-105 transition-transform" />
               <span>Portal Wali Murid &amp; Atlet ➔</span>
             </Link>
           </div>

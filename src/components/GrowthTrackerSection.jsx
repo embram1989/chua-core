@@ -363,7 +363,7 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -372,7 +372,7 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 text-sky-200" />
+                        <Save className="w-4 h-4 text-[#C89D32]" />
                         <span>Simpan Catatan Antropometri</span>
                       </>
                     )}
@@ -383,8 +383,8 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
               {/* AI NUTRITION & TRAINING RECOMMENDER */}
               <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:p-5 rounded-3xl text-white border border-slate-700 shadow-md space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-sky-400" />
+                  <span className="text-xs font-black uppercase tracking-wider text-[#C89D32] flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#C89D32]" />
                     <span>AI Sports Nutrition & Training</span>
                   </span>
                   <span className="text-[10px] text-slate-400 font-semibold">Gemini Engine</span>
@@ -398,7 +398,7 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
                   type="button"
                   onClick={handleGenerateAIInsight}
                   disabled={isGeneratingAI}
-                  className="w-full py-2 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-black text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isGeneratingAI ? (
                     <>
@@ -407,7 +407,7 @@ export default function GrowthTrackerSection({ selectedStudent, students = [] })
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 text-yellow-300" />
+                      <Sparkles className="w-4 h-4 text-[#C89D32]" />
                       <span>🤖 Generate AI Insight (Gizi & Latihan)</span>
                     </>
                   )}

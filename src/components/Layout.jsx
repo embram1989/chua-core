@@ -257,8 +257,10 @@ export default function Layout({ userProfile }) {
                   <div key={item.path} className="space-y-1 pr-0">
                     <div
                       className={`flex items-center justify-between ${isSidebarCollapsed ? 'px-2 py-2.5 rounded-2xl mr-3' : 'pl-4 pr-3 py-2.5 rounded-l-full'} text-xs uppercase tracking-wider font-semibold transition-all duration-150 cursor-pointer ${
-                        isAkademiActive
+                        isAkademiActive && !isAkademiOpen
                           ? 'fluid-tab-active shadow-xs'
+                          : isAkademiActive
+                          ? 'text-white bg-white/10 rounded-2xl mr-3'
                           : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
                       }`}
                       onClick={() => {
@@ -283,46 +285,48 @@ export default function Layout({ userProfile }) {
                         className="p-0.5 text-slate-300 hover:text-white transition-colors rounded cursor-pointer"
                         aria-label="Toggle submenu"
                       >
-                        {isAkademiOpen ? (
-                          <ChevronDown className="w-4 h-4 transition-transform duration-200" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 transition-transform duration-200" />
-                        )}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isAkademiOpen ? 'rotate-180' : 'rotate-0'}`} />
                       </button>
                     </div>
 
-                    {/* Expandable Sub-Menu (Accordion) */}
-                    {isAkademiOpen && (
-                      <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2.5 space-y-1 my-1.5">
-                        {academySubMenuItems.map((sub) => {
-                          const isSubActive = isAkademiActive && currentTab === sub.id;
-                          return (
-                            <Link
-                              key={sub.id}
-                              to={sub.path}
-                              className={`rounded-xl px-3 py-2 text-xs flex items-center justify-between transition-colors ${
-                                isSubActive
-                                  ? 'bg-[#C89D32] text-white font-bold shadow-xs'
-                                  : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
-                              }`}
-                            >
-                              <span className="truncate">{sub.label}</span>
-                              {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
-                                <span
-                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
-                                    isSubActive
-                                      ? 'bg-white/20 text-white'
-                                      : 'bg-white/10 text-slate-300'
-                                  }`}
-                                >
-                                  {sub.count}
-                                </span>
-                              )}
-                            </Link>
-                          );
-                        })}
+                    {/* Expandable Sub-Menu (Smooth CSS Grid Accordion) */}
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                        isAkademiOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2 space-y-1 py-1.5 pr-0">
+                          {academySubMenuItems.map((sub) => {
+                            const isSubActive = isAkademiActive && currentTab === sub.id;
+                            return (
+                              <Link
+                                key={sub.id}
+                                to={sub.path}
+                                className={`text-xs flex items-center justify-between transition-all duration-150 ${
+                                  isSubActive
+                                    ? 'pl-3 pr-4 py-2 rounded-l-full fluid-tab-active font-bold shadow-xs'
+                                    : 'px-3 py-2 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
+                                }`}
+                              >
+                                <span className="truncate">{sub.label}</span>
+                                {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
+                                  <span
+                                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
+                                      isSubActive
+                                        ? 'bg-[#354944]/15 text-[#354944] dark:bg-white/20 dark:text-white'
+                                        : 'bg-white/10 text-slate-300'
+                                    }`}
+                                  >
+                                    {sub.count}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               }
@@ -352,8 +356,10 @@ export default function Layout({ userProfile }) {
                   <div key={item.path} className="space-y-1 pr-0">
                     <div
                       className={`flex items-center justify-between ${isSidebarCollapsed ? 'px-2 py-2.5 rounded-2xl mr-3' : 'pl-4 pr-3 py-2.5 rounded-l-full'} text-xs uppercase tracking-wider font-semibold transition-all duration-150 cursor-pointer ${
-                        isProfilActive
+                        isProfilActive && !isProfilOpen
                           ? 'fluid-tab-active shadow-xs'
+                          : isProfilActive
+                          ? 'text-white bg-white/10 rounded-2xl mr-3'
                           : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
                       }`}
                       onClick={() => {
@@ -378,43 +384,45 @@ export default function Layout({ userProfile }) {
                         className="p-0.5 text-slate-300 hover:text-white transition-colors rounded cursor-pointer"
                         aria-label="Toggle submenu"
                       >
-                        {isProfilOpen ? (
-                          <ChevronDown className="w-4 h-4 transition-transform duration-200" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 transition-transform duration-200" />
-                        )}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isProfilOpen ? 'rotate-180' : 'rotate-0'}`} />
                       </button>
                     </div>
 
-                    {/* Expandable Sub-Menu (Accordion) */}
-                    {isProfilOpen && (
-                      <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2.5 space-y-1 my-1.5">
-                        {profileSubMenuItems.map((sub) => {
-                          const isSubActive = isProfilActive && currentProfileTab === sub.id;
-                          return (
-                            <Link
-                              key={sub.id}
-                              to={sub.path}
-                              className={`rounded-xl px-3 py-2 text-xs flex items-center justify-between transition-colors ${
-                                isSubActive
-                                  ? 'bg-[#C89D32] text-white font-bold shadow-xs'
-                                  : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
-                              }`}
-                            >
-                              <span className="truncate">{sub.label}</span>
-                            </Link>
-                          );
-                        })}
-                        <button
-                          type="button"
-                          onClick={handleLogout}
-                          className="w-full text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
-                        >
-                          <LogOut className="w-3.5 h-3.5 shrink-0" />
-                          <span>Keluar Sistem</span>
-                        </button>
+                    {/* Expandable Sub-Menu (Smooth CSS Grid Accordion) */}
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                        isProfilOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2 space-y-1 py-1.5 pr-0">
+                          {profileSubMenuItems.map((sub) => {
+                            const isSubActive = isProfilActive && currentProfileTab === sub.id;
+                            return (
+                              <Link
+                                key={sub.id}
+                                to={sub.path}
+                                className={`text-xs flex items-center justify-between transition-all duration-150 ${
+                                  isSubActive
+                                    ? 'pl-3 pr-4 py-2 rounded-l-full fluid-tab-active font-bold shadow-xs'
+                                    : 'px-3 py-2 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
+                                }`}
+                              >
+                                <span className="truncate">{sub.label}</span>
+                              </Link>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="w-full text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left mr-3"
+                          >
+                            <LogOut className="w-3.5 h-3.5 shrink-0" />
+                            <span>Keluar Sistem</span>
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               }
@@ -695,7 +703,7 @@ export default function Layout({ userProfile }) {
 
       {/* MAIN CONTENT AREA */}
       <main className={`flex-1 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} transition-all duration-300 min-w-0 max-w-full overflow-x-hidden pb-8 pt-4 lg:pt-6 px-3 sm:px-6 lg:px-8`}>
-        <div className="max-w-7xl mx-auto w-full min-w-0">
+        <div key={location.pathname + location.search} className="max-w-7xl mx-auto w-full min-w-0 animate-page-enter">
           <Outlet />
         </div>
       </main>

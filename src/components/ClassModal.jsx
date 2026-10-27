@@ -213,13 +213,13 @@ export default function ClassModal({
             <div className="flex items-center gap-2">
               <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">Buat Kelas / Kelompok Latihan</h3>
               {activeAcademy?.sport && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20">
                   {activeAcademy.sport}
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Akademi: <strong className="text-slate-700 dark:text-slate-200">{activeAcademy?.name || 'Akademi Aktif'}</strong> &bull; Mewarisi cabor: <strong className="text-blue-600 dark:text-blue-400">{inheritedSport}</strong>
+              Akademi: <strong className="text-slate-700 dark:text-slate-200">{activeAcademy?.name || 'Akademi Aktif'}</strong> &bull; Mewarisi cabor: <strong className="text-[#354944] dark:text-[#C89D32]">{inheritedSport}</strong>
             </p>
           </div>
           <button 
@@ -242,7 +242,7 @@ export default function ClassModal({
           {/* Nama Kelas */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-              Nama Kelas / Kelompok <span className="text-blue-600 dark:text-blue-400">*</span>
+              Nama Kelas / Kelompok <span className="text-[#C89D32]">*</span>
             </label>
             <div className="relative">
               <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -252,7 +252,7 @@ export default function ClassModal({
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
                 placeholder={inheritedSport === 'Tenis' ? 'misal: Pemula / Kadet U-14 / Junior Prestasi' : 'misal: U-12 Pemula / U-15 Prestasi'}
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-medium"
               />
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function ClassModal({
               <select
                 value={sport}
                 onChange={(e) => setSport(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
               >
                 {availableSports.map((s) => (
                   <option key={s} value={s}>
@@ -290,7 +290,7 @@ export default function ClassModal({
               <select
                 value={coachId}
                 onChange={(e) => setCoachId(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
               >
                 {coaches?.length === 0 ? (
                   <option value="">Belum ada pelatih terdaftar</option>
@@ -308,7 +308,7 @@ export default function ClassModal({
           {/* DYNAMIC SCHEDULE BUILDER WITH COURT INTEGRATION */}
           <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center space-x-1.5">
+              <label className="block text-xs font-bold text-[#354944] dark:text-[#C89D32] uppercase flex items-center space-x-1.5">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Alokasi Jadwal &amp; Lapangan Rutin</span>
               </label>
@@ -321,7 +321,7 @@ export default function ClassModal({
               {schedules.map((row, idx) => (
                 <div key={row.id} className="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl space-y-2 text-xs">
                   <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/60 dark:border-slate-700/60">
-                    <span className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">Sesi #{idx + 1}</span>
+                    <span className="font-bold text-[#354944] dark:text-[#C89D32] text-[11px]">Sesi #{idx + 1}</span>
                     {schedules.length > 1 && (
                       <button
                         type="button"
@@ -377,7 +377,7 @@ export default function ClassModal({
                   {/* Dropdown Pilih Lapangan Smart Filtered with Fallback */}
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">
-                      Pilih Lapangan ({sport}) <span className="text-blue-600 dark:text-blue-400">*</span>
+                      Pilih Lapangan ({sport}) <span className="text-[#C89D32]">*</span>
                     </label>
                     <select
                       value={row.courtId}
@@ -406,7 +406,7 @@ export default function ClassModal({
               onClick={handleAddScheduleRow}
               className="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1 border border-slate-200 dark:border-slate-700"
             >
-              <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <Plus className="w-3.5 h-3.5 text-[#354944] dark:text-[#C89D32]" />
               <span>+ Tambah Sesi Hari Lain</span>
             </button>
           </div>
@@ -422,7 +422,7 @@ export default function ClassModal({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition-colors"
+              className="flex-1 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-bold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm cursor-pointer disabled:opacity-50 transition-colors"
             >
               {submitting ? 'Memproses...' : `Buat Kelas (${sport})`}
             </button>

@@ -169,12 +169,12 @@ export default function NewBookingModal({
           {/* Dropdown Court Selection */}
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Pilih Lapangan <span className="text-blue-600">*</span>
+              Pilih Lapangan <span className="text-[#C89D32]">*</span>
             </label>
             <select
               value={selectedCourtId}
               onChange={(e) => setSelectedCourtId(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+              className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
             >
               {courts.length === 0 ? (
                 <option value="">Belum ada lapangan terdaftar</option>
@@ -190,7 +190,7 @@ export default function NewBookingModal({
 
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Nama Pemesan / Pelanggan <span className="text-blue-600">*</span>
+              Nama Pemesan / Pelanggan <span className="text-[#C89D32]">*</span>
             </label>
             <div className="relative">
               <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -200,7 +200,7 @@ export default function NewBookingModal({
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Nama pemesan"
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
               />
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function NewBookingModal({
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="081234567890"
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
               />
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function NewBookingModal({
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                Tanggal <span className="text-blue-600">*</span>
+                Tanggal <span className="text-[#C89D32]">*</span>
               </label>
               <input
                 type="date"
@@ -233,44 +233,44 @@ export default function NewBookingModal({
                 min={new Date().toISOString().split('T')[0]}
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
+                className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-medium"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Mulai <span className="text-blue-600">*</span>
+                  Mulai <span className="text-[#C89D32]">*</span>
                 </label>
                 <input
                   type="time"
                   required
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Selesai <span className="text-blue-600">*</span>
+                  Selesai <span className="text-[#C89D32]">*</span>
                 </label>
                 <input
                   type="time"
                   required
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
                 />
               </div>
             </div>
           </div>
 
           {/* DYNAMIC CALCULATOR DISPLAY BOX */}
-          <div className="p-3.5 bg-blue-50/60 border border-blue-200 rounded-xl space-y-1">
+          <div className="p-3.5 bg-[#354944]/5 border border-[#354944]/20 rounded-xl space-y-1">
             <div className="flex items-center justify-between text-xs text-gray-600">
               <span className="flex items-center space-x-1">
-                <Calculator className="w-3.5 h-3.5 text-blue-600" />
+                <Calculator className="w-3.5 h-3.5 text-[#354944]" />
                 <span>Rincian Biaya:</span>
               </span>
               <span className="font-bold text-slate-800">
@@ -278,9 +278,9 @@ export default function NewBookingModal({
               </span>
             </div>
 
-            <div className="flex items-baseline justify-between pt-1 border-t border-blue-100">
+            <div className="flex items-baseline justify-between pt-1 border-t border-[#354944]/10">
               <span className="text-xs font-bold text-gray-700 uppercase">Total Biaya Booking:</span>
-              <span className="text-lg font-black text-blue-600">
+              <span className="text-lg font-black text-[#354944]">
                 Rp {calculatedPrice.toLocaleString('id-ID')}
               </span>
             </div>
@@ -297,7 +297,7 @@ export default function NewBookingModal({
             <button
               type="submit"
               disabled={submitting || courts.length === 0}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md transition-colors cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer disabled:opacity-50"
             >
               Lanjut Pembayaran
             </button>

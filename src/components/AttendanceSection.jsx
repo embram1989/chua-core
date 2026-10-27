@@ -189,7 +189,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
         {/* CONTROL BAR INLINE: DATE PICKER + TOGGLE SWITCH KEHADIRAN PELATIH */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <ClipboardCheck className="w-4 h-4 text-blue-600 shrink-0" />
+            <ClipboardCheck className="w-4 h-4 text-[#354944] shrink-0" />
             <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">Presensi Sesi Latihan</h3>
           </div>
 
@@ -202,7 +202,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                 required
                 value={attendanceDate}
                 onChange={(e) => setAttendanceDate(e.target.value)}
-                className="pl-7 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-medium text-slate-700 cursor-pointer"
+                className="pl-7 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] font-medium text-slate-700 cursor-pointer"
               />
             </div>
 
@@ -252,7 +252,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
               value={sessionNotes}
               onChange={(e) => setSessionNotes(e.target.value)}
               placeholder="Catatan / materi latihan hari ini (opsional)..."
-              className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 text-slate-700 font-medium"
+              className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] text-slate-700 font-medium"
             />
           </div>
 
@@ -340,7 +340,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                           onClick={() => handleStudentStatusChange(st.id, 'Izin')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             currentStatus === 'Izin'
-                              ? 'bg-blue-500 text-white shadow-sm'
+                              ? 'bg-[#354944] text-white shadow-sm'
                               : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
                           }`}
                         >
@@ -386,7 +386,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
             <button
               type="submit"
               disabled={isSaving || classStudents.length === 0}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-2xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="px-5 py-2 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-semibold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {isSaving ? (
                 <>

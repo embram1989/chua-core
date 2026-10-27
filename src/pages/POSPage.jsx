@@ -570,7 +570,7 @@ export default function POSPage({ userProfile }) {
 
         <button
           onClick={handleOpenAddProductModal}
-          className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
+          className="px-3.5 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] font-semibold text-xs rounded-lg shadow-sm transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah / Kelola Inventaris</span>
@@ -588,7 +588,7 @@ export default function POSPage({ userProfile }) {
       <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-600/10 text-blue-600 rounded-lg shrink-0">
+            <div className="p-2 bg-[#354944]/10 text-[#354944] rounded-lg shrink-0">
               <ScanBarcode className="w-5 h-5 animate-pulse" />
             </div>
             <div>
@@ -620,7 +620,7 @@ export default function POSPage({ userProfile }) {
                   setBarcodeInput('');
                 }
               }}
-              className="w-full pl-9 pr-16 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-mono text-slate-800 placeholder-slate-400 shadow-2xs"
+              className="w-full pl-9 pr-16 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-mono text-slate-800 placeholder-slate-400 shadow-2xs"
             />
             <button
               type="button"
@@ -628,7 +628,7 @@ export default function POSPage({ userProfile }) {
                 processBarcodeScan(barcodeInput.trim());
                 setBarcodeInput('');
               }}
-              className="absolute right-1 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[10px] font-bold transition-all cursor-pointer shadow-2xs"
+              className="absolute right-1 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white rounded-md text-[10px] font-bold transition-all cursor-pointer shadow-sm"
             >
               Scan
             </button>
@@ -660,7 +660,7 @@ export default function POSPage({ userProfile }) {
           <div className="space-y-3 border-b border-slate-100 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
-                <ShoppingBag className="w-4 h-4 text-blue-600" />
+                <ShoppingBag className="w-4 h-4 text-[#354944]" />
                 <span>Katalog Produk Inventaris &amp; Tagihan</span>
               </h2>
 
@@ -672,7 +672,7 @@ export default function POSPage({ userProfile }) {
                   placeholder={activeCatalogTab === 'spp' ? 'Cari nama siswa / wali...' : 'Cari nama / barcode produk...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-medium"
                 />
               </div>
             </div>
@@ -684,7 +684,7 @@ export default function POSPage({ userProfile }) {
                 onClick={() => setActiveCatalogTab('all')}
                 className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
                   activeCatalogTab === 'all'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                    ? 'bg-[#354944] text-white font-semibold shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent font-medium'
                 }`}
               >
@@ -697,7 +697,7 @@ export default function POSPage({ userProfile }) {
                 onClick={() => setActiveCatalogTab('fnb')}
                 className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
                   activeCatalogTab === 'fnb'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                    ? 'bg-[#354944] text-white font-semibold shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent font-medium'
                 }`}
               >
@@ -709,7 +709,7 @@ export default function POSPage({ userProfile }) {
                 onClick={() => setActiveCatalogTab('apparel')}
                 className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
                   activeCatalogTab === 'apparel'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                    ? 'bg-[#354944] text-white font-semibold shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent font-medium'
                 }`}
               >
@@ -721,7 +721,7 @@ export default function POSPage({ userProfile }) {
                 onClick={() => setActiveCatalogTab('sewa')}
                 className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
                   activeCatalogTab === 'sewa'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                    ? 'bg-[#354944] text-white font-semibold shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent font-medium'
                 }`}
               >
@@ -734,7 +734,7 @@ export default function POSPage({ userProfile }) {
                 onClick={() => setActiveCatalogTab('spp')}
                 className={`px-3.5 py-1.5 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 ${
                   activeCatalogTab === 'spp'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                    ? 'bg-[#354944] text-white font-semibold shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent font-medium'
                 }`}
               >
@@ -742,7 +742,7 @@ export default function POSPage({ userProfile }) {
                 <span>Tagihan SPP</span>
                 {unpaidStudents.length > 0 && (
                   <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
-                    activeCatalogTab === 'spp' ? 'bg-white text-blue-600' : 'bg-rose-500 text-white'
+                    activeCatalogTab === 'spp' ? 'bg-white text-[#354944]' : 'bg-rose-500 text-white'
                   }`}>
                     {unpaidStudents.length}
                   </span>
@@ -869,7 +869,7 @@ export default function POSPage({ userProfile }) {
                       className={`p-3.5 rounded-2xl border transition-all relative flex flex-col justify-between space-y-2 group shadow-2xs ${
                         isOutOfStock
                           ? 'bg-slate-100/70 border-slate-200 opacity-65 cursor-not-allowed grayscale'
-                          : 'bg-white border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer'
+                          : 'bg-white border-slate-200 hover:border-[#354944]/40 hover:bg-[#354944]/5 cursor-pointer'
                       }`}
                     >
                       <div className="space-y-1.5">
@@ -879,7 +879,7 @@ export default function POSPage({ userProfile }) {
                           </span>
                           <div className="flex items-center gap-1 shrink-0">
                             {isSewa ? (
-                              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 font-black text-[9px] rounded-md uppercase">
+                              <span className="px-1.5 py-0.5 bg-[#354944]/10 text-[#354944] font-black text-[9px] rounded-md uppercase">
                                 SEWA
                               </span>
                             ) : (
@@ -893,7 +893,7 @@ export default function POSPage({ userProfile }) {
                                 e.stopPropagation();
                                 handleOpenEditProductModal(prod);
                               }}
-                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-[#354944] hover:bg-[#354944]/10 rounded-lg transition-colors cursor-pointer"
                               title="Edit Produk Master"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -912,7 +912,7 @@ export default function POSPage({ userProfile }) {
                           </div>
                         </div>
 
-                        <p className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 leading-snug line-clamp-2">
+                        <p className="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-[#354944] leading-snug line-clamp-2">
                           {prod.name}
                         </p>
 
@@ -931,7 +931,7 @@ export default function POSPage({ userProfile }) {
                           <div>
                             <span className="text-slate-400 block font-bold">Stok:</span>
                             {isSewa ? (
-                              <span className="font-bold text-blue-700">{prod.stock || 0} unit</span>
+                              <span className="font-bold text-[#354944]">{prod.stock || 0} unit</span>
                             ) : isOutOfStock ? (
                               <span className="font-extrabold text-red-600 bg-red-100 px-1.5 py-0.5 rounded uppercase">HABIS</span>
                             ) : (
@@ -949,7 +949,7 @@ export default function POSPage({ userProfile }) {
 
                         {/* HARGA JUAL & BUTTON */}
                         <div className="flex items-center justify-between pt-1">
-                          <span className="font-black text-sm text-blue-600">
+                          <span className="font-black text-sm text-[#354944]">
                             Rp {Number(prod.price || 0).toLocaleString('id-ID')}
                           </span>
 
@@ -958,7 +958,7 @@ export default function POSPage({ userProfile }) {
                               Habis
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 bg-slate-900 group-hover:bg-blue-600 text-white rounded-xl text-[10px] font-bold transition-colors flex items-center gap-1 shadow-2xs">
+                            <span className="px-2.5 py-1 bg-slate-900 group-hover:bg-[#354944] text-white rounded-xl text-[10px] font-bold transition-colors flex items-center gap-1 shadow-2xs">
                               <Plus className="w-3 h-3" />
                               <span>Tambah</span>
                             </span>
@@ -980,7 +980,7 @@ export default function POSPage({ userProfile }) {
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
-                  <Receipt className="w-4 h-4 text-blue-600" />
+                  <Receipt className="w-4 h-4 text-[#354944]" />
                   <span>Keranjang Belanja</span>
                 </h2>
                 <span className="text-xs font-bold text-slate-400">
@@ -1009,7 +1009,7 @@ export default function POSPage({ userProfile }) {
                               <span>SPP</span>
                             </span>
                           ) : item.type === 'sewa' ? (
-                            <span className="text-[8px] bg-blue-100 text-blue-800 px-1 py-0.2 rounded font-extrabold shrink-0">
+                            <span className="text-[8px] bg-[#354944]/10 text-[#354944] px-1 py-0.2 rounded font-extrabold shrink-0">
                               SEWA
                             </span>
                           ) : null}
@@ -1066,7 +1066,7 @@ export default function POSPage({ userProfile }) {
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800 shrink-0 cursor-pointer"
+                  className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800 shrink-0 cursor-pointer"
                 >
                   <option value="QRIS / Transfer">QRIS / Transfer Bank</option>
                   <option value="Tunai (Cash)">Tunai (Cash)</option>
@@ -1076,7 +1076,7 @@ export default function POSPage({ userProfile }) {
 
               <div className="flex items-center justify-between pt-0.5">
                 <span className="text-xs font-bold text-slate-600 uppercase">Total Bayar:</span>
-                <span className="text-lg lg:text-xl font-black text-blue-600">
+                <span className="text-lg lg:text-xl font-black text-[#354944]">
                   Rp {cartTotal.toLocaleString('id-ID')}
                 </span>
               </div>
@@ -1085,7 +1085,7 @@ export default function POSPage({ userProfile }) {
                 type="button"
                 onClick={handleCheckout}
                 disabled={cart.length === 0 || submittingCheckout}
-                className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:border dark:disabled:border-slate-700/80 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl shadow-md disabled:shadow-none transition-all cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full py-2.5 sm:py-3 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:border dark:disabled:border-slate-700/80 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl shadow-sm disabled:shadow-none transition-all cursor-pointer flex items-center justify-center space-x-2"
               >
                 <CreditCard className="w-4 h-4" />
                 <span>{submittingCheckout ? 'Memproses Transaksi...' : 'Bayar & Cetak Struk'}</span>
@@ -1104,7 +1104,7 @@ export default function POSPage({ userProfile }) {
             
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <Package className="w-5 h-5 text-blue-600" />
+                <Package className="w-5 h-5 text-[#354944]" />
                 <h3 className="font-bold text-base text-slate-800">
                   {editingProduct ? 'Edit Master Produk Inventaris' : 'Tambah Master Produk Inventaris'}
                 </h3>
@@ -1125,7 +1125,7 @@ export default function POSPage({ userProfile }) {
               {/* PEMILIH TIPE PRODUK (JUAL VS SEWA) */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
-                  Tipe Barang / Layanan <span className="text-blue-600">*</span>
+                  Tipe Barang / Layanan <span className="text-[#C89D32]">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -1145,7 +1145,7 @@ export default function POSPage({ userProfile }) {
                     onClick={() => setNewProductType('sewa')}
                     className={`py-2 px-3 text-xs font-bold rounded-xl border flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
                       newProductType === 'sewa'
-                        ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-2xs'
+                        ? 'bg-[#354944]/10 border-[#354944] text-[#354944] shadow-2xs'
                         : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
@@ -1156,7 +1156,7 @@ export default function POSPage({ userProfile }) {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Nama Produk / Barang <span className="text-blue-600">*</span>
+                  Nama Produk / Barang <span className="text-[#C89D32]">*</span>
                 </label>
                 <input
                   type="text"
@@ -1168,7 +1168,7 @@ export default function POSPage({ userProfile }) {
                       ? 'misal: Sewa Raket Yonex / Sepatu Size 42'
                       : 'misal: Air Mineral 600ml / Shuttlecock JP Gold'
                   }
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-bold"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] font-bold"
                 />
               </div>
 
@@ -1205,7 +1205,7 @@ export default function POSPage({ userProfile }) {
                   <select
                     value={newProductCategory}
                     onChange={(e) => setNewProductCategory(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 cursor-pointer font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] cursor-pointer font-medium"
                   >
                     <option value="Minuman / F&B">Minuman / F&amp;B</option>
                     <option value="Makanan / Snack">Makanan / Snack</option>
@@ -1245,7 +1245,7 @@ export default function POSPage({ userProfile }) {
                     value={newProductPrice}
                     onChange={(e) => setNewProductPrice(e.target.value)}
                     placeholder={newProductType === 'sewa' ? '25000' : '10000'}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-bold text-blue-700"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] font-bold text-[#354944]"
                   />
                 </div>
 
@@ -1259,7 +1259,7 @@ export default function POSPage({ userProfile }) {
                     step="1"
                     value={newProductStock}
                     onChange={(e) => setNewProductStock(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-bold text-slate-800"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] font-bold text-slate-800"
                   />
                 </div>
               </div>
@@ -1278,7 +1278,7 @@ export default function POSPage({ userProfile }) {
                 <button
                   type="submit"
                   disabled={savingProduct}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl cursor-pointer shadow-md shadow-blue-200 flex items-center justify-center space-x-1.5"
+                  className="flex-1 py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-semibold text-xs rounded-xl cursor-pointer shadow-sm flex items-center justify-center space-x-1.5"
                 >
                   <span>{savingProduct ? 'Menyimpan...' : editingProduct ? 'Simpan Perubahan' : 'Simpan Produk'}</span>
                 </button>

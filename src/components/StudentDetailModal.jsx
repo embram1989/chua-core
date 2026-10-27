@@ -225,15 +225,15 @@ export default function StudentDetailModal({
                 className="w-12 h-12 rounded-2xl object-cover shadow-md border-2 border-white/20 shrink-0"
               />
             ) : (
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-md shrink-0">
-                <GraduationCap className="w-6 h-6" />
+              <div className="w-12 h-12 bg-[#354944] text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-md shrink-0 border border-[#C89D32]/40">
+                <GraduationCap className="w-6 h-6 text-[#C89D32]" />
               </div>
             )}
             <div>
               <h3 className="font-bold text-base sm:text-lg text-white flex items-center gap-2">
                 <span>{currentStudent.studentName}</span>
                 {calculateAge(currentStudent.birthDate) !== '-' && (
-                  <span className="px-2 py-0.5 bg-blue-500/30 text-blue-200 border border-blue-400/40 rounded-md text-xs font-semibold">
+                  <span className="px-2 py-0.5 bg-[#C89D32]/20 text-[#D4A73A] border border-[#C89D32]/40 rounded-md text-xs font-semibold">
                     {calculateAge(currentStudent.birthDate)} Thn
                   </span>
                 )}
@@ -249,7 +249,7 @@ export default function StudentDetailModal({
               <button
                 type="button"
                 onClick={() => onGenerateIdCard(currentStudent)}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs"
                 title="Cetak / Generate ID Card Siswa"
               >
                 <IdCard className="w-3.5 h-3.5" />
@@ -272,7 +272,7 @@ export default function StudentDetailModal({
             onClick={() => setActiveTab('profil')}
             className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center space-x-2 transition-all cursor-pointer ${
               activeTab === 'profil'
-                ? 'border-blue-600 text-blue-600 bg-white'
+                ? 'border-[#354944] text-[#354944] bg-white'
                 : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -284,7 +284,7 @@ export default function StudentDetailModal({
             onClick={() => setActiveTab('pertumbuhan')}
             className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center space-x-2 transition-all cursor-pointer ${
               activeTab === 'pertumbuhan'
-                ? 'border-blue-600 text-blue-600 bg-white'
+                ? 'border-[#354944] text-[#354944] bg-white'
                 : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -296,7 +296,7 @@ export default function StudentDetailModal({
             onClick={() => setActiveTab('keuangan')}
             className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center space-x-2 transition-all cursor-pointer ${
               activeTab === 'keuangan'
-                ? 'border-blue-600 text-blue-600 bg-white'
+                ? 'border-[#354944] text-[#354944] bg-white'
                 : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -308,7 +308,7 @@ export default function StudentDetailModal({
             onClick={() => setActiveTab('turnamen')}
             className={`py-3 px-4 font-bold text-xs border-b-2 flex items-center space-x-2 transition-all cursor-pointer ${
               activeTab === 'turnamen'
-                ? 'border-blue-600 text-blue-600 bg-white'
+                ? 'border-[#354944] text-[#354944] bg-white'
                 : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -340,9 +340,9 @@ export default function StudentDetailModal({
                       <button
                         type="button"
                         onClick={() => onEditStudent(currentStudent)}
-                        className="text-[11px] font-bold text-blue-600 hover:underline flex items-center space-x-1 cursor-pointer"
+                        className="text-[11px] font-bold text-[#354944] hover:underline flex items-center space-x-1 cursor-pointer"
                       >
-                        <Edit3 className="w-3 h-3" />
+                        <Edit3 className="w-3 h-3 text-[#C89D32]" />
                         <span>Edit Profil</span>
                       </button>
                     )}
@@ -352,10 +352,10 @@ export default function StudentDetailModal({
                       <img
                         src={currentStudent.photoUrl}
                         alt={currentStudent.studentName}
-                        className="w-12 h-12 rounded-xl object-cover border border-blue-200 shadow-2xs"
+                        className="w-12 h-12 rounded-xl object-cover border border-[#354944]/20 shadow-2xs"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm border border-blue-200 shadow-2xs">
+                      <div className="w-12 h-12 rounded-xl bg-[#354944]/10 text-[#354944] font-bold flex items-center justify-center text-sm border border-[#354944]/20 shadow-2xs">
                         {currentStudent.studentName ? currentStudent.studentName.slice(0, 2).toUpperCase() : 'SW'}
                       </div>
                     )}
@@ -366,23 +366,23 @@ export default function StudentDetailModal({
                   </div>
                   <div className="space-y-1.5 text-xs text-gray-600">
                     <p className="flex items-center space-x-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      <Calendar className="w-3.5 h-3.5 text-[#354944]" />
                       <span>Tgl Lahir: <strong className="text-[#333333]">{currentStudent.birthDate || '-'}</strong></span>
                     </p>
                     <p className="flex items-center space-x-1.5">
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      <FileText className="w-3.5 h-3.5 text-[#354944]" />
                       <span>NIK/KK: <strong className="text-[#333333] font-mono">{currentStudent.nikKk || '-'}</strong></span>
                     </p>
                     <p className="flex items-center space-x-1.5">
-                      <School className="w-3.5 h-3.5 text-blue-600" />
+                      <School className="w-3.5 h-3.5 text-[#354944]" />
                       <span>Asal Sekolah: <strong className="text-[#333333]">{currentStudent.schoolOrigin || '-'}</strong></span>
                     </p>
                     <p className="flex items-center space-x-1.5">
-                      <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                      <GraduationCap className="w-3.5 h-3.5 text-[#354944]" />
                       <span>Kelas / Kelompok: <strong className="text-[#333333]">{currentStudent.className || 'Belum Terdaftar'}</strong></span>
                     </p>
                     <p className="flex items-center space-x-1.5">
-                      <User className="w-3.5 h-3.5 text-indigo-600" />
+                      <User className="w-3.5 h-3.5 text-[#354944]" />
                       <span>Pelatih Utama: <strong className="text-[#333333]">{currentStudent.coachName || 'Belum Ditugaskan'}</strong></span>
                     </p>
                   </div>
@@ -398,7 +398,7 @@ export default function StudentDetailModal({
                       <span>WhatsApp: <strong className="text-[#333333]">{currentStudent.parentPhone || '-'}</strong></span>
                     </p>
                     <p className="flex items-center space-x-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      <Calendar className="w-3.5 h-3.5 text-[#354944]" />
                       <span>Bergabung: <strong className="text-[#333333]">{currentStudent.joinDate || '-'}</strong></span>
                     </p>
                   </div>
@@ -407,33 +407,33 @@ export default function StudentDetailModal({
               </div>
 
               {/* CARD RELASI KELAS & PELATIH + SINKRONISASI UPDATE */}
-              <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-xl space-y-3">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <GraduationCap className="w-4 h-4 text-blue-600" />
-                    <h5 className="font-bold text-xs text-blue-900 uppercase tracking-wider">
+                    <GraduationCap className="w-4 h-4 text-[#354944]" />
+                    <h5 className="font-bold text-xs text-[#354944] uppercase tracking-wider">
                       Kelas &amp; Pelatih
                     </h5>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsEditingClass(!isEditingClass)}
-                    className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
+                    className="px-2.5 py-1 bg-white hover:bg-slate-100 text-[#354944] border border-[#354944]/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
                   >
-                    <Edit3 className="w-3 h-3" />
+                    <Edit3 className="w-3 h-3 text-[#C89D32]" />
                     <span>{isEditingClass ? 'Batal' : 'Ubah / Pindah Kelas'}</span>
                   </button>
                 </div>
 
                 {isEditingClass ? (
-                  <div className="p-3 bg-white rounded-lg border border-blue-200 space-y-2 animate-fade-in">
+                  <div className="p-3 bg-white rounded-lg border border-slate-200 space-y-2 animate-fade-in">
                     <label className="block text-[11px] font-bold text-gray-700">
                       Pilih Kelas / Kelompok Latihan Baru:
                     </label>
                     <select
                       value={editClassId}
                       onChange={(e) => setEditClassId(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 font-medium text-gray-800"
+                      className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#354944] font-medium text-gray-800"
                     >
                       <option value="">-- Tidak Terikat Kelas --</option>
                       {classesList.map((cls) => (
@@ -465,7 +465,7 @@ export default function StudentDetailModal({
                         type="button"
                         disabled={savingClass}
                         onClick={handleSaveClassChange}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                        className="px-4 py-1.5 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] text-xs font-bold rounded-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                       >
                         {savingClass ? (
                           <>
@@ -474,7 +474,7 @@ export default function StudentDetailModal({
                           </>
                         ) : (
                           <>
-                            <Check className="w-3 h-3" />
+                            <Check className="w-3 h-3 text-[#C89D32]" />
                             <span>Simpan Kelas</span>
                           </>
                         )}
@@ -483,13 +483,13 @@ export default function StudentDetailModal({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-2.5 bg-white rounded-lg border border-blue-100">
+                    <div className="p-2.5 bg-white rounded-lg border border-slate-100">
                       <span className="text-[10px] text-gray-400 font-bold uppercase block">Kelas Terdaftar</span>
                       <span className="font-bold text-gray-800 text-sm">
                         {currentStudent.className || 'Belum Terdaftar'}
                       </span>
                     </div>
-                    <div className="p-2.5 bg-white rounded-lg border border-blue-100">
+                    <div className="p-2.5 bg-white rounded-lg border border-slate-100">
                       <span className="text-[10px] text-gray-400 font-bold uppercase block">Pelatih Penanggung Jawab</span>
                       <span className="font-bold text-gray-800 text-sm">
                         {currentStudent.coachName || 'Belum Ditugaskan'}
@@ -500,10 +500,10 @@ export default function StudentDetailModal({
               </div>
 
               {/* Status SPP & Finansial */}
-              <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-xl flex items-center justify-between">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-gray-700">Tarif SPP Bulanan:</p>
-                  <p className="text-lg font-black text-blue-600">
+                  <p className="text-lg font-black text-[#C89D32]">
                     Rp {Number(currentStudent.monthlyFee || 0).toLocaleString('id-ID')}
                   </p>
                 </div>
@@ -523,7 +523,7 @@ export default function StudentDetailModal({
               {/* Alamat Administratif */}
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  <MapPin className="w-3.5 h-3.5 text-[#354944]" />
                   <span>Alamat Administratif Emsifa</span>
                 </p>
                 <p className="text-xs text-gray-700 leading-relaxed font-medium">
@@ -684,7 +684,7 @@ export default function StudentDetailModal({
                             ? 'bg-gray-200 text-gray-800'
                             : t.result?.includes('Juara 3')
                             ? 'bg-amber-800/10 text-amber-900'
-                            : 'bg-blue-50 text-blue-800'
+                            : 'bg-[#354944]/10 text-[#354944]'
                         }`}>
                           {t.result}
                         </span>

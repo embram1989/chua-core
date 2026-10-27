@@ -63,7 +63,7 @@ const CustomBarTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-xl border border-slate-700/80 text-xs min-w-[150px]">
         <p className="font-extrabold text-slate-300 border-b border-slate-800 pb-1">{label}</p>
-        <p className="font-black text-sm text-blue-400 mt-1">
+        <p className="font-black text-sm text-[#D4A73A] mt-1">
           {data.value} Siswa Terdaftar
         </p>
         {data.payload?.coach && (
@@ -360,7 +360,7 @@ export default function AcademyDashboard({
         <div className="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-h-[260px]">
           <div className="border-b border-slate-100 pb-2.5">
             <h3 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
-              <CreditCard className="w-4 h-4 text-blue-600" />
+              <CreditCard className="w-4 h-4 text-[#354944]" />
               <span>Proporsi SPP Bulan Ini</span>
             </h3>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -442,14 +442,14 @@ export default function AcademyDashboard({
           <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
             <div>
               <h3 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
-                <BookOpen className="w-4 h-4 text-indigo-600" />
+                <BookOpen className="w-4 h-4 text-[#354944]" />
                 <span>Distribusi Siswa per Kelas</span>
               </h3>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 Kapasitas dan populasi siswa antar kelas di {activeAcademy.name}
               </p>
             </div>
-            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+            <span className="text-[10px] font-bold text-[#354944] bg-[#354944]/10 px-2 py-0.5 rounded-md border border-[#354944]/20">
               {activeClasses.length} Kelas
             </span>
           </div>
@@ -465,7 +465,7 @@ export default function AcademyDashboard({
                 {onAddClass && (
                   <button
                     onClick={onAddClass}
-                    className="mt-2 px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    className="mt-2 px-2.5 py-1 bg-[#354944] text-white hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
                   >
                     + Buat Kelas
                   </button>
@@ -577,7 +577,7 @@ export default function AcademyDashboard({
                     >
                       {/* Nama Siswa */}
                       <td className="py-2.5 px-3">
-                        <p className="font-bold text-slate-800 hover:text-blue-600 transition-colors">
+                        <p className="font-bold text-slate-800 hover:text-[#C89D32] transition-colors">
                           {st.studentName || st.name}
                         </p>
                         {st.nikKk && (
@@ -587,7 +587,7 @@ export default function AcademyDashboard({
 
                       {/* Kelas & Pelatih */}
                       <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-md inline-block">
+                        <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] font-bold text-[10px] rounded-md inline-block">
                           {st.className || 'Reguler'}
                         </span>
                         {st.coachName && (
@@ -639,7 +639,7 @@ export default function AcademyDashboard({
                             <button
                               type="button"
                               onClick={() => onPaySpp(st)}
-                              className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-[11px] font-bold border border-blue-200 transition-colors cursor-pointer shadow-2xs"
+                              className="px-2.5 py-1 bg-[#354944] text-white hover:bg-[#2B3D38] rounded-lg text-[11px] font-bold border-b-2 border-[#C89D32] transition-colors cursor-pointer shadow-2xs"
                               title="Bayar SPP Sekarang"
                             >
                               Bayar

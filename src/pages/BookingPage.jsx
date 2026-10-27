@@ -96,7 +96,7 @@ export default function BookingPage({ userProfile }) {
         <div className="flex items-center space-x-2.5 shrink-0">
           {/* Date Selector */}
           <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl text-xs">
-            <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
+            <Calendar className="w-4 h-4 text-[#C89D32] shrink-0" />
             <input
               type="date"
               value={selectedDate}
@@ -122,7 +122,7 @@ export default function BookingPage({ userProfile }) {
               setShowModal(true);
             }}
             disabled={courts.length === 0}
-            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0 disabled:opacity-50"
+            className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white font-bold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 shrink-0 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             <span>+ Booking Baru</span>
@@ -155,17 +155,17 @@ export default function BookingPage({ userProfile }) {
                 {/* Court Card Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border border-blue-100">
+                    <div className="w-10 h-10 bg-[#354944]/10 text-[#354944] rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border border-[#354944]/20">
                       {court.name.charAt(0)}
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
                         <h2 className="font-bold text-sm sm:text-base text-slate-800">{court.name}</h2>
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-md uppercase">
+                        <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] font-bold text-[10px] rounded-md uppercase border border-[#354944]/20">
                           {court.sport || 'Sports'}
                         </span>
                       </div>
-                      <p className="text-xs text-blue-600 font-bold mt-0.5">{courtPriceFormatted}</p>
+                      <p className="text-xs text-[#354944] font-bold mt-0.5">{courtPriceFormatted}</p>
                     </div>
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export default function BookingPage({ userProfile }) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <span>Slot Operasional ({selectedDate}):</span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">Hijau = Tersedia</span>
+                    <span className="text-[10px] text-[#C89D32] font-bold">Gold = Tersedia</span>
                   </div>
 
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
@@ -204,16 +204,16 @@ export default function BookingPage({ userProfile }) {
                           <div
                             key={slot.start}
                             className={`p-2 rounded-xl text-white border flex flex-col justify-between space-y-1 shadow-2xs select-none ${
-                              isPast ? 'bg-slate-700 border-slate-600 opacity-80' : 'bg-slate-900 border-slate-800'
+                              isPast ? 'bg-slate-700 border-slate-600 opacity-80' : 'bg-[#354944] border-[#2B3D38]'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-extrabold text-[11px] tracking-tight">
                                 {slot.start}
                               </span>
-                              <span className={`w-1.5 h-1.5 rounded-full ${isPast ? 'bg-slate-400' : 'bg-red-500 animate-pulse'}`} />
+                              <span className={`w-1.5 h-1.5 rounded-full ${isPast ? 'bg-slate-400' : 'bg-[#C89D32] animate-pulse'}`} />
                             </div>
-                            <p className="text-[10px] font-bold text-red-200 truncate leading-tight">
+                            <p className="text-[10px] font-bold text-[#E5B640] truncate leading-tight">
                               {activeBooking.customerName}
                             </p>
                           </div>
@@ -243,15 +243,15 @@ export default function BookingPage({ userProfile }) {
                         <button
                           key={slot.start}
                           onClick={() => handleOpenBookingForSlot(court, slot)}
-                          className="p-2 rounded-xl bg-emerald-50/60 hover:bg-emerald-100/80 border border-emerald-200/80 text-emerald-800 flex flex-col justify-between space-y-1 transition-all shadow-2xs cursor-pointer text-left"
+                          className="p-2 rounded-xl bg-[#FFF8E1] hover:bg-[#FFE082]/60 border border-[#FFE082] text-[#C89D32] flex flex-col justify-between space-y-1 transition-all shadow-2xs cursor-pointer text-left font-medium"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-extrabold text-[11px] text-emerald-900 tracking-tight">
+                            <span className="font-extrabold text-[11px] text-[#A67F22] tracking-tight">
                               {slot.start}
                             </span>
-                            <Plus className="w-3 h-3 text-emerald-600" />
+                            <Plus className="w-3 h-3 text-[#C89D32]" />
                           </div>
-                          <span className="text-[10px] font-bold text-emerald-700">
+                          <span className="text-[10px] font-bold text-[#C89D32]">
                             Buka
                           </span>
                         </button>

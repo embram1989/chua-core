@@ -357,7 +357,7 @@ export default function CoachModal({
                   <img
                     src={photoPreview}
                     alt="Preview Pelatih"
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-blue-500/30 shadow-xs"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#354944]/30 shadow-xs"
                   />
                   <button
                     type="button"
@@ -369,7 +369,7 @@ export default function CoachModal({
                   </button>
                 </div>
               ) : (
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-blue-500">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#354944]/10 border-2 border-dashed border-[#354944]/30 flex flex-col items-center justify-center text-[#354944]">
                   <Camera className="w-6 h-6" />
                   <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
                 </div>
@@ -384,7 +384,7 @@ export default function CoachModal({
                 Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> instruktur dan sistem <strong>Barcode</strong> kehadiran.
               </p>
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#354944]/10 text-[#354944] border border-[#354944]/20 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
                   <input
@@ -412,7 +412,7 @@ export default function CoachModal({
             {/* KOLOM KIRI: DATA PRIBADI & LEGAL */}
             <div className="space-y-3.5">
               <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1.5">
+                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
                   <User className="w-3.5 h-3.5" />
                   <span>Identitas &amp; Legal Pelatih</span>
                 </h4>
@@ -420,7 +420,7 @@ export default function CoachModal({
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Lengkap Pelatih <span className="text-blue-600">*</span>
+                  Nama Lengkap Pelatih <span className="text-[#C89D32]">*</span>
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -430,7 +430,7 @@ export default function CoachModal({
                     value={coachName}
                     onChange={(e) => setCoachName(e.target.value)}
                     placeholder="Nama lengkap sesuai KTP"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
               </div>
@@ -444,7 +444,7 @@ export default function CoachModal({
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   placeholder="Nama panggilan harian"
-                  className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                 />
               </div>
 
@@ -460,14 +460,14 @@ export default function CoachModal({
                     value={nik}
                     onChange={(e) => setNik(e.target.value)}
                     placeholder="16 digit NIK KTP"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-mono"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nomor WhatsApp <span className="text-blue-600">*</span>
+                  Nomor WhatsApp <span className="text-[#C89D32]">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -477,7 +477,7 @@ export default function CoachModal({
                     value={coachPhone}
                     onChange={(e) => setCoachPhone(e.target.value)}
                     placeholder="081234567890"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function CoachModal({
                   <select
                     value={sportSpecialty}
                     onChange={(e) => setSportSpecialty(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
                   >
                     {uniqueSports?.length > 0 ? (
                       uniqueSports.map((s) => (
@@ -513,7 +513,7 @@ export default function CoachModal({
                       value={license}
                       onChange={(e) => setLicense(e.target.value)}
                       placeholder="Lisensi B / BWF"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                     />
                   </div>
                 </div>
@@ -523,7 +523,7 @@ export default function CoachModal({
             {/* KOLOM KANAN: ALAMAT BERJENJANG EMSIFA */}
             <div className="space-y-3.5">
               <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center space-x-1.5">
+                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
                   <MapPin className="w-3.5 h-3.5" />
                   <span>Domisili &amp; Alamat (Emsifa API)</span>
                 </h4>
@@ -536,7 +536,7 @@ export default function CoachModal({
                     value={selectedProvince?.id || ''}
                     onChange={handleProvinceChange}
                     disabled={loadingProvinces}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                   >
                     <option value="">
                       {selectedProvince?.name ? selectedProvince.name : (loadingProvinces ? 'Memuat Provinsi...' : '-- Pilih Provinsi --')}
@@ -553,7 +553,7 @@ export default function CoachModal({
                     value={selectedRegency?.id || ''}
                     onChange={handleRegencyChange}
                     disabled={!selectedProvince?.id || loadingRegencies}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                   >
                     <option value="">
                       {selectedRegency?.name ? selectedRegency.name : (loadingRegencies ? 'Memuat Kab/Kota...' : '-- Pilih Kabupaten/Kota --')}
@@ -570,7 +570,7 @@ export default function CoachModal({
                     value={selectedDistrict?.id || ''}
                     onChange={handleDistrictChange}
                     disabled={!selectedRegency?.id || loadingDistricts}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                   >
                     <option value="">
                       {selectedDistrict?.name ? selectedDistrict.name : (loadingDistricts ? 'Memuat Kecamatan...' : '-- Pilih Kecamatan --')}
@@ -587,7 +587,7 @@ export default function CoachModal({
                     value={selectedVillage?.id || ''}
                     onChange={handleVillageChange}
                     disabled={!selectedDistrict?.id || loadingVillages}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
                   >
                     <option value="">
                       {selectedVillage?.name ? selectedVillage.name : (loadingVillages ? 'Memuat Kelurahan...' : '-- Pilih Kelurahan --')}
@@ -605,7 +605,7 @@ export default function CoachModal({
                     value={addressDetail}
                     onChange={(e) => setAddressDetail(e.target.value)}
                     placeholder="Nama jalan, nomor rumah, RT/RW, blok..."
-                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] resize-none"
                   />
                 </div>
               </div>
@@ -627,7 +627,7 @@ export default function CoachModal({
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
+              className="px-6 py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
             >
               {submitting ? (
                 <>
