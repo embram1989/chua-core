@@ -81,18 +81,18 @@ export default function PaymentGatewayModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-3xl border border-slate-100 max-w-lg w-full my-auto p-6 md:p-7 space-y-5 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+        {/* Modal Header (Sticky) */}
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-[#162320]/95 backdrop-blur-xs shrink-0">
           <div className="flex items-center gap-3">
             <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shrink-0 border ${
               paymentMethod === 'QRIS'
-                ? 'bg-rose-50 text-rose-600 border-rose-100'
+                ? 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/40 dark:border-rose-900/50'
                 : paymentMethod === 'Transfer Bank'
-                ? 'bg-blue-50 text-blue-600 border-blue-100'
-                : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                ? 'bg-[#354944]/10 text-[#354944] border-[#354944]/20 dark:text-[#C89D32]'
+                : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/50'
             }`}>
               {paymentMethod === 'QRIS' ? (
                 <QrCode className="w-5 h-5" />
@@ -103,11 +103,11 @@ export default function PaymentGatewayModal({
               )}
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 text-base leading-tight">
+              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base leading-tight">
                 Instruksi Pembayaran &amp; Verifikasi Kasir
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Metode: <strong className="text-slate-800">{paymentMethod}</strong> &bull; {draftRegistration.participantName || 'Peserta'}
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Metode: <strong className="text-[#354944] dark:text-[#C89D32]">{paymentMethod}</strong> &bull; {draftRegistration.participantName || 'Peserta'}
               </p>
             </div>
           </div>
@@ -115,15 +115,15 @@ export default function PaymentGatewayModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Tutup & Kembali ke Form"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="space-y-4">
+        {/* Modal Body (Scrollable) */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
           {/* Info Ringkas Tagihan */}
           <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs">
             <div>
@@ -297,13 +297,13 @@ export default function PaymentGatewayModal({
           )}
         </div>
 
-        {/* Modal Actions Footer */}
-        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3">
+        {/* Modal Actions Footer (Sticky) */}
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0 flex flex-col sm:flex-row items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
             disabled={isProcessing}
-            className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer transition-colors"
           >
             Batal
           </button>
@@ -312,7 +312,7 @@ export default function PaymentGatewayModal({
             onClick={onConfirmPayment}
             disabled={isProcessing || !isPaymentConfigValid}
             title={!isPaymentConfigValid ? 'Konfigurasi pembayaran belum lengkap' : 'Konfirmasi pembayaran diterima'}
-            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] font-black rounded-xl text-xs shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:border-transparent disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <>

@@ -212,11 +212,11 @@ export default function StudentDetailModal({
   ].filter(Boolean).join(', ');
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-fade-in text-[#333333] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* MODAL HEADER */}
-        <div className="bg-[#333333] text-white p-5 sm:p-6 flex items-center justify-between shrink-0">
+        {/* MODAL HEADER (Sticky) */}
+        <div className="bg-gradient-to-r from-[#1E2B28] to-[#243531] text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-[#354944]">
           <div className="flex items-center space-x-3">
             {currentStudent.photoUrl ? (
               <img
@@ -697,6 +697,32 @@ export default function StudentDetailModal({
             </div>
           )}
 
+        </div>
+
+        {/* MODAL FOOTER (Sticky) */}
+        <div className="p-4 px-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex items-center justify-between gap-3 shrink-0">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            ID Atlet: <span className="font-mono font-bold text-slate-700 dark:text-slate-200">{currentStudent.id}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {onGenerateIdCard && (
+              <button
+                type="button"
+                onClick={() => onGenerateIdCard(currentStudent)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                <IdCard className="w-4 h-4 text-[#C89D32]" />
+                <span>Cetak ID Card</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
 
       </div>

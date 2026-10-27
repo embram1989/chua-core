@@ -144,27 +144,28 @@ export default function NewBookingModal({
   const selectedCourtObj = courts.find((c) => c.id === selectedCourtId);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-fade-in text-[#333333]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+        {/* Header (Sticky) */}
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div>
-            <h2 className="font-bold text-base text-[#333333]">Buat Reservasi Baru</h2>
-            <p className="text-xs text-gray-500">Masukkan detail jadwal untuk menghitung biaya sewa secara otomatis.</p>
+            <h2 className="font-bold text-base text-slate-900 dark:text-slate-100">Buat Reservasi Baru</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Masukkan detail jadwal untuk menghitung biaya sewa secara otomatis.</p>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-black cursor-pointer">
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+          <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-xl font-medium shrink-0">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-3.5 text-left">
           
           {/* Dropdown Court Selection */}
           <div>
@@ -279,18 +280,20 @@ export default function NewBookingModal({
             </div>
 
             <div className="flex items-baseline justify-between pt-1 border-t border-[#354944]/10">
-              <span className="text-xs font-bold text-gray-700 uppercase">Total Biaya Booking:</span>
-              <span className="text-lg font-black text-[#354944]">
+              <span className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase">Total Biaya Booking:</span>
+              <span className="text-lg font-black text-[#354944] dark:text-[#C89D32]">
                 Rp {calculatedPrice.toLocaleString('id-ID')}
               </span>
             </div>
           </div>
+          </div>
 
-          <div className="flex space-x-3 pt-2">
+          {/* Sticky Footer */}
+          <div className="flex space-x-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex-1 py-2.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
             >
               Batal
             </button>

@@ -422,15 +422,15 @@ export default function StudentRegistrationModal({
   const currentSelectedClass = classesList.find((c) => c.id === studentClassId);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl text-[#333333] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-white shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        {/* Header (Sticky) */}
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div>
-            <h3 className="font-bold text-base text-[#333333]">
+            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
               {isEditing ? 'Edit Data & Kelas Siswa' : 'Pendaftaran Siswa Akademi Baru'}
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isEditing 
                 ? 'Perbarui identitas, penetapan kelas/pelatih, & informasi siswa' 
                 : 'Lengkapi identitas siswa, wali murid, kelompok latihan, & alamat administratif Emsifa'}
@@ -439,13 +439,14 @@ export default function StudentRegistrationModal({
           <button 
             type="button"
             onClick={onClose} 
-            className="p-1 text-gray-400 hover:text-black cursor-pointer rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {errorMsg && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
               {errorMsg}
@@ -841,18 +842,19 @@ export default function StudentRegistrationModal({
                     placeholder="Alamat jalan, nomor rumah, RT/RW..."
                     className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] resize-none"
                   />
-                </div>
               </div>
             </div>
           </div>
+          </div>
+          </div>
 
-          {/* Modal Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+          {/* Modal Action Buttons (Sticky Footer) */}
+          <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
             <button
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-black cursor-pointer transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors"
             >
               Batal
             </button>

@@ -29,21 +29,19 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Page Content Transition (220ms cubic-bezier(0.16, 1, 0.3, 1)) */
+/* Page Content Transition (Pure Opacity Transition - NO transform to protect position: fixed modals) */
 @keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .animate-page-enter {
-  animation: pageEnter 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
+  animation: pageEnter 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity;
 }
 
 /* Category Modal Smooth Fade Transition (150ms) */

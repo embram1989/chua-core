@@ -181,7 +181,7 @@ export default function Layout({ userProfile }) {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-800 text-sm overflow-x-hidden">
+    <div className="h-screen w-screen overflow-hidden flex flex-col lg:flex-row font-sans text-slate-800 dark:text-slate-100 text-sm bg-[#EBF0EE] dark:bg-[#0C1412]">
       
       {/* DESKTOP SIDEBAR (>= 1024px) */}
       <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-[#354944] dark:bg-[#14211E] fixed top-3 bottom-3 left-3 z-30 rounded-3xl transition-all duration-300 select-none text-slate-200 border-l border-t border-b border-r-0 border-[#425953] dark:border-[#233531] shadow-none`}>
@@ -702,7 +702,7 @@ export default function Layout({ userProfile }) {
       </AnimatePresence>
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} transition-all duration-300 min-w-0 max-w-full overflow-x-hidden pb-8 pt-4 lg:pt-6 px-3 sm:px-6 lg:px-8`}>
+      <main className={`flex-1 h-full overflow-y-auto relative ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} transition-[margin] duration-300 min-w-0 max-w-full pb-8 pt-4 lg:pt-6 px-3 sm:px-6 lg:px-8`}>
         <div key={location.pathname + location.search} className="max-w-7xl mx-auto w-full min-w-0 animate-page-enter">
           <Outlet />
         </div>

@@ -73,27 +73,28 @@ export default function BookingPaymentModal({
   const accountHolder = tenantProfile?.bankAccountHolder || tenantProfile?.name || 'GOR Arena';
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-gray-100 space-y-5 text-[#333333]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        {/* Header (Sticky) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div>
-            <h2 className="font-black text-base text-gray-900">Pembayaran Sewa Lapangan</h2>
-            <p className="text-xs text-gray-500 font-medium">Selesaikan pembayaran untuk mengonfirmasi reservasi.</p>
+            <h2 className="font-black text-base text-slate-900 dark:text-slate-100">Pembayaran Sewa Lapangan</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Selesaikan pembayaran untuk mengonfirmasi reservasi.</p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-black rounded-full hover:bg-gray-100 cursor-pointer">
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+          <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-xl font-medium shrink-0">
             {errorMsg}
           </div>
         )}
 
-        {/* Summary Details */}
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2.5">
           <div className="flex justify-between items-center text-xs">
             <span className="text-gray-500 font-semibold">Lapangan</span>
@@ -225,13 +226,14 @@ export default function BookingPaymentModal({
             )}
           </div>
         )}
+        </div>
 
-        {/* Action Buttons */}
-        <div className="pt-2 flex items-center space-x-3">
+        {/* Action Buttons (Sticky Footer) */}
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex items-center space-x-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+            className="flex-1 py-2.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold text-xs rounded-xl cursor-pointer transition-colors"
           >
             Batal
           </button>
@@ -239,7 +241,7 @@ export default function BookingPaymentModal({
             type="button"
             disabled={isSubmitting || !isCashValid}
             onClick={handleConfirmPayment}
-            className={`flex-1 py-3 text-white font-bold text-xs rounded-xl shadow-sm transition-all ${
+            className={`flex-1 py-2.5 text-white font-bold text-xs rounded-xl shadow-sm transition-all ${
               !isCashValid || isSubmitting
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 shadow-none'
                 : 'bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] cursor-pointer'

@@ -421,10 +421,10 @@ export default function SponsorPaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-        {/* HEADER MODAL */}
-        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white p-5 sm:p-6 flex items-center justify-between relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        {/* HEADER MODAL (Sticky) */}
+        <div className="bg-gradient-to-r from-[#354944] via-[#2B3D38] to-[#1E2C28] text-white p-5 sm:p-6 flex items-center justify-between relative overflow-hidden shrink-0 border-b-2 border-[#C89D32]">
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center space-x-3.5 z-10">
             <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner shrink-0 p-1.5">
@@ -435,11 +435,11 @@ export default function SponsorPaymentModal({
                 <h3 className="font-black text-base sm:text-lg tracking-tight">
                   Pencatatan Pembayaran Sponsor (B2B)
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-white/20 border border-white/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#C89D32] text-slate-900 border border-[#C89D32]/50 shadow-xs">
                   {sponsor.category || 'Sponsorship'}
                 </span>
               </div>
-              <p className="text-xs text-amber-100 font-medium truncate max-w-xs sm:max-w-md mt-0.5">
+              <p className="text-xs text-emerald-100/90 font-medium truncate max-w-xs sm:max-w-md mt-0.5">
                 {sponsor.companyName || sponsor.name} &bull; {sponsor.eventName || 'Sponsor Global'}
               </p>
             </div>
@@ -452,78 +452,80 @@ export default function SponsorPaymentModal({
           </button>
         </div>
 
-        {/* FINANCIAL SUMMARY SCORECARD */}
-        <div className="p-5 sm:p-6 bg-slate-50 border-b border-slate-200/80 space-y-3">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {/* Total Nilai Kontrak */}
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Nilai Kontrak
-              </span>
-              <span className="font-black text-xs sm:text-sm text-slate-800 block mt-0.5 truncate">
-                {formatRupiah(contractValue)}
-              </span>
-            </div>
+        <form onSubmit={handleSubmitPayment} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto space-y-4">
+            {/* FINANCIAL SUMMARY SCORECARD */}
+            <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200/80 dark:border-slate-800 space-y-3">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {/* Total Nilai Kontrak */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                    Nilai Kontrak
+                  </span>
+                  <span className="font-black text-xs sm:text-sm text-slate-800 dark:text-slate-100 block mt-0.5 truncate">
+                    {formatRupiah(contractValue)}
+                  </span>
+                </div>
 
-            {/* Sudah Terbayar (Cair) */}
-            <div className="bg-white p-3 rounded-2xl border border-emerald-200 shadow-2xs">
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">
-                Sudah Cair
-              </span>
-              <span className="font-black text-xs sm:text-sm text-emerald-600 block mt-0.5 truncate">
-                {formatRupiah(currentTotalPaid)}
-              </span>
-            </div>
+                {/* Sudah Terbayar (Cair) */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                    Sudah Cair
+                  </span>
+                  <span className="font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 block mt-0.5 truncate">
+                    {formatRupiah(currentTotalPaid)}
+                  </span>
+                </div>
 
-            {/* Sisa Tagihan */}
-            <div className="bg-white p-3 rounded-2xl border border-rose-200 shadow-2xs">
-              <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
-                Sisa Tagihan
-              </span>
-              <span className="font-black text-xs sm:text-sm text-rose-600 block mt-0.5 truncate">
-                {formatRupiah(remainingBalance)}
-              </span>
-            </div>
-          </div>
-
-          {/* Menunggu Kliring Giro (Jika Ada) */}
-          {currentPendingAmount > 0 && (
-            <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs text-amber-800">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
-                <span className="font-bold">Giro Menunggu Kliring:</span>
+                {/* Sisa Tagihan */}
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-rose-200 dark:border-rose-800 shadow-2xs">
+                  <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
+                    Sisa Tagihan
+                  </span>
+                  <span className="font-black text-xs sm:text-sm text-rose-600 dark:text-rose-400 block mt-0.5 truncate">
+                    {formatRupiah(remainingBalance)}
+                  </span>
+                </div>
               </div>
-              <span className="font-black text-amber-700">{formatRupiah(currentPendingAmount)}</span>
-            </div>
-          )}
 
-          {/* Progress Bar Kontrak */}
-          <div className="space-y-1">
-            <div className="flex justify-between items-center text-[10px] font-bold">
-              <span className="text-slate-500">Status Pelunasan Kontrak</span>
-              <span className={paymentPercentage >= 100 ? 'text-emerald-600' : 'text-amber-600'}>
-                {paymentPercentage}% ({remainingBalance === 0 ? 'LUNAS' : 'TERMIN AKTIF'})
-              </span>
-            </div>
-            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  paymentPercentage >= 100 ? 'bg-emerald-500' : 'bg-amber-500'
-                }`}
-                style={{ width: `${paymentPercentage}%` }}
-              />
-            </div>
-          </div>
-        </div>
+              {/* Menunggu Kliring Giro (Jika Ada) */}
+              {currentPendingAmount > 0 && (
+                <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center justify-between text-xs text-amber-800 dark:text-amber-200">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
+                    <span className="font-bold">Giro Menunggu Kliring:</span>
+                  </div>
+                  <span className="font-black text-amber-700 dark:text-amber-300">{formatRupiah(currentPendingAmount)}</span>
+                </div>
+              )}
 
-        {/* FORM PENCATATAN TERMIN */}
-        <form onSubmit={handleSubmitPayment} className="p-5 sm:p-6 space-y-4">
-          {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-2 text-xs text-red-700">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
+              {/* Progress Bar Kontrak */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-[10px] font-bold">
+                  <span className="text-slate-500 dark:text-slate-400">Status Pelunasan Kontrak</span>
+                  <span className={paymentPercentage >= 100 ? 'text-emerald-600' : 'text-[#C89D32]'}>
+                    {paymentPercentage}% ({remainingBalance === 0 ? 'LUNAS' : 'TERMIN AKTIF'})
+                  </span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      paymentPercentage >= 100 ? 'bg-emerald-500' : 'bg-[#C89D32]'
+                    }`}
+                    style={{ width: `${paymentPercentage}%` }}
+                  />
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* FORM PENCATATAN TERMIN FIELDS */}
+            <div className="p-5 sm:p-6 space-y-4">
+              {errorMsg && (
+                <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-center space-x-2 text-xs text-red-700 dark:text-red-300">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
           {successNotice && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-xs text-emerald-700 font-bold">
@@ -789,8 +791,11 @@ export default function SponsorPaymentModal({
             </div>
           )}
 
-          {/* ACTION BUTTONS */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            </div>
+          </div>
+
+          {/* STICKY FOOTER */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0 flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => {
@@ -808,10 +813,10 @@ export default function SponsorPaymentModal({
                   userProfile
                 );
               }}
-              className="px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 transition-colors cursor-pointer flex items-center space-x-1.5"
+              className="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center space-x-1.5"
               title="Cetak Invoice PDF Resmi"
             >
-              <FileText className="w-4 h-4 text-indigo-600" />
+              <FileText className="w-4 h-4 text-[#C89D32]" />
               <span>Cetak Invoice</span>
             </button>
 
@@ -820,18 +825,14 @@ export default function SponsorPaymentModal({
                 type="button"
                 disabled={isSubmitting}
                 onClick={onClose}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`px-5 py-2.5 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer flex items-center space-x-2 disabled:opacity-50 ${
-                  isGiro
-                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800'
-                    : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
-                }`}
+                className="px-5 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer flex items-center space-x-2 disabled:opacity-50"
               >
                 <Receipt className="w-4 h-4" />
                 <span>

@@ -204,11 +204,11 @@ export default function ClassModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl animate-fade-in text-slate-800 dark:text-slate-100 max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 shrink-0">
+        {/* Header (Sticky) */}
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">Buat Kelas / Kelompok Latihan</h3>
@@ -225,19 +225,20 @@ export default function ClassModal({
           <button 
             type="button"
             onClick={onClose} 
-            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium shrink-0">
+          <div className="mx-6 mt-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium shrink-0">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleCreateClass} className="space-y-4 text-left flex-1 overflow-y-auto pr-1">
+        <form onSubmit={handleCreateClass} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
           
           {/* Nama Kelas */}
           <div>
@@ -410,8 +411,10 @@ export default function ClassModal({
               <span>+ Tambah Sesi Hari Lain</span>
             </button>
           </div>
+          </div>
 
-          <div className="flex space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
+          {/* Sticky Footer */}
+          <div className="flex space-x-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
             <button
               type="button"
               onClick={onClose}

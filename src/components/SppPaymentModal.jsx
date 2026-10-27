@@ -194,51 +194,51 @@ export default function SppPaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
-      {/* Strict Container Max-Height & Overflow for Non-Cutoff Scrolling */}
-      <div className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-100 text-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 sticky top-0 bg-white z-10">
+        {/* Modal Header (Sticky) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#354944]/10 text-[#354944] flex items-center justify-center font-bold shrink-0 border border-[#354944]/20">
+            <div className="w-9 h-9 rounded-xl bg-[#354944] text-[#C89D32] flex items-center justify-center font-bold shrink-0 border border-[#C89D32]/30 shadow-2xs">
               <CreditCard className="w-5 h-5 text-[#C89D32]" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-slate-900 tracking-tight">Kasir Pembayaran Akademi</h3>
-              <p className="text-xs text-slate-500">Biaya Pendaftaran &amp; Tagihan SPP Siswa</p>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 tracking-tight">Kasir Pembayaran Akademi</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Biaya Pendaftaran &amp; Tagihan SPP Siswa</p>
             </div>
           </div>
           <button 
             type="button" 
             onClick={onClose} 
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-bold flex items-center gap-2">
+          <div className="mx-6 mt-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-bold flex items-center gap-2 shrink-0">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Student Overview Box */}
-        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-black text-slate-900">{student.studentName}</p>
-            <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] font-extrabold text-[10px] rounded-md uppercase border border-[#354944]/20">
-              {student.sportCategory || 'Akademi'}
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-500">
-            Wali Murid: <strong className="text-slate-700">{student.parentName || '-'}</strong> ({student.parentPhone || '-'})
-          </p>
-        </div>
+        <form onSubmit={handleSubmitPayment} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
 
-        <form onSubmit={handleSubmitPayment} className="space-y-4 text-left">
+            {/* Student Overview Box */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-black text-slate-900">{student.studentName}</p>
+                <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] font-extrabold text-[10px] rounded-md uppercase border border-[#354944]/20">
+                  {student.sportCategory || 'Akademi'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Wali Murid: <strong className="text-slate-700">{student.parentName || '-'}</strong> ({student.parentPhone || '-'})
+              </p>
+            </div>
           
           {/* Month Selector */}
           <div>
@@ -392,26 +392,27 @@ export default function SppPaymentModal({
           )}
 
           {/* Dynamic Total Summary */}
-          <div className="flex items-baseline justify-between pt-3 border-t border-slate-100">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Pembayaran:</span>
+          <div className="flex items-baseline justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Pembayaran:</span>
             <span className="text-xl font-black text-[#C89D32]">
               Rp {totalTagihan.toLocaleString('id-ID')}
             </span>
           </div>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 pt-1">
+          {/* Action Buttons (Sticky Footer) */}
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex items-center gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={submitting || totalTagihan <= 0}
-              className="flex-1 py-3 bg-[#354944] hover:bg-[#2B3D38] text-white font-extrabold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-extrabold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <CreditCard className="w-4 h-4 text-[#C89D32]" />
               <span>{submitting ? 'Memproses...' : 'Konfirmasi & Cetak Struk'}</span>

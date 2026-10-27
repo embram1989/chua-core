@@ -181,102 +181,104 @@ export default function GenerateAcademyScheduleModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-fade-in text-[#333333]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+        {/* Header (Sticky) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 bg-[#354944] text-[#C89D32] rounded-xl border border-[#C89D32]/30 shadow-xs">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-800">Kunci Jadwal Lapangan</h3>
-              <p className="text-[11px] text-gray-500">Smart Conflict Detection (Auto-skip jika bentrok turnamen)</p>
+              <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Kunci Jadwal Lapangan</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Smart Conflict Detection (Auto-skip jika bentrok turnamen)</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-black cursor-pointer">
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-xl">
-          <p className="text-xs font-bold text-blue-600">{academyClass.className}</p>
-          <p className="text-[11px] text-gray-600 mt-0.5">
-            Cabor: {academyClass.sport} • Pelatih: {academyClass.coachName}
-          </p>
-        </div>
+        <form onSubmit={handleGenerate} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
+            <div className="p-3 bg-[#354944]/10 border border-[#354944]/20 rounded-xl">
+              <p className="text-xs font-bold text-[#354944] dark:text-[#C89D32]">{academyClass.className}</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                Cabor: {academyClass.sport} • Pelatih: {academyClass.coachName}
+              </p>
+            </div>
 
-        {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
-            {errorMsg}
-          </div>
-        )}
+            {errorMsg && (
+              <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-xl font-medium">
+                {errorMsg}
+              </div>
+            )}
 
-        {successMsg && (
-          <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-xs rounded-xl font-medium flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-            <span className="text-xs">{successMsg}</span>
-          </div>
-        )}
+            {successMsg && (
+              <div className="p-3 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-xs rounded-xl font-medium flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-xs">{successMsg}</span>
+              </div>
+            )}
 
-        <form onSubmit={handleGenerate} className="space-y-4 text-left">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Dari Tanggal <span className="text-blue-600">*</span>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+              Dari Tanggal <span className="text-[#354944] dark:text-[#C89D32]">*</span>
             </label>
             <div className="relative">
-              <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="date"
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
+                className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-[#354944] font-medium"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Sampai Tanggal <span className="text-blue-600">*</span>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+              Sampai Tanggal <span className="text-[#354944] dark:text-[#C89D32]">*</span>
             </label>
             <div className="relative">
-              <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="date"
                 required
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
+                className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-[#354944] font-medium"
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
               Sistem akan memindai rentang tanggal dan secara cerdas melewati jadwal jika bertabrakan dengan jadwal turnamen atau reservasi lapangan lain.
             </p>
           </div>
+        </div>
 
-          <div className="flex items-center justify-end space-x-2 pt-3 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={generating}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={generating}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs disabled:opacity-50 flex items-center space-x-1.5"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>{generating ? 'Memeriksa & Mengunci...' : 'Generate & Blokir Lapangan'}</span>
-            </button>
-          </div>
-        </form>
-
-      </div>
+        {/* Sticky Footer */}
+        <div className="flex items-center justify-end space-x-2 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={generating}
+            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={generating}
+            className="px-5 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm disabled:opacity-50 flex items-center space-x-1.5"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>{generating ? 'Memeriksa & Mengunci...' : 'Generate & Blokir Lapangan'}</span>
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }

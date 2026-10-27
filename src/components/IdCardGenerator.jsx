@@ -81,34 +81,34 @@ export default function IdCardGenerator({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[94vh]">
-        {/* Modal Header */}
-        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#162320] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        {/* Modal Header (Sticky) */}
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div className="flex items-center space-x-2.5">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${isStudent ? 'bg-blue-600' : 'bg-amber-600'}`}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[#C89D32] bg-[#354944] border border-[#C89D32]/30 shadow-xs">
               <IdCard className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-sm sm:text-base leading-tight">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-tight">
                 Generate ID Card {isStudent ? 'Siswa' : 'Pelatih'}
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Kartu anggota digital resmi dengan QR Code terverifikasi
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body / Preview Area */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex flex-col items-center justify-center bg-slate-100/60">
+        {/* Modal Body / Preview Area (Scrollable) */}
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-900/40">
           
           {/* THE ID CARD ELEMENT TO BE RENDERED/DOWNLOADED */}
           <div
@@ -248,12 +248,12 @@ export default function IdCardGenerator({
           </p>
         </div>
 
-        {/* Modal Actions */}
-        <div className="px-5 py-3.5 border-t border-slate-100 bg-white flex items-center justify-end space-x-2.5">
+        {/* Modal Actions (Sticky Footer) */}
+        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 flex items-center justify-end space-x-2.5 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            className="px-4 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
           >
             Tutup
           </button>
@@ -261,7 +261,7 @@ export default function IdCardGenerator({
             type="button"
             disabled={isDownloading}
             onClick={handleDownload}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center space-x-1.5 px-5 py-2.5 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
           >
             {isDownloading ? (
               <>
@@ -270,7 +270,7 @@ export default function IdCardGenerator({
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 text-[#C89D32]" />
                 <span>Download Kartu (PNG)</span>
               </>
             )}
