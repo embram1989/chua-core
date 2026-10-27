@@ -186,6 +186,9 @@ export default function DashboardPage({ userProfile }) {
   // Chart Trend Days Toggle: 7 Hari vs 14 Hari
   const [trendDays, setTrendDays] = useState(14); // 7 | 14
 
+  // Quick Menu Expand State (Default: Collapsed on mobile)
+  const [isQuickMenuExpanded, setIsQuickMenuExpanded] = useState(false);
+
   // Mobile Tab State
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'charts' | 'recent'
 
@@ -646,167 +649,179 @@ export default function DashboardPage({ userProfile }) {
       {/* =============================================================== */}
       {/* MENU AKSES CEPAT (7 ICON NAVIGASI)                              */}
       {/* =============================================================== */}
-      <div className="bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-2xs space-y-1.5">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-0.5">
-          Menu Akses Cepat Arena
-        </p>
+      <div className="bg-white px-3.5 py-3 lg:px-5 lg:py-4 rounded-2xl lg:rounded-3xl border border-gray-200 shadow-2xs space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-0.5">
+            Menu Akses Cepat Arena
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsQuickMenuExpanded(!isQuickMenuExpanded)}
+            className="text-[#354944] dark:text-[#C89D32] text-[11px] font-bold hover:underline cursor-pointer flex items-center gap-1"
+          >
+            {isQuickMenuExpanded ? 'Sembunyikan ▴' : 'Lihat Semua (7) ▾'}
+          </button>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           <Link
             to="/booking"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Booking3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Booking</span>
           </Link>
           <Link
             to="/kasir"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
           >
             <Kasir3DIcon className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">Kasir POS</span>
           </Link>
-          <Link
-            to="/akademi"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
-          >
-            <Akademi3DIcon className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Akademi</span>
-          </Link>
-          <Link
-            to="/events"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
-          >
-            <Event3DIcon className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Event</span>
-          </Link>
-          <Link
-            to="/keuangan"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
-          >
-            <Keuangan3DIcon className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Keuangan</span>
-          </Link>
-          <Link
-            to="/intelligence"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
-          >
-            <AIInsight3DIcon className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">AI Insight</span>
-          </Link>
-          <Link
-            to="/pengaturan"
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1 shrink-0"
-          >
-            <Pengaturan3DIcon className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Profil GOR</span>
-          </Link>
+          <div className={`${isQuickMenuExpanded ? 'contents' : 'hidden lg:contents'}`}>
+            <Link
+              to="/akademi"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            >
+              <Akademi3DIcon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Akademi</span>
+            </Link>
+            <Link
+              to="/events"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            >
+              <Event3DIcon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Event</span>
+            </Link>
+            <Link
+              to="/keuangan"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            >
+              <Keuangan3DIcon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Keuangan</span>
+            </Link>
+            <Link
+              to="/intelligence"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start shrink-0"
+            >
+              <AIInsight3DIcon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">AI Insight</span>
+            </Link>
+            <Link
+              to="/pengaturan"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-medium transition-all border border-slate-200/80 cursor-pointer shadow-2xs hover:shadow-xs justify-center sm:justify-start col-span-2 sm:col-span-2 lg:col-span-1 shrink-0"
+            >
+              <Pengaturan3DIcon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Profil GOR</span>
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* =============================================================== */}
-      {/* 5 KARTU EKSEKUTIF KPI KEUANGAN (TERMASUK B2B SPONSORSHIP) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      {/* 5 KARTU EKSEKUTIF KPI KEUANGAN (TERMASUK B2B SPONSORSHIP)       */}
+      {/* =============================================================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 lg:gap-4">
         
         {/* KARTU 1: GROSS REVENUE BULAN INI (WARM MUSTARD) */}
-        <div className="bg-[#C89D32] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
+        <div className="bg-[#C89D32] text-white bg-topography-waves p-3.5 lg:p-5 rounded-2xl lg:rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
+            <span className="text-[10px] lg:text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               GROSS REVENUE BULAN INI
             </span>
-            <div className="w-8 h-8 bg-white/20 text-white rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
-              <DollarSign className="w-4 h-4" />
+            <div className="w-7 h-7 lg:w-8 lg:h-8 bg-white/20 text-white rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <DollarSign className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
+          <p className="text-xl lg:text-2xl font-black text-white tracking-tight my-1.5 font-mono">
             {formatRupiah(financialSummary.grossRevenueThisMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+          <div className="flex items-center justify-between text-[10px] lg:text-[11px] pt-1.5 lg:pt-2 border-t border-white/20">
             <span className="text-white/80 font-medium">Status:</span>
-            <span className="font-bold text-white bg-white/20 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+            <span className="font-bold text-white bg-white/20 px-2.5 py-0.5 rounded-full text-[9px] lg:text-[10px] whitespace-nowrap">
               {financialSummary.totalTransactionsCount} Transaksi Sukses
             </span>
           </div>
         </div>
 
         {/* KARTU 2: DIVISI SEWA LAPANGAN (DEEP SLATE TEAL) */}
-        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
+        <div className="bg-[#354944] text-white bg-topography-waves p-3 lg:p-5 rounded-2xl lg:rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
+            <span className="text-[10px] lg:text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI SEWA LAPANGAN
             </span>
-            <div className="w-8 h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
-              <Booking3DIcon className="w-4 h-4 shrink-0" />
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <Booking3DIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
+          <p className="text-base lg:text-2xl font-black text-white tracking-tight my-1 font-mono">
             {formatRupiah(financialSummary.courtRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
-            <span className="text-white/80 font-medium">Status:</span>
-            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[10px] lg:text-[11px] pt-1.5 lg:pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium hidden sm:inline">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2 py-0.5 rounded-full text-[9px] lg:text-[10px] whitespace-nowrap">
               Okupansi: {occupancyPercentage}% ({totalBookingsCount} Sesi)
             </span>
           </div>
         </div>
 
         {/* KARTU 3: DIVISI KASIR RETAIL (POS) (DEEP SLATE TEAL) */}
-        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
+        <div className="bg-[#354944] text-white bg-topography-waves p-3 lg:p-5 rounded-2xl lg:rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
+            <span className="text-[10px] lg:text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI POS &amp; RETAIL
             </span>
-            <div className="w-8 h-8 bg-white/15 text-[#2AA198] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
-              <Kasir3DIcon className="w-4 h-4 shrink-0" />
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/15 text-[#2AA198] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <Kasir3DIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
+          <p className="text-base lg:text-2xl font-black text-white tracking-tight my-1 font-mono">
             {formatRupiah(financialSummary.posRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
-            <span className="text-white/80 font-medium">Status:</span>
-            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[10px] lg:text-[11px] pt-1.5 lg:pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium hidden sm:inline">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2 py-0.5 rounded-full text-[9px] lg:text-[10px] whitespace-nowrap">
               F&amp;B &amp; Sewa
             </span>
           </div>
         </div>
 
         {/* KARTU 4: DIVISI AKADEMI SPP (DEEP SLATE TEAL) */}
-        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
+        <div className="bg-[#354944] text-white bg-topography-waves p-3 lg:p-5 rounded-2xl lg:rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
+            <span className="text-[10px] lg:text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI AKADEMI SPP
             </span>
-            <div className="w-8 h-8 bg-white/15 text-[#D8B4FE] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
-              <Akademi3DIcon className="w-4 h-4 shrink-0" />
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/15 text-[#D8B4FE] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <Akademi3DIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
+          <p className="text-base lg:text-2xl font-black text-white tracking-tight my-1 font-mono">
             {formatRupiah(financialSummary.sppRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
-            <span className="text-white/80 font-medium">Status:</span>
-            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[10px] lg:text-[11px] pt-1.5 lg:pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium hidden sm:inline">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2 py-0.5 rounded-full text-[9px] lg:text-[10px] whitespace-nowrap">
               SPP Terdata
             </span>
           </div>
         </div>
 
         {/* KARTU 5: DIVISI SPONSORSHIP (B2B) (DEEP SLATE TEAL) */}
-        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="bg-[#354944] text-white bg-topography-waves p-3 lg:p-5 rounded-2xl lg:rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
+            <span className="text-[10px] lg:text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               SPONSORSHIP (B2B)
             </span>
-            <div className="w-8 h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
-              <DanaSponsor3DIcon className="w-4 h-4 shrink-0" />
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <DanaSponsor3DIcon className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
+          <p className="text-base lg:text-2xl font-black text-white tracking-tight my-1 font-mono">
             {formatRupiah(financialSummary.sponsorRevMonth || 0)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
-            <span className="text-white/80 font-medium">Status:</span>
-            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[10px] lg:text-[11px] pt-1.5 lg:pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium hidden sm:inline">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2 py-0.5 rounded-full text-[9px] lg:text-[10px] whitespace-nowrap">
               Termin B2B Cair
             </span>
           </div>
@@ -818,15 +833,15 @@ export default function DashboardPage({ userProfile }) {
       {/* 2. PANEL REKONSILIASI BILYET GIRO & TRANSAKSI PENDING (FASE 12 PART 4) */}
       {/* =============================================================== */}
       {pendingTransactions.length === 0 ? (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 flex items-center justify-between shadow-2xs">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2.5 lg:px-4 lg:py-2.5 flex items-center justify-between shadow-2xs text-xs">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="text-xs font-bold text-slate-800">Menunggu Kliring / Pending Giro B2B</span>
+            <span className="font-bold text-slate-800 text-[11px] lg:text-xs">Menunggu Kliring / Pending Giro B2B</span>
             <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
               0 Pending (Rp 0)
             </span>
           </div>
-          <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+          <span className="text-[10px] lg:text-xs text-slate-500 font-medium hidden sm:inline">
             Semua Giro &amp; Transaksi B2B telah kliring sukses.
           </span>
         </div>
@@ -946,17 +961,17 @@ export default function DashboardPage({ userProfile }) {
       {/* =============================================================== */}
       {/* 2 VISUALISASI CHARTING RECHARTS (INTRUKSI 2)                     */}
       {/* =============================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         
         {/* CHART 1: TREN ARUS KAS HARIAN (BAR / AREA CHART - 8 COLS) */}
-        <div className="lg:col-span-8 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+        <div className="lg:col-span-8 bg-white p-3.5 sm:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-3 lg:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
-                <TrendingUp className="w-4.5 h-4.5 text-blue-600" />
+                <TrendingUp className="w-4 h-4 text-blue-600" />
                 <span>Tren Pendapatan Harian Multi-Divisi</span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                 Fluktuasi penerimaan kas dari Sewa Lapangan, POS Retail, dan SPP Akademi
               </p>
             </div>
@@ -985,7 +1000,7 @@ export default function DashboardPage({ userProfile }) {
           </div>
 
           {/* RECHARTS AREA / BAR CHART */}
-          <div className="w-full flex-1 min-h-[300px] pt-2">
+          <div className="w-full flex-1 h-44 sm:h-56 lg:h-64 pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyTrendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
@@ -1064,27 +1079,27 @@ export default function DashboardPage({ userProfile }) {
         </div>
 
         {/* CHART 2: DONUT / PIE CHART (DISTRIBUSI ARUS KAS - 4 COLS) */}
-        <div className="lg:col-span-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 bg-white p-3.5 sm:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-3 lg:space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h2 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
-              <PieChartIcon className="w-4.5 h-4.5 text-indigo-600" />
+              <PieChartIcon className="w-4 h-4 text-indigo-600" />
               <span>Distribusi Arus Kas Divisi</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
               Proporsi pendapatan per segmen operasional
             </p>
           </div>
 
           {/* DONUT PIE CHART */}
-          <div className="h-56 w-full relative flex items-center justify-center">
+          <div className="h-44 lg:h-56 w-full relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={divisionPieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={55}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={70}
                   paddingAngle={4}
                   dataKey="value"
                 >
@@ -1098,19 +1113,19 @@ export default function DashboardPage({ userProfile }) {
 
             {/* Center Summary Text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Omset Filtered
               </span>
-              <span className="text-sm font-black text-slate-900 truncate max-w-[120px]">
+              <span className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-[120px]">
                 {formatRupiah(financialSummary.filteredTotalRevenue)}
               </span>
             </div>
           </div>
 
           {/* LEGEND / BREAKDOWN LIST */}
-          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="space-y-1.5 lg:space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
             {divisionPieData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 rounded-xl px-3.5 py-2.5">
+              <div key={item.name} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 rounded-xl px-3 py-1.5 lg:px-3.5 lg:py-2.5 text-xs">
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="font-bold text-slate-800 dark:text-slate-100">{item.name}</span>
@@ -1129,15 +1144,15 @@ export default function DashboardPage({ userProfile }) {
       {/* =============================================================== */}
       {/* 3. TABEL ARUS KAS TERKINI (10 TRANSAKSI TERAKHIR) (INTRUKSI 3)  */}
       {/* =============================================================== */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+      <div className="bg-white rounded-2xl lg:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-sm space-y-3 lg:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center space-x-2.5">
-            <Receipt className="w-5 h-5 text-blue-600" />
+            <Receipt className="w-4.5 h-4.5 text-blue-600" />
             <div>
               <h2 className="font-extrabold text-sm sm:text-base text-slate-900">
                 Tabel Arus Kas Terkini (10 Transaksi Terakhir)
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                 Audit transaksi real-time lintas booking lapangan, kasir POS retail, dan SPP akademi
               </p>
             </div>
@@ -1153,10 +1168,10 @@ export default function DashboardPage({ userProfile }) {
         </div>
 
         {recentTransactions.length === 0 ? (
-          <div className="py-12 border-2 border-dashed border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center p-6">
-            <Inbox className="w-10 h-10 text-slate-300 mb-2" />
-            <p className="text-sm font-semibold text-slate-700">Belum ada riwayat transaksi</p>
-            <p className="text-xs text-slate-400 max-w-sm mt-1">
+          <div className="py-6 lg:py-12 border-2 border-dashed border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center p-4 lg:p-6">
+            <Inbox className="w-8 h-8 lg:w-10 lg:h-10 text-slate-300 mb-2" />
+            <p className="text-xs sm:text-sm font-semibold text-slate-700">Belum ada riwayat transaksi</p>
+            <p className="text-[11px] sm:text-xs text-slate-400 max-w-sm mt-1">
               Transaksi kasir, booking lapangan, dan pelunasan SPP akan otomatis tercatat di sini.
             </p>
           </div>

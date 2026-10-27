@@ -158,7 +158,7 @@ export default function DateRangeFilter({
   ];
 
   return (
-    <div className={`bg-white rounded-xl px-4 py-2.5 shadow-2xs border border-gray-200 transition-all ${className}`}>
+    <div className={`bg-white rounded-2xl lg:rounded-3xl px-3.5 py-3 lg:px-5 lg:py-4 shadow-2xs border border-gray-200 transition-all ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         
         {/* Left: Filter Label & Active Range Summary */}
@@ -166,16 +166,16 @@ export default function DateRangeFilter({
           <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200 shrink-0">
             <Filter className="w-3.5 h-3.5" />
           </div>
-          <div className="flex items-center space-x-2 flex-wrap">
-            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Periode Analitik</span>
-            <span className="text-[11px] text-gray-500 font-medium">({getActiveDateRangeLabel(timeFilter, customDate)})</span>
+          <div className="flex items-center space-x-1.5 flex-wrap">
+            <span className="text-[11px] lg:text-xs font-bold text-slate-900 uppercase tracking-wider">Periode Analitik</span>
+            <span className="text-[10px] lg:text-xs text-gray-500 font-medium">({getActiveDateRangeLabel(timeFilter, customDate)})</span>
           </div>
         </div>
 
         {/* Right: Pill Buttons & Custom Date Range Inputs */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Segmented Control iOS Style */}
-          <div className="bg-slate-100 p-0.5 rounded-lg inline-flex overflow-x-auto gap-0.5 border border-slate-200/60">
+          <div className="bg-slate-100 p-0.5 rounded-xl inline-flex overflow-x-auto gap-0.5 border border-slate-200/60">
             {filterOptions.map((opt) => {
               const isActive = timeFilter === opt.id;
               return (
@@ -183,7 +183,7 @@ export default function DateRangeFilter({
                   key={opt.id}
                   type="button"
                   onClick={() => setTimeFilter(opt.id)}
-                  className={`px-3 py-1 rounded-md text-xs transition-all cursor-pointer select-none font-semibold text-center shrink-0 ${
+                  className={`px-2.5 py-1.5 lg:px-3 lg:py-1 rounded-lg text-xs transition-all cursor-pointer select-none font-semibold text-center shrink-0 ${
                     isActive
                       ? 'bg-white text-slate-800 shadow-2xs font-bold'
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'

@@ -224,46 +224,46 @@ export default function AcademyDashboard({
       {/* =============================================================== */}
       {/* HEADER BANNER AKADEMI SPESIFIK & SIKLUS PENAGIHAN               */}
       {/* =============================================================== */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-3xl px-6 py-4 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center space-x-3.5 z-10 min-w-0">
-          <div className="w-11 h-11 bg-[#354944]/10 border border-[#354944]/20 rounded-2xl flex items-center justify-center shrink-0 p-1.5 text-[#354944] dark:text-[#C89D32]">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-2xl lg:rounded-3xl p-3.5 sm:px-6 sm:py-4 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-3 lg:gap-4">
+        <div className="flex items-center space-x-3 z-10 min-w-0 w-full md:w-auto">
+          <div className="hidden sm:flex w-11 h-11 bg-[#354944]/10 border border-[#354944]/20 rounded-2xl items-center justify-center shrink-0 p-1.5 text-[#354944] dark:text-[#C89D32]">
             <Akademi3DIcon className="w-7 h-7" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center space-x-2 flex-wrap gap-y-0.5">
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight truncate">
+              <h2 className="text-xs sm:text-lg font-black text-slate-900 dark:text-white tracking-tight truncate">
                 Dasbor BI &amp; Analytics &bull; {activeAcademy.name}
               </h2>
-              <span className="px-2.5 py-0.5 bg-[#C89D32]/15 text-[#C89D32] border border-[#C89D32]/30 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="px-2 py-0.5 bg-[#C89D32]/15 text-[#C89D32] border border-[#C89D32]/30 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                 {activeAcademy.categoryLabel || activeAcademy.category || 'Akademi'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-2 flex-wrap gap-y-0.5 font-medium">
-              <span>Siklus Tagihan: Tgl <strong className="text-slate-800 dark:text-slate-200">{sppBillingStartDay}</strong></span>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-y-0.5 font-medium">
+              <span>Siklus: Tgl <strong className="text-slate-800 dark:text-slate-200">{sppBillingStartDay}</strong></span>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <span>Jatuh Tempo: Tgl <strong className="text-slate-800 dark:text-slate-200">{sppDueDay}</strong></span>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
-              <span className="inline-flex items-center px-2 py-0.5 bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 rounded-md text-[10px] font-bold">{activeClasses.length} Kelas Terdaftar</span>
+              <span className="inline-flex items-center px-1.5 py-0.2 bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 rounded text-[10px] font-bold">{activeClasses.length} Kelas</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5 z-10 shrink-0">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 z-10 shrink-0 w-full md:w-auto">
           {onAddStudent && (
             <button
               onClick={onAddStudent}
-              className="bg-[#C89D32] hover:bg-[#B38A28] text-white px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="bg-[#C89D32] hover:bg-[#B38A28] text-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs font-bold rounded-xl sm:rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-1 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Daftar Siswa</span>
             </button>
           )}
           {onAddClass && (
             <button
               onClick={onAddClass}
-              className="bg-[#354944] hover:bg-[#2B3D38] text-white px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
+              className="bg-[#354944] hover:bg-[#2B3D38] text-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs font-bold rounded-xl sm:rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-1 cursor-pointer"
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="w-3.5 h-3.5" />
               <span>Buat Kelas</span>
             </button>
           )}
@@ -273,80 +273,80 @@ export default function AcademyDashboard({
       {/* =============================================================== */}
       {/* 1. BAGIAN ATAS (SCORECARDS METRIK UTAMA TOPOGRAPHY CARDS)        */}
       {/* =============================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-4">
         {/* CARD 1: TOTAL SISWA AKTIF (Warm Mustard Gold Highlight) */}
-        <div className="bg-[#C89D32] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+        <div className="bg-[#C89D32] text-white bg-topography-waves rounded-2xl lg:rounded-3xl p-3.5 lg:p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[105px] lg:min-h-[120px]">
           <div className="flex items-center justify-between z-10">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Total Siswa Aktif</p>
-            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
-              <GraduationCap className="w-5 h-5" />
+            <div className="w-7 h-7 lg:w-10 lg:h-10 bg-white/15 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <GraduationCap className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
           </div>
-          <div className="z-10 mt-2">
-            <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-black font-mono tracking-tight text-white">{totalStudents}</span>
-              <span className="text-xs font-bold text-white/80">Atlet</span>
+          <div className="z-10 mt-1.5 lg:mt-2">
+            <div className="flex items-baseline space-x-1.5">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-black font-mono tracking-tight text-white">{totalStudents}</span>
+              <span className="text-[10px] lg:text-xs font-bold text-white/80">Atlet</span>
             </div>
           </div>
-          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+          <div className="border-t border-white/20 pt-1.5 lg:pt-2 text-[10px] lg:text-[11px] font-bold text-white/80 z-10 truncate mt-1.5">
             {activeClasses.length} Kelas &bull; {activeCoaches.length} Pelatih
           </div>
         </div>
 
         {/* CARD 2: TINGKAT PELUNASAN SPP (%) */}
-        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-2xl lg:rounded-3xl p-3.5 lg:p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[105px] lg:min-h-[120px]">
           <div className="flex items-center justify-between z-10">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Tingkat Pelunasan</p>
-            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-7 h-7 lg:w-10 lg:h-10 bg-white/15 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
           </div>
-          <div className="z-10 mt-2">
-            <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-black font-mono tracking-tight text-[#D4A73A]">
+          <div className="z-10 mt-1.5 lg:mt-2">
+            <div className="flex items-baseline space-x-1.5">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-black font-mono tracking-tight text-[#D4A73A]">
                 {collectionRate}%
               </span>
-              <span className="text-xs font-bold text-white/80">Bulan Ini</span>
+              <span className="text-[10px] lg:text-xs font-bold text-white/80">Bulan Ini</span>
             </div>
           </div>
-          <div className="border-t border-white/20 pt-2 flex items-center justify-between text-[11px] font-bold z-10 mt-2">
+          <div className="border-t border-white/20 pt-1.5 lg:pt-2 flex items-center justify-between text-[10px] lg:text-[11px] font-bold z-10 mt-1.5">
             <span className="text-white/90">{paidStudentsCount} Lunas</span>
             <span className="text-white/60">{unpaidStudentsCount} Menunggak</span>
           </div>
         </div>
 
         {/* CARD 3: PENDAPATAN AKTUAL SPP */}
-        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-2xl lg:rounded-3xl p-3.5 lg:p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[105px] lg:min-h-[120px]">
           <div className="flex items-center justify-between z-10">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Pendapatan SPP Masuk</p>
-            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
-              <Keuangan3DIcon className="w-5 h-5" />
+            <div className="w-7 h-7 lg:w-10 lg:h-10 bg-white/15 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <Keuangan3DIcon className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
           </div>
-          <div className="z-10 mt-2">
-            <p className="text-xl font-black font-mono tracking-tight text-white truncate">
+          <div className="z-10 mt-1.5 lg:mt-2">
+            <p className="text-base sm:text-xl font-black font-mono tracking-tight text-white truncate">
               {formatRupiah(actualRevenue)}
             </p>
           </div>
-          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+          <div className="border-t border-white/20 pt-1.5 lg:pt-2 text-[10px] lg:text-[11px] font-bold text-white/80 z-10 truncate mt-1.5">
             Potensi: {formatRupiah(potentialRevenue)}
           </div>
         </div>
 
         {/* CARD 4: TOTAL TUNGGAKAN SPP */}
-        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-2xl lg:rounded-3xl p-3.5 lg:p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[105px] lg:min-h-[120px]">
           <div className="flex items-center justify-between z-10">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Total Tunggakan</p>
-            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
-              <AlertCircle className="w-5 h-5 text-amber-300" />
+            <div className="w-7 h-7 lg:w-10 lg:h-10 bg-white/15 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5 text-amber-300" />
             </div>
           </div>
-          <div className="z-10 mt-2">
-            <p className="text-xl font-black font-mono tracking-tight text-amber-300 truncate">
+          <div className="z-10 mt-1.5 lg:mt-2">
+            <p className="text-base sm:text-xl font-black font-mono tracking-tight text-amber-300 truncate">
               {formatRupiah(unpaidRevenue)}
             </p>
           </div>
-          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+          <div className="border-t border-white/20 pt-1.5 lg:pt-2 text-[10px] lg:text-[11px] font-bold text-white/80 z-10 truncate mt-1.5">
             {unpaidStudentsCount} Siswa Belum Lunas
           </div>
         </div>

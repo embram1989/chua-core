@@ -41,8 +41,27 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [expandedSessionId, setExpandedSessionId] = useState(null);
 
-  // Filter students by selected class
-  const classStudents = students.filter((student) => student.classId === selectedClass?.id);
+  const [showInactiveStudents, setShowInactiveStudents] = useState(false);
+
+  // Filter students by selected class & activity status with fallback matching
+  const assignedClassStudents = students.filter((student) => {
+    if (student.classId && selectedClass?.id && student.classId === selectedClass.id) return true;
+    if (selectedClass?.className && student.className === selectedClass.className) return true;
+    return false;
+  });
+
+  const targetStudents = assignedClassStudents.length > 0 ? assignedClassStudents : students;
+
+  const classStudents = targetStudents.filter((student) => {
+    const isInactive = 
+      student.status === 'Non-Aktif' || 
+      student.status === 'Nonaktif' || 
+      student.status === 'Belum Aktif' || 
+      student.status === 'inactive' || 
+      student.isActive === false;
+    if (!showInactiveStudents && isInactive) return false;
+    return true;
+  });
 
   // Default all students in class to 'Hadir' on load / class change
   useEffect(() => {
@@ -52,7 +71,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
     });
     setStudentAttendance(defaultMap);
     setCoachAttendance(true);
-  }, [selectedClass?.id, students.length]);
+  }, [selectedClass?.id, students.length, showInactiveStudents]);
 
   // Real-time listener for attendance history (koleksi `academy_attendance`)
   useEffect(() => {
@@ -258,10 +277,23 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
 
           {/* DAFTAR PRESENSI SISWA */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">
-                Siswa ({classStudents.length})
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-xs font-bold text-slate-700">
+                  Siswa ({classStudents.length})
+                </span>
+
+                {/* TOGGLE SISWA BELUM AKTIF / NON-AKTIF */}
+                <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 cursor-pointer select-none bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={showInactiveStudents}
+                    onChange={(e) => setShowInactiveStudents(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-slate-300 text-[#354944] focus:ring-[#354944] cursor-pointer"
+                  />
+                  <span>Tampilkan Siswa Belum Aktif</span>
+                </label>
+              </div>
 
               {/* Quick action buttons */}
               {classStudents.length > 0 && (
@@ -294,22 +326,35 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                 </p>
               </div>
             ) : (
-              /* CLEAN STUDENT LIST WITH SEGMENTED CONTROL */
+              /* CLEAN STUDENT LIST WITH RESPONSIVE TOUCH-FRIENDLY CONTROLS */
               <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                 {classStudents.map((st, idx) => {
                   const currentStatus = studentAttendance[st.id] || 'Hadir';
+                  const isInactive = 
+                    st.status === 'Non-Aktif' || 
+                    st.status === 'Nonaktif' || 
+                    st.status === 'Belum Aktif' || 
+                    st.status === 'inactive' || 
+                    st.isActive === false;
 
                   return (
                     <div 
                       key={st.id} 
-                      className="p-2.5 sm:px-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors"
+                      className="p-3 sm:px-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <div className="truncate">
-                          <p className="font-semibold text-xs text-slate-800 dark:text-slate-100 truncate">{st.studentName}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-xs text-slate-800 dark:text-slate-100 truncate">{st.studentName}</p>
+                            {isInactive && (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-slate-200 text-slate-600 rounded-md">
+                                Non-Aktif
+                              </span>
+                            )}
+                          </div>
                           {calculateAge(st.birthDate) !== '-' && (
                             <p className="text-[10px] text-slate-400 dark:text-slate-500">
                               Usia: {calculateAge(st.birthDate)} thn
@@ -318,14 +363,14 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         </div>
                       </div>
 
-                      {/* SEGMENTED CONTROL (HADIR, IZIN, SAKIT, ALPA) */}
-                      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 p-1 rounded-xl inline-flex items-center gap-1 shrink-0">
+                      {/* SEGMENTED CONTROL (HADIR, IZIN, SAKIT, ALPA) - TOUCH FRIENDLY ON MOBILE */}
+                      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 p-1 rounded-xl grid grid-cols-4 sm:flex items-center gap-1 shrink-0">
                         
                         {/* 1. HADIR */}
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Hadir')}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`py-1.5 sm:py-1 px-2.5 sm:px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                             currentStatus === 'Hadir'
                               ? 'bg-emerald-500 text-white shadow-sm'
                               : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
@@ -338,7 +383,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Izin')}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`py-1.5 sm:py-1 px-2.5 sm:px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                             currentStatus === 'Izin'
                               ? 'bg-[#354944] text-white shadow-sm'
                               : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
@@ -351,7 +396,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Sakit')}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`py-1.5 sm:py-1 px-2.5 sm:px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                             currentStatus === 'Sakit'
                               ? 'bg-amber-500 text-white shadow-sm'
                               : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
@@ -364,7 +409,7 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
                         <button
                           type="button"
                           onClick={() => handleStudentStatusChange(st.id, 'Alpa')}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`py-1.5 sm:py-1 px-2.5 sm:px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
                             currentStatus === 'Alpa' || currentStatus === 'Alpha'
                               ? 'bg-rose-500 text-white shadow-sm'
                               : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800'
@@ -381,8 +426,8 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
             )}
           </div>
 
-          {/* SIMPAN PRESENSI BUTTON */}
-          <div className="pt-1 flex justify-end">
+          {/* SIMPAN PRESENSI BUTTON (DESKTOP) */}
+          <div className="pt-1 hidden lg:flex justify-end">
             <button
               type="submit"
               disabled={isSaving || classStudents.length === 0}
@@ -391,6 +436,31 @@ export default function AttendanceSection({ selectedClass, students = [], tenant
               {isSaving ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Simpan Presensi</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* FLOATING SAVE BAR FOR MOBILE (< 1024px) */}
+          <div className="lg:hidden fixed bottom-16 inset-x-4 z-30 bg-[#354944] text-white py-3 px-4 rounded-2xl shadow-xl flex items-center justify-between font-bold text-sm border-b-2 border-[#C89D32]">
+            <div className="flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-[#C89D32]" />
+              <span>Presensi ({classStudents.length} Siswa)</span>
+            </div>
+            <button
+              type="submit"
+              disabled={isSaving || classStudents.length === 0}
+              className="px-4 py-1.5 bg-[#C89D32] hover:bg-[#b58c2b] text-slate-900 font-black text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Menyimpan...</span>
                 </>
               ) : (

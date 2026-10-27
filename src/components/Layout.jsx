@@ -44,6 +44,7 @@ export default function Layout({ userProfile }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { tenantProfile } = useArenaData(userProfile);
   const { theme, isDark, toggleTheme } = useTheme();
@@ -490,41 +491,90 @@ export default function Layout({ userProfile }) {
         </div>
       </aside>
 
-      {/* MOBILE HEADER (< 1024px) */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 h-14 flex items-center justify-between shadow-xs">
+      {/* MOBILE TOP APP BAR (< 1024px) */}
+      <header className="flex lg:hidden sticky top-0 z-40 bg-[#354944] text-white px-4 h-14 items-center justify-between border-b border-white/10 shadow-md shrink-0">
         <div className="flex items-center space-x-2.5">
           {tenantLogo ? (
-            <div className="w-10 h-10 rounded-md overflow-hidden shrink-0">
+            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border-2 border-[#C89D32] shadow-2xs">
               <img src={tenantLogo} alt={tenantName} className="w-full h-full object-cover" />
             </div>
           ) : (
-            <img src="/logo_2.jpg" alt="CHUA SPORT CORE" className="h-8 w-auto object-contain shrink-0" />
+            <div className="w-9 h-9 rounded-full bg-[#C89D32] text-slate-900 font-black flex items-center justify-center shrink-0 border-2 border-white/20">
+              {tenantName.charAt(0)}
+            </div>
           )}
-          <div className="overflow-hidden border-l border-slate-200 pl-2.5">
-            <h1 className="font-bold text-xs text-slate-800 leading-tight truncate max-w-[170px]">{tenantName}</h1>
-            <span className="text-[9px] text-blue-600 font-bold">{roleDisplay}</span>
+          <div className="overflow-hidden">
+            <h1 className="font-bold text-xs text-white leading-tight truncate max-w-[180px]">{tenantName}</h1>
+            <span className="text-[9px] text-[#C89D32] font-extrabold uppercase tracking-wider">{roleDisplay}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
+            className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
             title={isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"}
             aria-label="Toggle theme"
           >
-            {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-blue-600" />}
-          </button>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
-            aria-label="Toggle Menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isDark ? <Sun className="w-5 h-5 text-[#C89D32]" /> : <Moon className="w-5 h-5 text-[#C89D32]" />}
           </button>
         </div>
       </header>
+
+      {/* STICKY HORIZONTAL / GRID SUB-MENU BAR FOR AKADEMI OR PROFIL (< 1024px) */}
+      {(isAkademiActive || isProfilActive) && (
+        <div className="flex lg:hidden sticky top-14 z-30 border-b border-slate-200/70 dark:border-white/10 shrink-0 bg-[#EBF0EE] dark:bg-[#0C1412] p-2">
+          {isAkademiActive && (
+            <div className="w-full flex flex-wrap justify-center gap-1.5 p-2 bg-white dark:bg-[#162320] rounded-2xl shadow-sm border border-slate-200/70 dark:border-white/10">
+              {academySubMenuItems.map((sub) => {
+                const isSubActive = currentTab === sub.id;
+                return (
+                  <Link
+                    key={sub.id}
+                    to={sub.path}
+                    className={`text-[11px] py-1.5 px-3 rounded-xl font-bold transition-all border flex items-center justify-center shrink-0 ${
+                      isSubActive
+                        ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{sub.label}</span>
+                    {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
+                      <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+                        isSubActive ? 'bg-[#C89D32] text-slate-900' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {sub.count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {isProfilActive && (
+            <div className="w-full flex overflow-x-auto no-scrollbar gap-2 py-1 px-1">
+              {profileSubMenuItems.map((sub) => {
+                const isSubActive = currentProfileTab === sub.id;
+                return (
+                  <Link
+                    key={sub.id}
+                    to={sub.path}
+                    className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                      isSubActive
+                        ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-xs'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{sub.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* MOBILE SLIDE-OUT MENU OVERLAY */}
       <AnimatePresence>
@@ -701,8 +751,175 @@ export default function Layout({ userProfile }) {
         )}
       </AnimatePresence>
 
+      {/* MOBILE BOTTOM NAVIGATION BAR (< 1024px) */}
+      <nav className="flex lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-[#354944] dark:bg-[#111C19] rounded-t-2xl shadow-2xl border-t border-white/10 px-3 items-center justify-around">
+        {/* Dasbor */}
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) => `flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            isActive ? 'text-[#C89D32] font-bold' : 'text-slate-300 hover:text-white font-medium'
+          }`}
+        >
+          <span className="text-[17px] mb-0.5">🏠</span>
+          <span className="text-[10px] tracking-tight">Dasbor</span>
+        </NavLink>
+
+        {/* Booking */}
+        <NavLink
+          to="/booking"
+          className={({ isActive }) => `flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            isActive ? 'text-[#C89D32] font-bold' : 'text-slate-300 hover:text-white font-medium'
+          }`}
+        >
+          <span className="text-[17px] mb-0.5">📅</span>
+          <span className="text-[10px] tracking-tight">Booking</span>
+        </NavLink>
+
+        {/* Kasir POS (Prominent Center Pill) */}
+        <div className="flex-1 flex justify-center -mt-5">
+          <NavLink
+            to="/kasir"
+            className="w-13 h-13 rounded-full bg-[#C89D32] hover:bg-[#B38A28] text-slate-950 font-black shadow-lg border-4 border-[#354944] flex flex-col items-center justify-center transition-transform active:scale-95 cursor-pointer"
+            title="Kasir POS"
+          >
+            <span className="text-lg leading-none">💳</span>
+            <span className="text-[9px] font-black uppercase tracking-tighter mt-0.5">POS</span>
+          </NavLink>
+        </div>
+
+        {/* Akademi */}
+        <NavLink
+          to="/akademi?tab=dasbor"
+          className={({ isActive }) => `flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+            isActive ? 'text-[#C89D32] font-bold' : 'text-slate-300 hover:text-white font-medium'
+          }`}
+        >
+          <span className="text-[17px] mb-0.5">🎓</span>
+          <span className="text-[10px] tracking-tight">Akademi</span>
+        </NavLink>
+
+        {/* Lainnya (Trigger Bottom Sheet Drawer) */}
+        <button
+          type="button"
+          onClick={() => setMobileMoreOpen(true)}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors cursor-pointer ${
+            mobileMoreOpen ? 'text-[#C89D32] font-bold' : 'text-slate-300 hover:text-white font-medium'
+          }`}
+        >
+          <span className="text-[17px] mb-0.5">📂</span>
+          <span className="text-[10px] tracking-tight">Lainnya</span>
+        </button>
+      </nav>
+
+      {/* BOTTOM SHEET DRAWER FOR 'LAINNYA' (< 1024px) */}
+      <AnimatePresence>
+        {mobileMoreOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMoreOpen(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 lg:hidden"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="fixed bottom-0 inset-x-0 bg-white dark:bg-[#162320] z-50 p-5 rounded-t-3xl shadow-2xl lg:hidden max-h-[85vh] overflow-y-auto space-y-4"
+            >
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-2" />
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#354944] text-[#C89D32] flex items-center justify-center font-bold">
+                    🚀
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm text-slate-900 dark:text-slate-100">Menu Navigasi Tambahan</h3>
+                    <p className="text-[11px] text-slate-500">Pilih modul operasional GOR &amp; AI</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileMoreOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  to="/events"
+                  onClick={() => setMobileMoreOpen(false)}
+                  className="p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl flex flex-col items-center text-center transition-all shadow-2xs"
+                >
+                  <span className="text-2xl mb-1.5">🏆</span>
+                  <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">Event &amp; Turnamen</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Bagan, Skor &amp; Sponsor</span>
+                </Link>
+
+                <Link
+                  to="/keuangan"
+                  onClick={() => setMobileMoreOpen(false)}
+                  className="p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl flex flex-col items-center text-center transition-all shadow-2xs"
+                >
+                  <span className="text-2xl mb-1.5">💰</span>
+                  <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">Keuangan &amp; Kas</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Laporan &amp; Arus Kas</span>
+                </Link>
+
+                <Link
+                  to="/intelligence"
+                  onClick={() => setMobileMoreOpen(false)}
+                  className="p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl flex flex-col items-center text-center transition-all shadow-2xs"
+                >
+                  <span className="text-2xl mb-1.5">✨</span>
+                  <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">AI Insight</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Rekomendasi Bisnis GOR</span>
+                </Link>
+
+                <Link
+                  to="/pengaturan?tab=profil"
+                  onClick={() => setMobileMoreOpen(false)}
+                  className="p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-2xl flex flex-col items-center text-center transition-all shadow-2xs"
+                >
+                  <span className="text-2xl mb-1.5">⚙️</span>
+                  <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">Profil &amp; Pengaturan</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Identitas &amp; Tarif</span>
+                </Link>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs">
+                    {userProfile?.displayName?.charAt(0) || 'U'}
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate max-w-[150px]">{userProfile?.displayName}</p>
+                    <p className="text-[10px] text-slate-400 truncate max-w-[150px]">{userProfile?.email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMoreOpen(false);
+                    handleLogout();
+                  }}
+                  className="px-4 py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Keluar</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 h-full overflow-y-auto relative ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} transition-[margin] duration-300 min-w-0 max-w-full pb-8 pt-4 lg:pt-6 px-3 sm:px-6 lg:px-8`}>
+      <main className={`flex-1 h-full overflow-y-auto relative ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} transition-[margin] duration-300 min-w-0 max-w-full pb-32 lg:pb-6 pt-4 lg:pt-6 px-3 sm:px-6 lg:px-8`}>
         <div key={location.pathname + location.search} className="max-w-7xl mx-auto w-full min-w-0 animate-page-enter">
           <Outlet />
         </div>

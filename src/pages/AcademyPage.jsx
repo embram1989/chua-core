@@ -814,35 +814,35 @@ export default function AcademyPage({ userProfile }) {
       {/* 1. UI WORKSPACE SELECTOR & HEADER (JIKA SUDAH ADA AKADEMI) */}
       {/* ==================================================== */}
       {academies.length > 0 && (
-        <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl p-3.5 lg:p-6 shadow-sm border border-slate-200/80 mb-3 lg:mb-6 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             
             {/* Info Workspace Aktif */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-black text-lg shadow-md shrink-0 border border-[#C89D32]/40">
+            <div className="hidden lg:flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-black text-sm lg:text-lg shadow-md shrink-0 border border-[#C89D32]/40">
                 {activeAcademy?.name ? activeAcademy.name.charAt(0).toUpperCase() : 'A'}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 bg-[#354944]/10 text-[#354944] font-extrabold text-[10px] rounded-md border border-[#354944]/20 uppercase tracking-wider">
+                  <span className="px-2 py-0.5 bg-[#354944]/10 text-[#354944] font-extrabold text-[10px] rounded-md border border-[#354944]/20 uppercase tracking-wider">
                     Workspace Aktif
                   </span>
                   <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-md">
                     {activeAcademy?.sport || 'General Sports'}
                   </span>
                 </div>
-                <h1 className="text-xl font-black text-slate-900 tracking-tight mt-0.5">
+                <h1 className="text-base lg:text-xl font-bold text-slate-900 tracking-tight mt-0.5 truncate">
                   {activeAcademy?.name || 'Akademi Olahraga'}
                 </h1>
               </div>
             </div>
 
-            {/* Switcher & Secondary Action */}
-            <div className="flex flex-wrap items-center gap-2.5">
+            {/* Switcher & Secondary Action (Sejajar satu baris di mobile) */}
+            <div className="flex items-center gap-2 w-full md:w-auto">
               {/* Dropdown Selector */}
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 shadow-2xs hover:border-[#354944]/40 transition-all">
+              <div className="flex-1 md:flex-initial flex items-center gap-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 lg:px-3.5 lg:py-2 shadow-2xs hover:border-[#354944]/40 transition-all min-w-0">
                 <Building2 className="w-4 h-4 text-[#354944] dark:text-[#C89D32] shrink-0" />
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-none mb-0.5">Akademi Aktif</span>
                   <select
                     value={activeAcademyId}
@@ -851,7 +851,7 @@ export default function AcademyPage({ userProfile }) {
                       setActiveAcademyId(id);
                       localStorage.setItem('activeAcademyId', id);
                     }}
-                    className="bg-transparent text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none cursor-pointer pr-2"
+                    className="bg-transparent text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none cursor-pointer truncate pr-2 w-full"
                   >
                     {academies.map((ac) => (
                       <option key={ac.id} value={ac.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -861,14 +861,16 @@ export default function AcademyPage({ userProfile }) {
                   </select>
                 </div>
               </div>
-              {/* Tombol Sekunder + Tambah Akademi */}
+
+              {/* Tombol Tambah Akademi (Hanya 1 tombol) */}
               <button
                 type="button"
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+                className="px-3 py-2 lg:px-4 lg:py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-bold text-xs rounded-xl border-b-2 border-[#C89D32] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
               >
-                <Plus className="w-4 h-4 text-cyan-400" />
-                <span>Akademi Baru</span>
+                <Plus className="w-3.5 h-3.5 text-[#C89D32]" />
+                <span className="hidden sm:inline">+ Akademi Baru</span>
+                <span className="inline sm:hidden">+ Baru</span>
               </button>
             </div>
           </div>
@@ -980,17 +982,11 @@ export default function AcademyPage({ userProfile }) {
       {/* TAB 2: SISWA & SPP */}
       {activeAcademyTab === 'siswa' && (
         <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
-                <GraduationCap className="w-4 h-4 text-[#354944]" />
-                <span>Daftar Siswa Terdaftar ({filteredStudents.length})</span>
-              </h2>
-              <div className="flex items-center space-x-2 text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                <Calendar className="w-3.5 h-3.5 text-[#354944] shrink-0" />
-                <span>Siklus Tagihan: <strong>Tgl {sppBillingStartDay}</strong> &bull; Jatuh Tempo: <strong>Tgl {sppDueDay}</strong></span>
-              </div>
-            </div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
+              <GraduationCap className="w-4 h-4 text-[#354944]" />
+              <span>Daftar Siswa ({filteredStudents.length})</span>
+            </h2>
 
             <button
               type="button"
@@ -998,7 +994,7 @@ export default function AcademyPage({ userProfile }) {
                 setEditingStudent(null);
                 setShowAddModal(true);
               }}
-              className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center space-x-1.5 self-start sm:self-auto shrink-0"
+              className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] border-b-2 border-[#C89D32] text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Siswa Baru</span>
@@ -1315,7 +1311,7 @@ export default function AcademyPage({ userProfile }) {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-bold text-sm sm:text-base text-slate-800 flex items-center space-x-2">
               <BookOpen className="w-4 h-4 text-[#354944]" />
-              <span>Daftar Kelas &amp; Kelompok Latihan ({filteredClasses.length})</span>
+              <span>Daftar Kelas ({filteredClasses.length})</span>
             </h2>
 
             <button
@@ -1436,21 +1432,38 @@ export default function AcademyPage({ userProfile }) {
       {/* TAB 5: PRESENSI & EVALUASI */}
       {activeAcademyTab === 'presensi' && (
         <div className="space-y-6 text-left">
-          {/* GERBANG UTAMA: PEMILIHAN KELAS & NAVIGASI UTAMA */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-5">
+          {/* HERO SECTION BERGRADIEN ELEGAN (#354944) */}
+          <div className="bg-[#354944] text-white p-5 sm:p-6 pb-12 rounded-3xl shadow-lg relative overflow-hidden space-y-2">
+            <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center justify-between">
+              <span className="px-3 py-1 bg-[#C89D32]/20 text-[#C89D32] border border-[#C89D32]/40 rounded-full text-[10px] font-black uppercase tracking-wider">
+                Modul Akademik &amp; Asesmen
+              </span>
+              <span className="text-xs text-slate-300 font-medium">
+                {activeAcademy?.name || 'Workspace Aktif'}
+              </span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-black tracking-tight">Presensi &amp; Evaluasi Atlet</h2>
+            <p className="text-xs text-slate-300 max-w-xl">
+              Pencatatan presensi harian, rapor asesmen performa komprehensif, dan kurva tumbuh kembang antropometri atlet.
+            </p>
+          </div>
+
+          {/* KONTANTER KONTEN UTAMA DENGAN EFEK KARTU MENGAMBANG MELENGKUNG (MT-[-32px]) */}
+          <div className="rounded-t-3xl bg-[#F8FAF9] dark:bg-[#0F1715] shadow-2xl p-4 sm:p-6 mt-[-32px] relative z-10 border border-slate-200/70 dark:border-slate-800 space-y-5">
             
-            {/* BARIS KONTROL ATAS: TAB UTAMA (PRIMARY TABS) + FILTER DROPDOWN KELAS GLOBAL */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-2 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+            {/* BARIS KONTROL ATAS: SEGMENTED NAVIGATION PILLS + FILTER DROPDOWN KELAS GLOBAL */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-2.5 bg-white dark:bg-[#162320] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
               
-              {/* 1. PRIMARY NAVIGATION TABS (PILL / BUTTON ELEGANT STYLE) */}
-              <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-x-auto">
+              {/* 1. SEGMENTED NAVIGATION PILLS (TANPA GESER SAMPING) */}
+              <div className="flex flex-wrap justify-center gap-1.5 p-1.5 bg-slate-100 dark:bg-[#162320] rounded-2xl border border-slate-200/90 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setAttendanceSubTab('presensi')}
-                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                     attendanceSubTab === 'presensi'
-                      ? 'bg-[#354944] text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-[#354944] hover:bg-slate-100/70'
+                      ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-[#354944] hover:bg-slate-200/60'
                   }`}
                 >
                   <ClipboardCheck className="w-4 h-4" />
@@ -1460,10 +1473,10 @@ export default function AcademyPage({ userProfile }) {
                 <button
                   type="button"
                   onClick={() => setAttendanceSubTab('evaluasi')}
-                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                     attendanceSubTab === 'evaluasi'
-                      ? 'bg-[#354944] text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-[#354944] hover:bg-slate-100/70'
+                      ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-[#354944] hover:bg-slate-200/60'
                   }`}
                 >
                   <Award className="w-4 h-4" />
@@ -1473,14 +1486,14 @@ export default function AcademyPage({ userProfile }) {
                 <button
                   type="button"
                   onClick={() => setAttendanceSubTab('antropometri')}
-                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                     attendanceSubTab === 'antropometri'
-                      ? 'bg-[#354944] text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-[#354944] hover:bg-slate-100/70'
+                      ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-sm'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-[#354944] hover:bg-slate-200/60'
                   }`}
                 >
                   <TrendingUp className="w-4 h-4" />
-                  <span>Growth Tracker &amp; AI Sport Nutrition</span>
+                  <span>Growth Tracker</span>
                 </button>
               </div>
 
