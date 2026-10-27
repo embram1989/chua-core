@@ -196,6 +196,7 @@ export default function TennisAssessmentView({
   // Tab aktif (fisik, teknik, taktik, mental, komunikasi, perkembangan, khususNomor)
   const [activeTab, setActiveTab] = useState('fisik');
   const [showAllAtOnce, setShowAllAtOnce] = useState(false);
+  const [showAllInline, setShowAllInline] = useState(false);
 
   // Reset / Load history data saat siswa berganti
   useEffect(() => {
