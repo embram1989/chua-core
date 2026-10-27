@@ -198,6 +198,10 @@ export default function TennisAssessmentView({
   const [showAllAtOnce, setShowAllAtOnce] = useState(false);
   const [showAllInline, setShowAllInline] = useState(false);
 
+  // Modal Penilaian Indikator (Focus Drawer)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
+
   // Reset / Load history data saat siswa berganti
   useEffect(() => {
     if (!selectedStudent?.id) {
@@ -357,6 +361,88 @@ export default function TennisAssessmentView({
     data.push({ subject: 'Penekanan Nomor', A: categoryScores.penekananNomor, fullMark: 100 });
     return data;
   }, [categoryScores]);
+
+  // 8.1. LIST KATEGORI TERSTRUKTUR UNTUK KARTU INTERAKTIF & MODAL PENILAIAN
+  const tennisCategoryList = useMemo(() => {
+    const list = [
+      {
+        key: 'fisik',
+        label: '1. Kondisi Fisik',
+        shortLabel: 'Fisik',
+        count: activeIndicatorsByCategory.fisik.length,
+        score: categoryScores.fisik,
+        indicators: activeIndicatorsByCategory.fisik
+      },
+      {
+        key: 'teknik',
+        label: '2. Kemampuan Teknik',
+        shortLabel: 'Teknik',
+        count: activeIndicatorsByCategory.teknik.length,
+        score: categoryScores.teknik,
+        indicators: activeIndicatorsByCategory.teknik
+      },
+      {
+        key: 'taktik',
+        label: '3. Pemahaman Taktik',
+        shortLabel: 'Taktik',
+        count: activeIndicatorsByCategory.taktik.length,
+        score: categoryScores.taktik,
+        indicators: activeIndicatorsByCategory.taktik
+      },
+      {
+        key: 'mental',
+        label: '4. Mentalitas & Karakter',
+        shortLabel: 'Mental',
+        count: activeIndicatorsByCategory.mental.length,
+        score: categoryScores.mental,
+        indicators: activeIndicatorsByCategory.mental
+      },
+      {
+        key: 'perkembangan',
+        label: '5. Perkembangan & Biomekanik',
+        shortLabel: 'Perkembangan',
+        count: activeIndicatorsByCategory.perkembangan.length,
+        score: categoryScores.perkembangan,
+        indicators: activeIndicatorsByCategory.perkembangan
+      }
+    ];
+
+    if (categoryScores.includeKomunikasi) {
+      list.push({
+        key: 'komunikasi',
+        label: '6. Komunikasi & Kerjasama Lapangan',
+        shortLabel: 'Komunikasi',
+        count: activeIndicatorsByCategory.komunikasi.length,
+        score: categoryScores.komunikasi,
+        indicators: activeIndicatorsByCategory.komunikasi
+      });
+    }
+
+    list.push({
+      key: 'khususNomor',
+      label: `7. Khusus Nomor Pertandingan (${activeEvent.shortName || activeEvent.name || 'Nomor'})`,
+      shortLabel: 'Khusus Nomor',
+      count: activeEvent.indicators.length,
+      score: categoryScores.penekananNomor,
+      indicators: activeEvent.indicators,
+      isSpecial: true
+    });
+
+    return list;
+  }, [activeIndicatorsByCategory, activeEvent, categoryScores]);
+
+  const handleSetCategoryPreset = (catKey, presetScore) => {
+    const catObj = tennisCategoryList.find((c) => c.key === catKey);
+    if (!catObj || !catObj.indicators) return;
+
+    setScores((prev) => {
+      const updated = { ...prev };
+      catObj.indicators.forEach((ind) => {
+        updated[ind] = presetScore;
+      });
+      return updated;
+    });
+  };
 
   // 9. SIMPAN EVALUASI KE FIRESTORE
   const handleSaveAssessment = async (e) => {
