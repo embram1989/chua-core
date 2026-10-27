@@ -129,10 +129,10 @@ export default function FutsalEvaluationGrid({
       </div>
 
       {/* 1. Profil Atlet / 7-Axis (atau 8-Axis) Futsal Scouting Radar */}
-      <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3 w-full">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-            <BarChart2 className="w-4 h-4 text-amber-400" />
+      <div className="bg-[#2B3D38] border border-[#354944] rounded-3xl p-5 sm:p-6 text-white shadow-md space-y-3 w-full">
+        <div className="flex items-center justify-between border-b border-[#354944] pb-2">
+          <span className="text-xs font-black uppercase tracking-wider text-[#D4A73A] flex items-center gap-1.5">
+            <BarChart2 className="w-4 h-4 text-[#D4A73A]" />
             <span>Profil Atlet / {futsalScores.isUniversal ? '8-Axis' : '7-Axis'} Futsal Scouting Radar</span>
           </span>
           <div className="flex items-center gap-1.5">
@@ -155,10 +155,10 @@ export default function FutsalEvaluationGrid({
         <div className="h-64 w-full flex items-center justify-center">
           <ResponsiveContainer width="100%" height={250}>
             <RadarChart data={radarData} margin={{ top: 10, right: 25, bottom: 10, left: 25 }}>
-              <PolarGrid stroke="#334155" />
+              <PolarGrid stroke="#4A635D" />
               <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
-              <Radar name="Skor Futsal" dataKey="A" stroke="#f59e0b" fill="#d97706" fillOpacity={0.45} />
+              <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#4A635D" tick={{ fill: '#64748b', fontSize: 8 }} />
+              <Radar name="Skor Futsal" dataKey="A" stroke="#D4A73A" fill="#D4A73A" fillOpacity={0.35} />
             </RadarChart>
           </ResponsiveContainer>
         </div>

@@ -1045,7 +1045,7 @@ export default function EventManagementPage({ userProfile }) {
           {activeTab === 'dashboard' && (
             <button
               onClick={() => handleOpenEventModal()}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md shadow-blue-200 transition-all cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white rounded-2xl font-bold text-xs shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Buat Event / Turnamen</span>
@@ -1055,7 +1055,7 @@ export default function EventManagementPage({ userProfile }) {
           {activeTab === 'sponsors' && (
             <button
               onClick={() => handleOpenSponsorModal()}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-200 transition-all cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-[#C89D32] hover:bg-[#B38A28] text-white rounded-2xl font-bold text-xs shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Mitra / Sponsor</span>
@@ -1065,7 +1065,7 @@ export default function EventManagementPage({ userProfile }) {
           {activeTab === 'documents' && (
             <button
               onClick={() => handleOpenDocModal()}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md shadow-blue-200 transition-all cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-[#354944] hover:bg-[#2B3D38] text-white rounded-2xl font-bold text-xs shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Dokumen Regulasi</span>
@@ -1080,7 +1080,7 @@ export default function EventManagementPage({ userProfile }) {
         <select
           value={activeTab}
           onChange={(e) => setActiveTab(e.target.value)}
-          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-xs text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl font-bold text-xs text-gray-800 dark:text-slate-100 shadow-sm focus:outline-none cursor-pointer"
         >
           <option value="dashboard">Dasbor Event ({totalEventsCount})</option>
           <option value="sponsors">Mitra & Sponsor CRM ({sponsors.length})</option>
@@ -1089,13 +1089,13 @@ export default function EventManagementPage({ userProfile }) {
       </div>
 
       {/* DESKTOP SEGMENTED CONTROL */}
-      <div className="hidden md:flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
+      <div className="hidden md:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl w-fit border border-slate-200/80 dark:border-slate-700/80">
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'dashboard'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-[#354944] text-white shadow-sm'
+              : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Event3DIcon className="w-5 h-5 shrink-0" />
@@ -1106,8 +1106,8 @@ export default function EventManagementPage({ userProfile }) {
           onClick={() => setActiveTab('sponsors')}
           className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'sponsors'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-[#354944] text-white shadow-sm'
+              : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <DanaSponsor3DIcon className="w-5 h-5 shrink-0" />
@@ -1118,8 +1118,8 @@ export default function EventManagementPage({ userProfile }) {
           onClick={() => setActiveTab('documents')}
           className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'documents'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-[#354944] text-white shadow-sm'
+              : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <RegulasiDokumen3DIcon className="w-5 h-5 shrink-0" />
@@ -1132,45 +1132,69 @@ export default function EventManagementPage({ userProfile }) {
       {/* ==================================================== */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
-          {/* STATS OVERVIEW CARDS */}
+          {/* STATS OVERVIEW CARDS (TOPOGRAPHY CARDS) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex items-center space-x-3">
-              <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-bold">
-                <TotalEvent3DIcon className="w-7 h-7 shrink-0" />
+            {/* Card 1: Warm Mustard Gold Highlight */}
+            <div className="bg-[#C89D32] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+              <div className="flex items-center justify-between z-10">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Total Event</p>
+                <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+                  <TotalEvent3DIcon className="w-6 h-6 shrink-0" />
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total Event</p>
-                <p className="text-xl font-black text-gray-900">{totalEventsCount}</p>
+              <div className="z-10 mt-2">
+                <p className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">{totalEventsCount}</p>
               </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex items-center space-x-3">
-              <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">
-                <EventBerlangsung3DIcon className="w-7 h-7 shrink-0" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Event Berlangsung</p>
-                <p className="text-xl font-black text-blue-600">{activeEventsCount}</p>
+              <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+                Event Terdaftar
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex items-center space-x-3">
-              <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
-                <PendaftaranBuka3DIcon className="w-7 h-7 shrink-0" />
+            {/* Card 2: Deep Slate Teal */}
+            <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+              <div className="flex items-center justify-between z-10">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Event Berlangsung</p>
+                <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+                  <EventBerlangsung3DIcon className="w-6 h-6 shrink-0" />
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Pendaftaran Buka</p>
-                <p className="text-xl font-black text-emerald-600">{openRegEventsCount}</p>
+              <div className="z-10 mt-2">
+                <p className="text-2xl sm:text-3xl font-black font-mono text-[#D4A73A] tracking-tight">{activeEventsCount}</p>
+              </div>
+              <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+                Sedang Aktif
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex items-center space-x-3">
-              <div className="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center font-bold">
-                <DanaSponsor3DIcon className="w-7 h-7 shrink-0" />
+            {/* Card 3: Deep Slate Teal */}
+            <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+              <div className="flex items-center justify-between z-10">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Pendaftaran Buka</p>
+                <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+                  <PendaftaranBuka3DIcon className="w-6 h-6 shrink-0" />
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Dana Sponsor Deal</p>
-                <p className="text-sm font-black text-purple-700 truncate">{formatRupiah(totalSponsorDealLunas)}</p>
+              <div className="z-10 mt-2">
+                <p className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">{openRegEventsCount}</p>
+              </div>
+              <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+                Siap Menerima Tim
+              </div>
+            </div>
+
+            {/* Card 4: Deep Slate Teal */}
+            <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+              <div className="flex items-center justify-between z-10">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Dana Sponsor Deal</p>
+                <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+                  <DanaSponsor3DIcon className="w-6 h-6 shrink-0" />
+                </div>
+              </div>
+              <div className="z-10 mt-2">
+                <p className="text-lg sm:text-xl font-black font-mono text-[#D4A73A] truncate tracking-tight">{formatRupiah(totalSponsorDealLunas)}</p>
+              </div>
+              <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+                Total Komitmen Sponsor
               </div>
             </div>
           </div>

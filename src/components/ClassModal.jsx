@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
-import { X, GraduationCap, Calendar, Plus, Trash2, Dumbbell, MapPin, Clock } from 'lucide-react';
+import { X, GraduationCap, Calendar, Plus, Trash2, Dumbbell, MapPin, Clock, CheckCircle2 } from 'lucide-react';
+import { isTennisSport } from '../config/tennisAssessmentData';
 
 const DAYS_LIST = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
@@ -18,12 +19,20 @@ export default function ClassModal({
 }) {
   const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
 
+  // Cabang olahraga yang mutlak diwarisi dari activeAcademy
+  const inheritedSport = useMemo(() => {
+    if (activeAcademy?.sport) return activeAcademy.sport;
+    if (isTennisSport(null, activeAcademy)) return 'Tenis';
+    if (Array.isArray(uniqueSports) && uniqueSports.length > 0) return uniqueSports[0];
+    return 'Tenis'; // Fallback aman
+  }, [activeAcademy, uniqueSports]);
+
   // Dual data fetch: Use props if available, fallback to internal useArenaData hook
   const arenaData = useArenaData(userProfile);
   const safeCourts = Array.isArray(courts) && courts.length > 0 ? courts : (arenaData?.courts || []);
 
   const [className, setClassName] = useState('');
-  const [sport, setSport] = useState(uniqueSports?.[0] || 'Badminton');
+  const [sport, setSport] = useState(inheritedSport);
   const [coachId, setCoachId] = useState(coaches?.[0]?.id || '');
 
   // Structured Schedule Array State
@@ -33,6 +42,29 @@ export default function ClassModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Re-sync sport state whenever modal opens or inheritedSport changes
+  useEffect(() => {
+    if (isOpen) {
+      setSport(inheritedSport);
+    }
+  }, [isOpen, inheritedSport]);
+
+  // Daftar opsi cabor yang tersedia dengan garansi cabor akademi aktif selalu di posisi teratas
+  const availableSports = useMemo(() => {
+    const list = [];
+    if (inheritedSport && !list.includes(inheritedSport)) list.push(inheritedSport);
+    if (activeAcademy?.sport && !list.includes(activeAcademy.sport)) list.push(activeAcademy.sport);
+    if (Array.isArray(uniqueSports)) {
+      uniqueSports.forEach((s) => {
+        if (s && !list.includes(s)) list.push(s);
+      });
+    }
+    ['Tenis', 'Badminton', 'Futsal', 'SepakBola', 'Minisoccer', 'BolaBasket 5v5', 'Bola Voli indoor'].forEach((s) => {
+      if (!list.includes(s)) list.push(s);
+    });
+    return list;
+  }, [inheritedSport, activeAcademy?.sport, uniqueSports]);
 
   // Normalisasi string pada filter lapangan (case-insensitive & trim)
   const filteredCourts = safeCourts.filter((court) => {
@@ -137,17 +169,21 @@ export default function ClassModal({
         .map((s) => `${s.day} (${s.startTime}-${s.endTime}, ${s.courtName || 'Lapangan'})`)
         .join('; ');
 
+      // Mutlak prioritaskan cabor akademi aktif atau pilihan eksplisit
+      const finalSport = activeAcademy?.sport || sport || inheritedSport;
+
       const newClass = {
         tenantId,
         academyId: activeAcademy?.id || '',
         academyName: activeAcademy?.name || '',
         className: className.trim(),
-        sport,
+        sport: finalSport,
         coachId: selectedCoachObj?.id || '',
         coachName: selectedCoachObj?.name || 'Pelatih Utama',
         schedules: schedules, // Array of structured objects
         schedule: scheduleSummary,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
 
       const docRef = await addDoc(collection(db, 'academy_classes'), newClass);
@@ -168,22 +204,35 @@ export default function ClassModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl animate-fade-in text-[#333333] max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl animate-fade-in text-slate-800 dark:text-slate-100 max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 dark:border-slate-800">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 shrink-0">
           <div>
-            <h3 className="font-bold text-base text-[#333333]">Buat Kelas / Kelompok Latihan</h3>
-            <p className="text-xs text-gray-500">Atur kelompok usia, pelatih utama, &amp; jadwal alokasi lapangan</p>
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">Buat Kelas / Kelompok Latihan</h3>
+              {activeAcademy?.sport && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                  {activeAcademy.sport}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Akademi: <strong className="text-slate-700 dark:text-slate-200">{activeAcademy?.name || 'Akademi Aktif'}</strong> &bull; Mewarisi cabor: <strong className="text-blue-600 dark:text-blue-400">{inheritedSport}</strong>
+            </p>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-black cursor-pointer">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium shrink-0">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium shrink-0">
             {errorMsg}
           </div>
         )}
@@ -192,50 +241,56 @@ export default function ClassModal({
           
           {/* Nama Kelas */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Nama Kelas / Kelompok <span className="text-blue-600">*</span>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+              Nama Kelas / Kelompok <span className="text-blue-600 dark:text-blue-400">*</span>
             </label>
             <div className="relative">
-              <GraduationCap className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="text"
                 required
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
-                placeholder="misal: U-12 Pemula / U-15 Prestasi"
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder={inheritedSport === 'Tenis' ? 'misal: Pemula / Kadet U-14 / Junior Prestasi' : 'misal: U-12 Pemula / U-15 Prestasi'}
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Cabang Olahraga (Mewarisi Akademi Aktif) */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                Cabang Olahraga
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1 flex items-center justify-between">
+                <span>Cabang Olahraga</span>
+                {activeAcademy?.sport && (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold normal-case flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Mewarisi Akademi</span>
+                  </span>
+                )}
               </label>
               <select
                 value={sport}
                 onChange={(e) => setSport(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
               >
-                {uniqueSports?.length > 0 ? (
-                  uniqueSports.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))
-                ) : (
-                  <option value="Badminton">Badminton</option>
-                )}
+                {availableSports.map((s) => (
+                  <option key={s} value={s}>
+                    {s} {activeAcademy?.sport === s ? '★ (Sesuai Akademi)' : ''}
+                  </option>
+                ))}
               </select>
             </div>
 
+            {/* Pelatih Utama */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
                 Pelatih Utama
               </label>
               <select
                 value={coachId}
                 onChange={(e) => setCoachId(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
               >
                 {coaches?.length === 0 ? (
                   <option value="">Belum ada pelatih terdaftar</option>
@@ -251,27 +306,27 @@ export default function ClassModal({
           </div>
 
           {/* DYNAMIC SCHEDULE BUILDER WITH COURT INTEGRATION */}
-          <div className="space-y-3 pt-2 border-t border-gray-100">
+          <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-blue-600 uppercase flex items-center space-x-1.5">
+              <label className="block text-xs font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center space-x-1.5">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Alokasi Jadwal &amp; Lapangan Rutin</span>
               </label>
-              <span className="text-[10px] text-gray-400">
-                Lapangan terfilter cabor: <strong className="text-gray-700">{sport}</strong>
+              <span className="text-[10px] text-slate-400 dark:text-slate-400">
+                Filter Lapangan: <strong className="text-slate-700 dark:text-slate-200">{sport}</strong>
               </span>
             </div>
 
             <div className="space-y-2.5">
               {schedules.map((row, idx) => (
-                <div key={row.id} className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
-                    <span className="font-bold text-blue-600 text-[11px]">Sesi #{idx + 1}</span>
+                <div key={row.id} className="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/60 dark:border-slate-700/60">
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">Sesi #{idx + 1}</span>
                     {schedules.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveScheduleRow(row.id)}
-                        className="text-gray-400 hover:text-red-600 p-1 cursor-pointer flex items-center space-x-1 text-[10px]"
+                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer flex items-center space-x-1 text-[10px]"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Hapus</span>
@@ -282,11 +337,11 @@ export default function ClassModal({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {/* Hari */}
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Hari</label>
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Hari</label>
                       <select
                         value={row.day}
                         onChange={(e) => handleUpdateScheduleRow(row.id, 'day', e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-slate-800"
+                        className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
                       >
                         {DAYS_LIST.map((d) => (
                           <option key={d} value={d}>{d}</option>
@@ -296,38 +351,38 @@ export default function ClassModal({
 
                     {/* Jam Mulai */}
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Mulai</label>
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Mulai</label>
                       <input
                         type="time"
                         required
                         value={row.startTime}
                         onChange={(e) => handleUpdateScheduleRow(row.id, 'startTime', e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-slate-800"
+                        className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100"
                       />
                     </div>
 
                     {/* Jam Selesai */}
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Selesai</label>
+                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Selesai</label>
                       <input
                         type="time"
                         required
                         value={row.endTime}
                         onChange={(e) => handleUpdateScheduleRow(row.id, 'endTime', e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-slate-800"
+                        className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100"
                       />
                     </div>
                   </div>
 
-                  {/* Dropdown Pilih Lapangan Smart Filtered with Fallback & Debug Log */}
+                  {/* Dropdown Pilih Lapangan Smart Filtered with Fallback */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 mb-0.5">
-                      Pilih Lapangan ({sport}) <span className="text-blue-600">*</span>
+                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">
+                      Pilih Lapangan ({sport}) <span className="text-blue-600 dark:text-blue-400">*</span>
                     </label>
                     <select
                       value={row.courtId}
                       onChange={(e) => handleUpdateScheduleRow(row.id, 'courtId', e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-slate-800"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100 cursor-pointer"
                     >
                       <option value="">-- Pilih Lapangan --</option>
                       {displayCourts.length === 0 ? (
@@ -349,27 +404,27 @@ export default function ClassModal({
             <button
               type="button"
               onClick={handleAddScheduleRow}
-              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1 border border-gray-200"
+              className="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1 border border-slate-200 dark:border-slate-700"
             >
-              <Plus className="w-3.5 h-3.5 text-blue-600" />
+              <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>+ Tambah Sesi Hari Lain</span>
             </button>
           </div>
 
-          <div className="flex space-x-3 pt-3 border-t border-gray-100 shrink-0">
+          <div className="flex space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl cursor-pointer"
+              className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl cursor-pointer transition-colors"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition-colors"
             >
-              {submitting ? 'Memproses...' : 'Buat Kelas'}
+              {submitting ? 'Memproses...' : `Buat Kelas (${sport})`}
             </button>
           </div>
 

@@ -159,8 +159,11 @@ export default function Layout({ userProfile }) {
   };
 
   const tenant = tenantProfile || userProfile?.tenant;
-  const tenantName = tenant?.name || 'CHUA SPORT CORE';
+  const tenantName = tenant?.name || 'TAWANG FOOTBALL CLUB';
   const tenantLogo = tenant?.logoUrl || '';
+  const tenantPhone = tenant?.whatsappNumber || tenant?.phone || userProfile?.phone || '0856-0495-9707';
+  const tenantEmail = tenant?.email || userProfile?.email || 'sheinaranajwa0@gmail.com';
+  const tenantContact = tenantPhone || tenantEmail;
   
   // Format Label Role untuk Badge Sidebar
   const roleDisplay = 
@@ -181,263 +184,281 @@ export default function Layout({ userProfile }) {
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-800 text-sm overflow-x-hidden">
       
       {/* DESKTOP SIDEBAR (>= 1024px) */}
-      <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-white border-r border-slate-200 fixed top-0 bottom-0 left-0 z-30 shadow-sm transition-all duration-300 select-none`}>
+      <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-[#354944] dark:bg-[#14211E] fixed top-3 bottom-3 left-3 z-30 rounded-3xl transition-all duration-300 select-none text-slate-200 border-l border-t border-b border-r-0 border-[#425953] dark:border-[#233531] shadow-none`}>
         {/* Sidebar Header with Toggle */}
-        <div className="relative border-b border-slate-100">
+        <div className="relative pt-4">
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="absolute right-2 top-2 z-10 p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shrink-0"
+            className="absolute right-2 top-2 z-10 p-1.5 rounded-lg text-slate-300 hover:text-[#D4A73A] hover:bg-white/10 transition-colors cursor-pointer shrink-0"
             title={isSidebarCollapsed ? "Perluas Sidebar" : "Perkecil Sidebar"}
             aria-label="Toggle Sidebar"
           >
             {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
 
-          <div className="flex flex-col items-center justify-center text-center w-full px-4 py-4">
-            {!isSidebarCollapsed ? (
-              <div className="flex flex-col items-center justify-center text-center mx-auto chuvator-logo-badge p-2 rounded-xl shadow-2xs border border-slate-100">
-                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-28 h-auto object-contain mx-auto" />
-              </div>
-            ) : (
-              <div className="chuvator-logo-badge p-1 rounded-lg shadow-2xs">
-                <img src="/logo_2.jpg" alt="CHUVATOR" className="w-7 h-7 object-contain mx-auto" />
-              </div>
-            )}
-          </div>
+          {!isSidebarCollapsed ? (
+            <div className="flex flex-col items-center justify-center text-center w-full px-2 pt-2">
+              <img
+                src={tenantLogo || '/logo_2.jpg'}
+                alt={tenantName}
+                className="w-16 h-16 rounded-full object-cover p-0.5 border-2 border-[#C89D32] shadow-md bg-white/10 mx-auto"
+                onError={(e) => { e.target.src = '/logo_2.jpg'; }}
+              />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wider text-center mt-3 px-2 leading-tight">
+                {tenantName}
+              </h2>
+              <p className="text-[#CBD5E1]/80 text-[11px] font-normal text-center mt-1 truncate px-3 max-w-full">
+                {tenantContact}
+              </p>
+              <div className="border-b border-white/10 mx-4 my-4 w-[calc(100%-2rem)]" />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center w-full pt-2">
+              <img
+                src={tenantLogo || '/logo_2.jpg'}
+                alt={tenantName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-[#C89D32] mx-auto shadow-sm"
+                onError={(e) => { e.target.src = '/logo_2.jpg'; }}
+              />
+              <div className="border-b border-white/10 mx-2 my-3 w-[calc(100%-1rem)]" />
+            </div>
+          )}
         </div>
 
-        {/* Sidebar Navigation */}
-        <nav className="flex-1 px-2.5 py-2 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+        {/* Sidebar Navigation (RTL Scrollbar Trick: Scrollbar on Left Side) */}
+        <nav className="flex-1 overflow-y-auto overflow-x-visible rtl dir-rtl">
+          <div className="ltr dir-ltr pl-3 pr-0 py-3 space-y-1.5 text-left">
+            {navItems.map((item) => {
+              const Icon = item.icon;
 
-            // SPECIAL ACCORDION FOR AKADEMI
-            if (item.path === '/akademi') {
-              if (isSidebarCollapsed) {
-                return (
-                  <NavLink
-                    key={item.path}
-                    to="/akademi"
-                    title={item.label}
-                    className={({ isActive }) =>
-                      `flex items-center justify-center px-2 py-2.5 rounded-xl text-xs transition-all duration-150 ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs ring-2 ring-blue-500/20'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5 shrink-0" />
-                  </NavLink>
-                );
-              }
-
-              return (
-                <div key={item.path} className="space-y-1">
-                  <div
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 cursor-pointer ${
-                      isAkademiActive
-                        ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs border-r-4 border-blue-600'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
-                    }`}
-                    onClick={() => {
-                      if (!isAkademiActive) {
-                        navigate('/akademi?tab=dasbor');
-                        setExpandedMenu('akademi');
-                      } else {
-                        setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
+              // SPECIAL ACCORDION FOR AKADEMI
+              if (item.path === '/akademi') {
+                if (isSidebarCollapsed) {
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to="/akademi"
+                      title={item.label}
+                      className={({ isActive }) =>
+                        `flex items-center justify-center px-2 py-2.5 rounded-2xl text-xs transition-all duration-150 mr-3 ${
+                          isActive
+                            ? 'bg-[#C89D32] text-white font-bold shadow-sm'
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
+                        }`
                       }
-                    }}
-                  >
-                    <div className="flex items-center space-x-3 truncate">
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
-                      }}
-                      className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
-                      aria-label="Toggle submenu"
                     >
-                      {isAkademiOpen ? (
-                        <ChevronDown className="w-4 h-4 transition-transform duration-200" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 transition-transform duration-200" />
-                      )}
-                    </button>
-                  </div>
+                      <Icon className="w-5 h-5 shrink-0 text-[#D4A73A]" />
+                    </NavLink>
+                  );
+                }
 
-                  {/* Expandable Sub-Menu (Accordion) */}
-                  {isAkademiOpen && (
-                    <div className="border-l-2 border-slate-200 ml-5 pl-2.5 space-y-1 my-1">
-                      {academySubMenuItems.map((sub) => {
-                        const isSubActive = isAkademiActive && currentTab === sub.id;
-                        return (
-                          <Link
-                            key={sub.id}
-                            to={sub.path}
-                            className={`rounded-lg px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
-                              isSubActive
-                                ? 'bg-blue-50 text-blue-700 font-semibold'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                          >
-                            <span className="truncate">{sub.label}</span>
-                            {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
-                              <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
-                                  isSubActive
-                                    ? 'bg-blue-200/80 text-blue-800'
-                                    : 'bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                {sub.count}
-                              </span>
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            // SPECIAL ACCORDION FOR PROFIL
-            if (item.path === '/pengaturan') {
-              if (isSidebarCollapsed) {
                 return (
-                  <NavLink
-                    key={item.path}
-                    to="/pengaturan?tab=profil"
-                    title={item.label}
-                    className={({ isActive }) =>
-                      `flex items-center justify-center px-2 py-2.5 rounded-xl text-xs transition-all duration-150 ${
-                        isActive || isProfilActive
-                          ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs ring-2 ring-blue-500/20'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5 shrink-0" />
-                  </NavLink>
-                );
-              }
-
-              return (
-                <div key={item.path} className="space-y-1">
-                  <div
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 cursor-pointer ${
-                      isProfilActive
-                        ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs border-r-4 border-blue-600'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
-                    }`}
-                    onClick={() => {
-                      if (!isProfilActive) {
-                        navigate('/pengaturan?tab=profil');
-                        setExpandedMenu('profil');
-                      } else {
-                        setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
-                      }
-                    }}
-                  >
-                    <div className="flex items-center space-x-3 truncate">
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
+                  <div key={item.path} className="space-y-1 pr-0">
+                    <div
+                      className={`flex items-center justify-between ${isSidebarCollapsed ? 'px-2 py-2.5 rounded-2xl mr-3' : 'pl-4 pr-3 py-2.5 rounded-l-full'} text-xs uppercase tracking-wider font-semibold transition-all duration-150 cursor-pointer ${
+                        isAkademiActive
+                          ? 'fluid-tab-active shadow-xs'
+                          : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
+                      }`}
+                      onClick={() => {
+                        if (!isAkademiActive) {
+                          navigate('/akademi?tab=dasbor');
+                          setExpandedMenu('akademi');
+                        } else {
+                          setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
+                        }
                       }}
-                      className="p-0.5 text-slate-400 hover:text-slate-700 transition-colors rounded cursor-pointer"
-                      aria-label="Toggle submenu"
                     >
-                      {isProfilOpen ? (
-                        <ChevronDown className="w-4 h-4 transition-transform duration-200" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 transition-transform duration-200" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Expandable Sub-Menu (Accordion) */}
-                  {isProfilOpen && (
-                    <div className="border-l-2 border-slate-200 ml-5 pl-2.5 space-y-1 my-1">
-                      {profileSubMenuItems.map((sub) => {
-                        const isSubActive = isProfilActive && currentProfileTab === sub.id;
-                        return (
-                          <Link
-                            key={sub.id}
-                            to={sub.path}
-                            className={`rounded-lg px-3 py-1.5 text-xs flex items-center justify-between transition-colors ${
-                              isSubActive
-                                ? 'bg-blue-50 text-blue-700 font-semibold'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                          >
-                            <span className="truncate">{sub.label}</span>
-                          </Link>
-                        );
-                      })}
+                      <div className="flex items-center space-x-3 truncate">
+                        <Icon className="w-5 h-5 shrink-0 text-[#D4A73A]" />
+                        <span className="truncate">{item.label}</span>
+                      </div>
                       <button
                         type="button"
-                        onClick={handleLogout}
-                        className="w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedMenu((prev) => (prev === 'akademi' ? null : 'akademi'));
+                        }}
+                        className="p-0.5 text-slate-300 hover:text-white transition-colors rounded cursor-pointer"
+                        aria-label="Toggle submenu"
                       >
-                        <LogOut className="w-3.5 h-3.5 shrink-0" />
-                        <span>Keluar Sistem</span>
+                        {isAkademiOpen ? (
+                          <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                        )}
                       </button>
                     </div>
-                  )}
-                </div>
-              );
-            }
 
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setExpandedMenu(null)}
-                title={isSidebarCollapsed ? item.label : undefined}
-                className={({ isActive }) =>
-                  `flex items-center ${isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'space-x-3 px-3 py-2'} rounded-xl text-xs transition-all duration-150 ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700 font-semibold shadow-2xs ' + (isSidebarCollapsed ? 'ring-2 ring-blue-500/20' : 'border-r-4 border-blue-600')
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium'
-                  }`
+                    {/* Expandable Sub-Menu (Accordion) */}
+                    {isAkademiOpen && (
+                      <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2.5 space-y-1 my-1.5">
+                        {academySubMenuItems.map((sub) => {
+                          const isSubActive = isAkademiActive && currentTab === sub.id;
+                          return (
+                            <Link
+                              key={sub.id}
+                              to={sub.path}
+                              className={`rounded-xl px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                                isSubActive
+                                  ? 'bg-[#C89D32] text-white font-bold shadow-xs'
+                                  : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
+                              }`}
+                            >
+                              <span className="truncate">{sub.label}</span>
+                              {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 shrink-0 ${
+                                    isSubActive
+                                      ? 'bg-white/20 text-white'
+                                      : 'bg-white/10 text-slate-300'
+                                  }`}
+                                >
+                                  {sub.count}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // SPECIAL ACCORDION FOR PROFIL
+              if (item.path === '/pengaturan') {
+                if (isSidebarCollapsed) {
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to="/pengaturan?tab=profil"
+                      title={item.label}
+                      className={({ isActive }) =>
+                        `flex items-center justify-center px-2 py-2.5 rounded-2xl text-xs transition-all duration-150 mr-3 ${
+                          isActive || isProfilActive
+                            ? 'bg-[#C89D32] text-white font-bold shadow-sm'
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5 shrink-0 text-[#D4A73A]" />
+                    </NavLink>
+                  );
                 }
-              >
-                <Icon className="w-5 h-5 shrink-0" />
-                {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
-              </NavLink>
-            );
-          })}
+
+                return (
+                  <div key={item.path} className="space-y-1 pr-0">
+                    <div
+                      className={`flex items-center justify-between ${isSidebarCollapsed ? 'px-2 py-2.5 rounded-2xl mr-3' : 'pl-4 pr-3 py-2.5 rounded-l-full'} text-xs uppercase tracking-wider font-semibold transition-all duration-150 cursor-pointer ${
+                        isProfilActive
+                          ? 'fluid-tab-active shadow-xs'
+                          : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium mr-3'
+                      }`}
+                      onClick={() => {
+                        if (!isProfilActive) {
+                          navigate('/pengaturan?tab=profil');
+                          setExpandedMenu('profil');
+                        } else {
+                          setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
+                        }
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 truncate">
+                        <Icon className="w-5 h-5 shrink-0 text-[#D4A73A]" />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedMenu((prev) => (prev === 'profil' ? null : 'profil'));
+                        }}
+                        className="p-0.5 text-slate-300 hover:text-white transition-colors rounded cursor-pointer"
+                        aria-label="Toggle submenu"
+                      >
+                        {isProfilOpen ? (
+                          <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Expandable Sub-Menu (Accordion) */}
+                    {isProfilOpen && (
+                      <div className="border-l-2 border-[#D4A73A]/40 ml-4 pl-2.5 space-y-1 my-1.5">
+                        {profileSubMenuItems.map((sub) => {
+                          const isSubActive = isProfilActive && currentProfileTab === sub.id;
+                          return (
+                            <Link
+                              key={sub.id}
+                              to={sub.path}
+                              className={`rounded-xl px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                                isSubActive
+                                  ? 'bg-[#C89D32] text-white font-bold shadow-xs'
+                                  : 'text-slate-300 hover:bg-white/10 hover:text-white font-medium'
+                              }`}
+                            >
+                              <span className="truncate">{sub.label}</span>
+                            </Link>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="w-full text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer text-left"
+                        >
+                          <LogOut className="w-3.5 h-3.5 shrink-0" />
+                          <span>Keluar Sistem</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setExpandedMenu(null)}
+                  title={isSidebarCollapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    `flex items-center ${isSidebarCollapsed ? 'justify-center px-2 py-2.5 rounded-2xl mr-3' : 'space-x-3 pl-4 pr-3 py-2.5 rounded-l-full'} text-xs uppercase tracking-wider font-semibold transition-all duration-150 ${
+                      isActive
+                        ? 'fluid-tab-active shadow-xs'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                    }`
+                  }
+                >
+                  <Icon className="w-5 h-5 shrink-0 text-[#D4A73A]" />
+                  {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                </NavLink>
+              );
+            })}
+          </div>
         </nav>
 
         {/* Sidebar Theme Switcher Footer */}
-        <div className="p-2.5 border-t border-slate-100">
+        <div className="p-3 border-t border-[#425953] dark:border-[#233531]">
           {!isSidebarCollapsed ? (
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-slate-100 border border-[#425953] transition-colors cursor-pointer"
               title={isDark ? "Beralih ke Mode Terang (Light Mode)" : "Beralih ke Mode Gelap (Dark Mode)"}
             >
               <div className="flex items-center gap-2">
                 {isDark ? (
-                  <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+                  <Sun className="w-4 h-4 text-[#D4A73A] shrink-0" />
                 ) : (
-                  <Moon className="w-4 h-4 text-blue-600 shrink-0" />
+                  <Moon className="w-4 h-4 text-[#D4A73A] shrink-0" />
                 )}
                 <span>{isDark ? 'Mode Gelap' : 'Mode Terang'}</span>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600 tracking-wider">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D4A73A]/20 text-[#D4A73A] tracking-wider">
                 {isDark ? 'DARK' : 'LIGHT'}
               </span>
             </button>
@@ -446,14 +467,14 @@ export default function Layout({ userProfile }) {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs"
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/15 text-slate-100 border border-[#425953] transition-colors cursor-pointer shadow-xs"
                 title={isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"}
                 aria-label="Toggle theme"
               >
                 {isDark ? (
-                  <Sun className="w-5 h-5 text-amber-400" />
+                  <Sun className="w-5 h-5 text-[#D4A73A]" />
                 ) : (
-                  <Moon className="w-5 h-5 text-blue-600" />
+                  <Moon className="w-5 h-5 text-[#D4A73A]" />
                 )}
               </button>
             </div>

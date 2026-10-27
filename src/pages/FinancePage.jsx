@@ -90,22 +90,22 @@ export default function FinancePage({ userProfile }) {
   return (
     <div className="space-y-4 text-[#333333]">
       
-      {/* HEADER BANNER */}
-      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="flex items-center space-x-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+      {/* HEADER BANNER TOPOGRAPHY CARD (Warm Mustard Gold) */}
+      <div className="bg-[#C89D32] text-white bg-topography-waves rounded-3xl p-6 shadow-md relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="z-10">
+          <div className="flex items-center space-x-2 text-white/90 font-bold text-xs uppercase tracking-widest">
             <Keuangan3DIcon className="w-5 h-5 shrink-0" />
             <span>Laporan Arus Kas Terpadu (General Ledger)</span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Total Pendapatan Kotor Seluruh Operasional Arena</p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
+          <p className="text-xs text-white/80 font-medium mt-1">Total Pendapatan Kotor Seluruh Operasional Arena</p>
+          <h1 className="text-3xl font-black font-mono tracking-tight text-white mt-1">
             Rp {totalGrossRevenue.toLocaleString('id-ID')}
           </h1>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-center sm:text-right shrink-0">
-          <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Total Transaksi</p>
-          <p className="text-sm font-bold text-slate-800">{mergedLedger.length} Transaksi</p>
+        <div className="bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl px-4 py-2.5 text-center sm:text-right shrink-0 z-10">
+          <p className="text-[10px] uppercase tracking-wider text-white/80 font-extrabold">Total Transaksi</p>
+          <p className="text-base font-black font-mono text-white">{mergedLedger.length} Transaksi</p>
         </div>
       </div>
 
@@ -117,66 +117,72 @@ export default function FinancePage({ userProfile }) {
         setCustomDate={setCustomDate}
       />
 
-      {/* 3 KPI SUMMARY CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      {/* 3 KPI SUMMARY CARDS (Deep Slate Teal Topography Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* a. Pendapatan Sewa Lapangan */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Sewa Lapangan</span>
-            <Booking3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <span className="text-[10px] font-extrabold text-white/80 uppercase tracking-widest">Sewa Lapangan</span>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <Booking3DIcon className="w-6 h-6 shrink-0" />
+            </div>
           </div>
-          <div>
-            <p className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="z-10 mt-2">
+            <p className="text-2xl font-black font-mono tracking-tight text-white">
               Rp {bookingRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              {filteredBookings.length} Reservasi Terkonfirmasi
-            </p>
+          </div>
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            {filteredBookings.length} Reservasi Terkonfirmasi
           </div>
         </div>
 
         {/* b. Pendapatan Kasir POS */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kasir POS (Retail &amp; F&amp;B)</span>
-            <Kasir3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <span className="text-[10px] font-extrabold text-white/80 uppercase tracking-widest">Kasir POS (Retail &amp; F&amp;B)</span>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <Kasir3DIcon className="w-6 h-6 shrink-0" />
+            </div>
           </div>
-          <div>
-            <p className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="z-10 mt-2">
+            <p className="text-2xl font-black font-mono tracking-tight text-white">
               Rp {posRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              {filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length} Penjualan Retail &amp; F&amp;B
-            </p>
+          </div>
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            {filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length} Penjualan Retail &amp; F&amp;B
           </div>
         </div>
 
         {/* c. Pendapatan SPP Akademi */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Akademi (SPP)</span>
-            <Akademi3DIcon className="w-7 h-7 shrink-0 drop-shadow-2xs" />
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <span className="text-[10px] font-extrabold text-white/80 uppercase tracking-widest">Akademi (SPP)</span>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <Akademi3DIcon className="w-6 h-6 shrink-0" />
+            </div>
           </div>
-          <div>
-            <p className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="z-10 mt-2">
+            <p className="text-2xl font-black font-mono tracking-tight text-[#D4A73A]">
               Rp {sppRevenue.toLocaleString('id-ID')}
             </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              {filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length} Pembayaran Iuran Siswa
-            </p>
+          </div>
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            {filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length} Pembayaran Iuran Siswa
           </div>
         </div>
 
       </div>
 
-      {/* INTEGRATED TRANSACTIONS HISTORY LEDGER */}
-      <div className="bg-white rounded-xl p-4 sm:p-5 shadow-2xs border border-slate-200/80 space-y-3.5">
+      {/* INTEGRATED TRANSACTIONS HISTORY LEDGER WITH TICKET NOTCHES */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
           <div>
-            <h2 className="font-bold text-base text-[#333333]">Histori Transaksi Terpadu</h2>
-            <p className="text-xs text-gray-500">Gabungan arus kas masuk dari Sewa Lapangan, Kasir POS, &amp; SPP Akademi</p>
+            <h2 className="font-black text-base text-slate-900 dark:text-slate-100">Histori Transaksi Terpadu</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Gabungan arus kas masuk dari Sewa Lapangan, Kasir POS, &amp; SPP Akademi</p>
           </div>
 
           {/* Filter Bar */}
@@ -185,8 +191,8 @@ export default function FinancePage({ userProfile }) {
               onClick={() => setFilterCategory('ALL')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
                 filterCategory === 'ALL'
-                  ? 'bg-[#333333] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#354944] text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
               Semua ({mergedLedger.length})
@@ -195,8 +201,8 @@ export default function FinancePage({ userProfile }) {
               onClick={() => setFilterCategory('SEWA')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
                 filterCategory === 'SEWA'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  ? 'bg-[#354944] text-white'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
               }`}
             >
               Sewa ({filteredBookings.length})
@@ -205,8 +211,8 @@ export default function FinancePage({ userProfile }) {
               onClick={() => setFilterCategory('POS')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
                 filterCategory === 'POS'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                  ? 'bg-[#354944] text-white'
+                  : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 hover:bg-purple-100'
               }`}
             >
               POS ({filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length})
@@ -215,8 +221,8 @@ export default function FinancePage({ userProfile }) {
               onClick={() => setFilterCategory('SPP')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
                 filterCategory === 'SPP'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  ? 'bg-[#C89D32] text-white'
+                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
               }`}
             >
               SPP ({filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length})
@@ -226,40 +232,44 @@ export default function FinancePage({ userProfile }) {
 
         {filteredLedger.length === 0 ? (
           /* ZERO MOCK DATA MANDATORY EMPTY STATE UI */
-          <div className="py-12 border-2 border-dashed border-gray-200 rounded-xl text-center flex flex-col items-center justify-center p-6">
-            <Inbox className="w-10 h-10 text-gray-300 mb-2" />
-            <p className="text-sm font-semibold text-gray-700">Tidak ada riwayat transaksi keuangan pada periode ini</p>
-            <p className="text-xs text-gray-400 max-w-sm mt-1">
+          <div className="py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-center flex flex-col items-center justify-center p-6">
+            <Inbox className="w-10 h-10 text-slate-300 dark:text-slate-700 mb-2" />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Tidak ada riwayat transaksi keuangan pada periode ini</p>
+            <p className="text-xs text-slate-400 max-w-sm mt-1">
               Gunakan panel filter waktu di atas untuk melihat rentang tanggal lainnya atau catat transaksi baru.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="space-y-2.5">
             {filteredLedger.map((item) => {
               // Badge colors based on transaction type
-              let badgeStyle = 'bg-gray-100 text-gray-700';
-              if (item.type === 'SEWA') badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
-              if (item.type === 'POS') badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
-              if (item.type === 'SPP') badgeStyle = 'bg-green-100 text-green-800 border-green-200';
+              let badgeStyle = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+              if (item.type === 'SEWA') badgeStyle = 'bg-[#354944]/15 text-[#354944] dark:text-[#C89D32] border border-[#354944]/30';
+              if (item.type === 'POS') badgeStyle = 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border border-purple-200/80';
+              if (item.type === 'SPP') badgeStyle = 'bg-[#C89D32]/15 text-[#C89D32] border border-[#C89D32]/30';
 
               return (
-                <div key={item.id} className="py-3.5 flex items-center justify-between hover:bg-gray-50/60 px-2 rounded-xl transition-colors">
-                  <div className="space-y-1 overflow-hidden pr-2">
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-0.5 border text-[9px] font-extrabold rounded-md uppercase tracking-wider ${badgeStyle}`}>
-                        {item.categoryLabel}
-                      </span>
-                      <span className="text-[10px] text-gray-400">{item.date}</span>
+                <div key={item.id} className="ticket-notch-container relative bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 p-3.5 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all">
+                  <span className="ticket-notch-left" />
+                  <span className="ticket-notch-right" />
+                  <div className="flex items-center justify-between pl-2 pr-2">
+                    <div className="space-y-1 overflow-hidden pr-2">
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wider ${badgeStyle}`}>
+                          {item.categoryLabel}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">{item.date}</span>
+                      </div>
+                      <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">{item.title}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.detail}</p>
                     </div>
-                    <p className="font-bold text-xs sm:text-sm text-[#333333] truncate">{item.title}</p>
-                    <p className="text-[11px] text-gray-400 truncate">{item.detail}</p>
-                  </div>
 
-                  <div className="text-right shrink-0">
-                    <span className="font-black text-xs sm:text-sm text-green-600 block">
-                      + Rp {item.amount.toLocaleString('id-ID')}
-                    </span>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">Terkonfirmasi</span>
+                    <div className="text-right shrink-0">
+                      <span className="font-black font-mono text-xs sm:text-sm text-[#354944] dark:text-[#C89D32] block">
+                        + Rp {item.amount.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Terkonfirmasi</span>
+                    </div>
                   </div>
                 </div>
               );

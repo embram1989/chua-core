@@ -635,54 +635,6 @@ export default function DashboardPage({ userProfile }) {
   return (
     <div className="space-y-3.5 text-[#333333]">
       
-      {/* =============================================================== */}
-      {/* HEADER PROFIL & EXECUTIVE SUMMARY BANNER                        */}
-      {/* HERO HEADER BANNER TENANT */}
-      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        
-        <div className="flex items-center space-x-3.5 min-w-0">
-          {tenantProfile?.logoUrl ? (
-            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-slate-200/80 bg-white flex items-center justify-center shrink-0">
-              <img
-                src={tenantProfile.logoUrl}
-                alt={tenantProfile?.name || 'Logo GOR'}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-slate-200/80 bg-blue-50 text-[#1e3a8a] font-black flex items-center justify-center text-xl shrink-0">
-              {tenantProfile?.name?.trim() ? tenantProfile.name.trim().charAt(0).toUpperCase() : 'G'}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold text-slate-900 tracking-tight truncate">
-              {tenantProfile?.name || 'GOR Arena Sports'}
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
-              Buku Besar Global (Multi-Division Cash Flow &bull; Court, POS Retail &amp; Akademi SIMAK)
-            </p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2 w-full md:w-auto shrink-0">
-          <Link
-            to="/booking"
-            className="flex-1 sm:flex-none bg-white hover:bg-slate-50 text-[#1e3a8a] border border-[#1e3a8a]/30 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs flex items-center justify-center space-x-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Booking Baru</span>
-          </Link>
-          <Link
-            to="/kasir"
-            className="flex-1 sm:flex-none bg-[#1e3a8a] hover:bg-blue-800 text-white px-3.5 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
-          >
-            <Kasir3DIcon className="w-4 h-4 shrink-0" />
-            <span>Buka Kasir POS</span>
-          </Link>
-        </div>
-      </div>
-
       {/* FILTER PANEL */}
       <DateRangeFilter
         timeFilter={timeFilter}
@@ -753,108 +705,108 @@ export default function DashboardPage({ userProfile }) {
 
       {/* =============================================================== */}
       {/* 5 KARTU EKSEKUTIF KPI KEUANGAN (TERMASUK B2B SPONSORSHIP) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         
-        {/* KARTU 1: GROSS REVENUE BULAN INI */}
-        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1 relative overflow-hidden">
+        {/* KARTU 1: GROSS REVENUE BULAN INI (WARM MUSTARD) */}
+        <div className="bg-[#C89D32] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider leading-tight">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               GROSS REVENUE BULAN INI
             </span>
-            <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-              <DollarSign className="w-3.5 h-3.5" />
+            <div className="w-8 h-8 bg-white/20 text-white rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
+              <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl font-bold text-slate-900 tracking-tight my-1.5">
+          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
             {formatRupiah(financialSummary.grossRevenueThisMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-400 font-medium">Status:</span>
-            <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium">Status:</span>
+            <span className="font-bold text-white bg-white/20 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               {financialSummary.totalTransactionsCount} Transaksi Sukses
             </span>
           </div>
         </div>
 
-        {/* KARTU 2: DIVISI SEWA LAPANGAN */}
-        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
+        {/* KARTU 2: DIVISI SEWA LAPANGAN (DEEP SLATE TEAL) */}
+        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider leading-tight">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI SEWA LAPANGAN
             </span>
-            <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
               <Booking3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl font-bold text-blue-600 tracking-tight my-1.5">
+          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
             {formatRupiah(financialSummary.courtRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-400 font-medium">Status:</span>
-            <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               Okupansi: {occupancyPercentage}% ({totalBookingsCount} Sesi)
             </span>
           </div>
         </div>
 
-        {/* KARTU 3: DIVISI KASIR RETAIL (POS) */}
-        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
+        {/* KARTU 3: DIVISI KASIR RETAIL (POS) (DEEP SLATE TEAL) */}
+        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider leading-tight">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI POS &amp; RETAIL
             </span>
-            <div className="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-white/15 text-[#2AA198] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
               <Kasir3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl font-bold text-emerald-600 tracking-tight my-1.5">
+          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
             {formatRupiah(financialSummary.posRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-400 font-medium">Status:</span>
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               F&amp;B &amp; Sewa
             </span>
           </div>
         </div>
 
-        {/* KARTU 4: DIVISI AKADEMI SPP */}
-        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1">
+        {/* KARTU 4: DIVISI AKADEMI SPP (DEEP SLATE TEAL) */}
+        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider leading-tight">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               DIVISI AKADEMI SPP
             </span>
-            <div className="w-7 h-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-white/15 text-[#D8B4FE] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
               <Akademi3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl font-bold text-purple-700 tracking-tight my-1.5">
+          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
             {formatRupiah(financialSummary.sppRevMonth)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-400 font-medium">Status:</span>
-            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               SPP Terdata
             </span>
           </div>
         </div>
 
-        {/* KARTU 5: DIVISI SPONSORSHIP (B2B) */}
-        <div className="bg-white p-4 rounded-xl shadow-2xs border border-slate-200 hover:shadow-xs transition-all space-y-1 col-span-1 sm:col-span-2 lg:col-span-1">
+        {/* KARTU 5: DIVISI SPONSORSHIP (B2B) (DEEP SLATE TEAL) */}
+        <div className="bg-[#354944] text-white bg-topography-waves p-5 rounded-3xl shadow-sm hover:shadow-md transition-all space-y-1 relative overflow-hidden col-span-1 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider leading-tight">
+            <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider leading-tight">
               SPONSORSHIP (B2B)
             </span>
-            <div className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-white/15 text-[#D4A73A] rounded-xl flex items-center justify-center shrink-0 backdrop-blur-xs">
               <DanaSponsor3DIcon className="w-4 h-4 shrink-0" />
             </div>
           </div>
-          <p className="text-xl font-bold text-amber-600 tracking-tight my-1.5">
+          <p className="text-2xl font-black text-white tracking-tight my-2 font-mono">
             {formatRupiah(financialSummary.sponsorRevMonth || 0)}
           </p>
-          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="text-slate-400 font-medium">Status:</span>
-            <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap">
+          <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/20">
+            <span className="text-white/80 font-medium">Status:</span>
+            <span className="font-bold text-white bg-white/15 px-2.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">
               Termin B2B Cair
             </span>
           </div>

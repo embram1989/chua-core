@@ -1,18 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
-import { X, School, Trophy, Layers, Sparkles, Plus } from 'lucide-react';
+import { X, School, Trophy, Layers, Sparkles, Plus, Check } from 'lucide-react';
 import { sportCategoryOptions } from '../pages/AcademyPage';
+
+// Quick sport shortcut options for 1-click selection
+const QUICK_SPORTS = [
+  { sport: 'Tenis', label: 'Tenis (Tennis)', category: 'racket', icon: '🎾' },
+  { sport: 'Badminton', label: 'Badminton', category: 'racket', icon: '🏸' },
+  { sport: 'Futsal', label: 'Futsal', category: 'field', icon: '⚽' },
+  { sport: 'SepakBola', label: 'Sepak Bola', category: 'field', icon: '⚽' },
+  { sport: 'Minisoccer', label: 'Minisoccer', category: 'field', icon: '⚽' },
+  { sport: 'BolaBasket 5v5', label: 'Bola Basket', category: 'court', icon: '🏀' },
+  { sport: 'Bola Voli indoor', label: 'Bola Voli', category: 'net', icon: '🏐' }
+];
 
 export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAcademyCreated }) {
   const tenantId = userProfile?.tenant?.id || userProfile?.tenantId || userProfile?.uid;
 
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('field');
-  const [sport, setSport] = useState('Futsal');
+  const [category, setCategory] = useState('racket');
+  const [sport, setSport] = useState('Tenis');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Auto-detect sport from academy name when typing
+  const handleNameChange = (val) => {
+    setName(val);
+    const lower = val.toLowerCase();
+    if ((lower.includes('tenis') || lower.includes('tennis')) && !lower.includes('meja') && !lower.includes('table')) {
+      if (sport !== 'Tenis') {
+        setCategory('racket');
+        setSport('Tenis');
+      }
+    } else if (lower.includes('badminton') || lower.includes('bulutangkis') || lower.includes('bulu tangkis')) {
+      if (sport !== 'Badminton') {
+        setCategory('racket');
+        setSport('Badminton');
+      }
+    } else if (lower.includes('futsal')) {
+      if (sport !== 'Futsal') {
+        setCategory('field');
+        setSport('Futsal');
+      }
+    } else if (lower.includes('minisoccer') || lower.includes('mini soccer')) {
+      if (sport !== 'Minisoccer') {
+        setCategory('field');
+        setSport('Minisoccer');
+      }
+    } else if (lower.includes('sepakbola') || lower.includes('sepak bola') || lower.includes('football') || lower.includes('soccer')) {
+      if (sport !== 'SepakBola') {
+        setCategory('field');
+        setSport('SepakBola');
+      }
+    }
+  };
+
+  const handleSelectQuickSport = (quick) => {
+    setCategory(quick.category);
+    setSport(quick.sport);
+  };
 
   // Sync specific sport dropdown when sport category changes
   useEffect(() => {
@@ -22,7 +70,7 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
         setSport(catObj.sports[0]);
       }
     }
-  }, [category, sport]);
+  }, [category]);
 
   if (!isOpen) return null;
 
@@ -50,7 +98,7 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
         category,
         categoryLabel: catObj?.label || 'Sports',
         sportCategory: category,
-        sport,
+        sport, // Eksplisit tersimpan 'Tenis', 'Badminton', dll.
         description: description.trim(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -76,25 +124,25 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col">
         {/* Top Decorative Sporty Gradient Bar */}
         <div className="h-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500" />
 
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0 border border-blue-100 shadow-2xs">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shrink-0 border border-blue-100 dark:border-blue-800 shadow-2xs">
               <School className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-slate-900 tracking-tight">Buat Ruang Akademi Baru</h3>
-              <p className="text-xs text-slate-500">Mendukung Multi-Cabang Olahraga dalam 1 Tenant GOR</p>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 tracking-tight">Buat Ruang Akademi Baru</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Pilih Cabang Olahraga Spesifik (Tenis, Badminton, Futsal, dll.)</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,37 +151,65 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 text-left">
           {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-bold flex items-center gap-2">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-bold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
+          {/* Quick Sport Selector Chips */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+              Pilihan Cepat Cabang Olahraga
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_SPORTS.map((qs) => {
+                const isSelected = sport === qs.sport;
+                return (
+                  <button
+                    key={qs.sport}
+                    type="button"
+                    onClick={() => handleSelectQuickSport(qs)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <span>{qs.icon}</span>
+                    <span>{qs.label}</span>
+                    {isSelected && <Check className="w-3 h-3 ml-0.5" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Input 1: Nama Akademi */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Nama Akademi <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               required
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Misal: Wates Futsal School, Garuda Badminton Academy"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Misal: Akademi Tenis Junior, Cilandak Tennis School"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
           </div>
 
           {/* Input 2: Kategori Olahraga */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
               <span>Kategori Olahraga <span className="text-rose-500">*</span></span>
-              <span className="text-[10px] text-blue-600 font-extrabold normal-case">Pilih Kelompok Olahraga</span>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold normal-case">Kelompok Format</span>
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
             >
               {sportCategoryOptions.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -145,18 +221,20 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
 
           {/* Input 3: Cabang Olahraga Spesifik (Dinamis berdasarkan Kategori) */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
               <span>Cabang Olahraga Spesifik <span className="text-rose-500">*</span></span>
-              <span className="text-[10px] text-emerald-600 font-extrabold normal-case">Dinamis dari Kategori</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold normal-case">
+                Tersimpan ke Profil: <strong>{sport}</strong>
+              </span>
             </label>
             <select
               value={sport}
               onChange={(e) => setSport(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
             >
               {currentCategoryObj.sports.map((sp) => (
                 <option key={sp} value={sp}>
-                  {sp}
+                  {sp} {sp === 'Tenis' ? '(Tennis Court)' : ''}
                 </option>
               ))}
             </select>
@@ -164,24 +242,24 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
 
           {/* Input 4: Deskripsi Singkat */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
               Deskripsi Singkat <span className="text-slate-400 font-normal">(Opsional)</span>
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Misal: Sekolah pembinaan bakat futsal usia dini U-10 hingga U-17 dengan lisensi nasional."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              placeholder="Misal: Sekolah pembinaan bakat tenis lapangan usia dini U-10 hingga atlet turnamen junior."
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 flex items-center gap-3 border-t border-slate-100">
+          <div className="pt-3 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-colors cursor-pointer"
             >
               Batal
             </button>
@@ -195,7 +273,7 @@ export default function CreateAcademyModal({ isOpen, onClose, userProfile, onAca
               ) : (
                 <>
                   <Plus className="w-4 h-4 text-cyan-300" />
-                  <span>Simpan &amp; Aktifkan Akademi</span>
+                  <span>Simpan &amp; Aktifkan ({sport})</span>
                 </>
               )}
             </button>

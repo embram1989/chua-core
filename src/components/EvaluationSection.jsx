@@ -110,6 +110,9 @@ import {
   isDoublesSpecUnlockedForTier
 } from '../config/badmintonAssessmentData';
 
+import { isTennisSport } from '../config/tennisAssessmentData';
+import TennisAssessmentView from './TennisAssessmentView';
+
 // =====================================================================
 // RESTRUKTURISASI MATRIKS KPI 4-PILAR UNTUK CABANG OLAHRAGA LAIN
 // =====================================================================
@@ -294,6 +297,34 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
   const isBadminton = useMemo(() => {
     return isBadmintonSport(selectedClass, activeAcademy);
   }, [selectedClass, activeAcademy]);
+
+  const isTennis = useMemo(() => {
+    return isTennisSport(selectedClass, activeAcademy);
+  }, [selectedClass, activeAcademy]);
+
+  const effectiveSelectedClass = useMemo(() => {
+    if (!selectedClass) return null;
+    if (isTennis && (!selectedClass.sport || selectedClass.sport.toLowerCase() !== 'tenis')) {
+      return { ...selectedClass, sport: 'Tenis' };
+    }
+    return selectedClass;
+  }, [selectedClass, isTennis]);
+
+  if (isTennis) {
+    return (
+      <TennisAssessmentView
+        selectedClass={effectiveSelectedClass}
+        students={classStudents}
+        tenantId={tenantId}
+        activeAcademy={activeAcademy}
+        history={history}
+        loadingHistory={loadingHistory}
+        filterStudentId={filterStudentId}
+        setFilterStudentId={setFilterStudentId}
+        onDeleteEvaluation={handleDeleteEvaluation}
+      />
+    );
+  }
 
   if (isBadminton) {
     return (

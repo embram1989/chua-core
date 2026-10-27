@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
   collection, 
@@ -6,11 +6,14 @@ import {
   where, 
   onSnapshot, 
   addDoc, 
+  updateDoc,
+  doc,
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import { calculateAge, getStudentInitials, parseScheduleItems } from '../utils/helpers';
 import useArenaData from '../hooks/useArenaData';
+import { isTennisSport } from '../config/tennisAssessmentData';
 
 import SppPaymentModal from '../components/SppPaymentModal';
 import GlobalReceiptModal from '../components/GlobalReceiptModal';
@@ -212,17 +215,73 @@ export default function AcademyPage({ userProfile }) {
   // 1. Tentukan Active Academy terlebih dahulu
   const activeAcademy = academies.find((a) => a.id === activeAcademyId) || (academies.length > 0 ? academies[0] : null);
 
+  const isCurrentAcademyTennis = useMemo(() => {
+    return isTennisSport(null, activeAcademy);
+  }, [activeAcademy]);
+
   // Dynamic Isolated Sports list for active academy category (Enterprise Fase 11 Part 1)
   const activeAcademyCategoryObj = sportCategoryOptions.find(
     (cat) => cat.id === activeAcademy?.category || cat.id === activeAcademy?.sportCategory
   );
-  const activeAcademySports = activeAcademyCategoryObj?.sports || (activeAcademy?.sport ? [activeAcademy.sport] : uniqueSports);
+  const activeAcademySports = useMemo(() => {
+    const list = [];
+    if (activeAcademy?.sport) list.push(activeAcademy.sport);
+    if (isCurrentAcademyTennis && !list.includes('Tenis')) list.push('Tenis');
+    if (activeAcademyCategoryObj?.sports) {
+      activeAcademyCategoryObj.sports.forEach((s) => {
+        if (!list.includes(s)) list.push(s);
+      });
+    }
+    if (list.length === 0) {
+      return uniqueSports.length > 0 ? uniqueSports : ['Tenis', 'Badminton', 'Futsal'];
+    }
+    return list;
+  }, [activeAcademy?.sport, isCurrentAcademyTennis, activeAcademyCategoryObj, uniqueSports]);
 
-  // 2. STRICT ISOLATION: Hanya ambil data yang academyId-nya persis sama dengan activeAcademy.id
-  // Jika activeAcademy belum ada/kosong, kembalikan array kosong ([])
+  // 2. STRICT ISOLATION & SELF-HEALING (IN-MEMORY):
+  // Hanya ambil data yang academyId-nya persis sama dengan activeAcademy.id.
+  // Jika akademi aktif adalah Tenis, otomatis koreksi cabor kelas yang terlanjur terdaftar 'Badminton' menjadi 'Tenis' secara instan.
   const activeStudents = activeAcademy ? students.filter((s) => s.academyId === activeAcademy.id) : [];
   const activeCoaches = activeAcademy ? coaches.filter((c) => c.academyId === activeAcademy.id) : [];
-  const activeClasses = activeAcademy ? academyClasses.filter((c) => c.academyId === activeAcademy.id) : [];
+  const activeClasses = useMemo(() => {
+    if (!activeAcademy) return [];
+    return academyClasses
+      .filter((c) => c.academyId === activeAcademy.id)
+      .map((c) => {
+        if (isCurrentAcademyTennis && (!c.sport || c.sport.toLowerCase() === 'badminton' || !c.sport.toLowerCase().includes('tenis'))) {
+          return { ...c, sport: 'Tenis' };
+        }
+        return c;
+      });
+  }, [activeAcademy, academyClasses, isCurrentAcademyTennis]);
+
+  // 3. AUTO-FIX / SELF-HEALING FIRESTORE MIGRATION:
+  // Koreksi data dokumen kelas di Firestore yang masih terlanjur tertulis 'Badminton' atau bukan 'Tenis' pada Akademi Tenis
+  useEffect(() => {
+    if (!activeAcademy || !isCurrentAcademyTennis || academyClasses.length === 0) return;
+
+    const misregisteredClasses = academyClasses.filter(
+      (cls) =>
+        cls.academyId === activeAcademy.id &&
+        (!cls.sport || cls.sport.toLowerCase() === 'badminton' || !cls.sport.toLowerCase().includes('tenis'))
+    );
+
+    if (misregisteredClasses.length > 0) {
+      console.log(`[Auto-Fix Tenis] Menemukan ${misregisteredClasses.length} kelas di Akademi Tenis dengan sport non-Tenis. Menyinkronkan ke 'Tenis'...`);
+      misregisteredClasses.forEach(async (cls) => {
+        try {
+          const docRef = doc(db, 'academy_classes', cls.id);
+          await updateDoc(docRef, {
+            sport: 'Tenis',
+            updatedAt: serverTimestamp()
+          });
+          console.log(`[Auto-Fix Tenis] Berhasil mengoreksi dokumen kelas "${cls.className}" (${cls.id}) ke sport: 'Tenis'`);
+        } catch (err) {
+          console.error(`[Auto-Fix Tenis] Gagal mengupdate dokumen kelas ${cls.id}:`, err);
+        }
+      });
+    }
+  }, [activeAcademy, academyClasses, isCurrentAcademyTennis]);
 
   const filteredStudents = activeStudents;
   const filteredCoaches = activeCoaches;

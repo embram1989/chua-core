@@ -165,14 +165,14 @@ export default function AcademyDashboard({
         value: paidCount,
         percent: rate,
         amount: actRev,
-        color: '#10b981' // emerald-500
+        color: '#C89D32' // Warm Mustard Gold
       },
       {
         name: 'SPP Menunggak',
         value: unpCount,
         percent: total > 0 ? 100 - rate : 0,
         amount: unpRev,
-        color: '#f43f5e' // rose-500
+        color: '#354944' // Deep Slate Teal
       }
     ];
 
@@ -207,12 +207,12 @@ export default function AcademyDashboard({
   // Jika belum ada akademi aktif atau siswa masih 0
   if (!activeAcademy) {
     return (
-      <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-4 shadow-sm">
-        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200/80 dark:border-slate-800 text-center space-y-4 shadow-sm">
+        <div className="w-16 h-16 bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] rounded-2xl flex items-center justify-center mx-auto shadow-inner">
           <Akademi3DIcon className="w-10 h-10" />
         </div>
-        <h3 className="font-black text-lg text-slate-800">Pilih Akademi Terlebih Dahulu</h3>
-        <p className="text-xs text-slate-500 max-w-md mx-auto">
+        <h3 className="font-black text-lg text-slate-800 dark:text-slate-100">Pilih Akademi Terlebih Dahulu</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
           Silakan buat atau pilih akademi di atas untuk melihat ringkasan metrik analitik dan laporan kinerja.
         </p>
       </div>
@@ -220,50 +220,50 @@ export default function AcademyDashboard({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* =============================================================== */}
       {/* HEADER BANNER AKADEMI SPESIFIK & SIKLUS PENAGIHAN               */}
       {/* =============================================================== */}
-      <div className="bg-white border border-slate-200/80 shadow-sm rounded-xl px-5 py-3.5 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-3">
-        <div className="flex items-center space-x-3 z-10 min-w-0">
-          <div className="w-10 h-10 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 p-1.5 text-[#1e3a8a]">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-3xl px-6 py-4 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center space-x-3.5 z-10 min-w-0">
+          <div className="w-11 h-11 bg-[#354944]/10 border border-[#354944]/20 rounded-2xl flex items-center justify-center shrink-0 p-1.5 text-[#354944] dark:text-[#C89D32]">
             <Akademi3DIcon className="w-7 h-7" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2 flex-wrap gap-y-0.5">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight truncate">
                 Dasbor BI &amp; Analytics &bull; {activeAcademy.name}
               </h2>
-              <span className="px-2 py-0.5 bg-blue-50 text-[#1e3a8a] border border-blue-200/80 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 bg-[#C89D32]/15 text-[#C89D32] border border-[#C89D32]/30 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                 {activeAcademy.categoryLabel || activeAcademy.category || 'Akademi'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-600 mt-0.5 flex items-center space-x-2 flex-wrap gap-y-0.5">
-              <span>Siklus Tagihan: Tgl <strong className="text-slate-800">{sppBillingStartDay}</strong></span>
-              <span className="text-slate-300">&bull;</span>
-              <span>Jatuh Tempo: Tgl <strong className="text-slate-800">{sppDueDay}</strong></span>
-              <span className="text-slate-300">&bull;</span>
-              <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-md text-[10px] font-semibold">{activeClasses.length} Kelas Terdaftar</span>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-2 flex-wrap gap-y-0.5 font-medium">
+              <span>Siklus Tagihan: Tgl <strong className="text-slate-800 dark:text-slate-200">{sppBillingStartDay}</strong></span>
+              <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+              <span>Jatuh Tempo: Tgl <strong className="text-slate-800 dark:text-slate-200">{sppDueDay}</strong></span>
+              <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+              <span className="inline-flex items-center px-2 py-0.5 bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 rounded-md text-[10px] font-bold">{activeClasses.length} Kelas Terdaftar</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 z-10 shrink-0">
+        <div className="flex items-center space-x-2.5 z-10 shrink-0">
           {onAddStudent && (
             <button
               onClick={onAddStudent}
-              className="bg-white hover:bg-slate-50 text-[#1e3a8a] border border-[#1e3a8a]/30 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer"
+              className="bg-[#C89D32] hover:bg-[#B38A28] text-white px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Daftar Siswa</span>
             </button>
           )}
           {onAddClass && (
             <button
               onClick={onAddClass}
-              className="bg-[#1e3a8a] hover:bg-blue-800 text-white px-3.5 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center space-x-1.5 cursor-pointer"
+              className="bg-[#354944] hover:bg-[#2B3D38] text-white px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
             >
-              <BookOpen className="w-3.5 h-3.5" />
+              <BookOpen className="w-4 h-4" />
               <span>Buat Kelas</span>
             </button>
           )}
@@ -271,96 +271,83 @@ export default function AcademyDashboard({
       </div>
 
       {/* =============================================================== */}
-      {/* 1. BAGIAN ATAS (SCORECARDS METRIK UTAMA)                         */}
+      {/* 1. BAGIAN ATAS (SCORECARDS METRIK UTAMA TOPOGRAPHY CARDS)        */}
       {/* =============================================================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* CARD 1: TOTAL SISWA AKTIF */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Siswa Aktif</p>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-bold tracking-tight text-slate-900">{totalStudents}</span>
-              <span className="text-[11px] text-slate-400 font-semibold">Atlet</span>
+        {/* CARD 1: TOTAL SISWA AKTIF (Warm Mustard Gold Highlight) */}
+        <div className="bg-[#C89D32] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Total Siswa Aktif</p>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <GraduationCap className="w-5 h-5" />
             </div>
-            <p className="text-[10px] text-slate-400 truncate">
-              {activeClasses.length} Kelas &bull; {activeCoaches.length} Pelatih
-            </p>
           </div>
-          <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
-            <GraduationCap className="w-5 h-5" />
+          <div className="z-10 mt-2">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-3xl font-black font-mono tracking-tight text-white">{totalStudents}</span>
+              <span className="text-xs font-bold text-white/80">Atlet</span>
+            </div>
+          </div>
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            {activeClasses.length} Kelas &bull; {activeCoaches.length} Pelatih
           </div>
         </div>
 
         {/* CARD 2: TINGKAT PELUNASAN SPP (%) */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tingkat Pelunasan</p>
-              <div className="flex items-baseline space-x-1.5">
-                <span className={`text-xl font-bold tracking-tight ${
-                  collectionRate >= 80 ? 'text-emerald-600' : collectionRate >= 50 ? 'text-amber-600' : 'text-rose-600'
-                }`}>
-                  {collectionRate}%
-                </span>
-                <span className="text-[11px] text-slate-400 font-semibold">Bulan Ini</span>
-              </div>
-            </div>
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-2xs border ${
-              collectionRate >= 80
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                : collectionRate >= 50
-                ? 'bg-amber-50 text-amber-600 border-amber-100'
-                : 'bg-rose-50 text-rose-600 border-rose-100'
-            }`}>
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Tingkat Pelunasan</p>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
-          {/* Progress Bar Visual */}
-          <div className="space-y-0.5">
-            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  collectionRate >= 80 ? 'bg-emerald-500' : collectionRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'
-                }`}
-                style={{ width: `${Math.min(100, collectionRate)}%` }}
-              />
+          <div className="z-10 mt-2">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-3xl font-black font-mono tracking-tight text-[#D4A73A]">
+                {collectionRate}%
+              </span>
+              <span className="text-xs font-bold text-white/80">Bulan Ini</span>
             </div>
-            <div className="flex justify-between text-[10px] text-slate-400 font-semibold">
-              <span className="text-emerald-600 font-bold">{paidStudentsCount} Lunas</span>
-              <span className="text-rose-600 font-bold">{unpaidStudentsCount} Menunggak</span>
-            </div>
+          </div>
+          <div className="border-t border-white/20 pt-2 flex items-center justify-between text-[11px] font-bold z-10 mt-2">
+            <span className="text-white/90">{paidStudentsCount} Lunas</span>
+            <span className="text-white/60">{unpaidStudentsCount} Menunggak</span>
           </div>
         </div>
 
         {/* CARD 3: PENDAPATAN AKTUAL SPP */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pendapatan SPP Masuk</p>
-            <p className="text-xl font-bold tracking-tight text-emerald-600 truncate">
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Pendapatan SPP Masuk</p>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <Keuangan3DIcon className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="z-10 mt-2">
+            <p className="text-xl font-black font-mono tracking-tight text-white truncate">
               {formatRupiah(actualRevenue)}
             </p>
-            <p className="text-[10px] text-slate-400 truncate">
-              Potensi: <span className="font-bold text-slate-700">{formatRupiah(potentialRevenue)}</span>
-            </p>
           </div>
-          <div className="w-9 h-9 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs">
-            <Keuangan3DIcon className="w-5 h-5" />
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            Potensi: {formatRupiah(potentialRevenue)}
           </div>
         </div>
 
         {/* CARD 4: TOTAL TUNGGAKAN SPP */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Tunggakan</p>
-            <p className="text-xl font-bold tracking-tight text-rose-600 truncate">
+        <div className="bg-[#354944] text-white bg-topography-waves rounded-3xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between min-h-[120px]">
+          <div className="flex items-center justify-between z-10">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Total Tunggakan</p>
+            <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-xs text-white">
+              <AlertCircle className="w-5 h-5 text-amber-300" />
+            </div>
+          </div>
+          <div className="z-10 mt-2">
+            <p className="text-xl font-black font-mono tracking-tight text-amber-300 truncate">
               {formatRupiah(unpaidRevenue)}
             </p>
-            <p className="text-[10px] text-slate-400 truncate">
-              <span className="font-bold text-rose-600">{unpaidStudentsCount} Siswa</span> Belum Lunas
-            </p>
           </div>
-          <div className="w-9 h-9 bg-rose-50 border border-rose-100 rounded-lg flex items-center justify-center text-rose-600 shrink-0 shadow-2xs">
-            <AlertCircle className="w-5 h-5" />
+          <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
+            {unpaidStudentsCount} Siswa Belum Lunas
           </div>
         </div>
       </div>
@@ -507,8 +494,9 @@ export default function AcademyDashboard({
                   <Bar
                     dataKey="count"
                     name="Siswa"
-                    fill="#3b82f6"
-                    radius={[6, 6, 0, 0]}
+                    fill="#354944"
+                    barSize={20}
+                    radius={[12, 12, 12, 12]}
                   />
                 </BarChart>
               </ResponsiveContainer>

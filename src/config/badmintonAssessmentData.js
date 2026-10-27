@@ -3,6 +3,19 @@
 // =====================================================================
 
 export function isBadmintonSport(selectedClass, activeAcademy) {
+  const isTableTennis = (str) => str.includes('meja') || str.includes('table');
+
+  const acadStr = (activeAcademy?.sport || activeAcademy?.name || '').toLowerCase();
+  const clsStr = (selectedClass?.sport || selectedClass?.name || selectedClass?.className || '').toLowerCase();
+
+  // Jika akademi atau kelas mengindikasikan Tenis lapangan (bukan tenis meja), tolak Badminton
+  if (!isTableTennis(acadStr) && (acadStr.includes('tenis') || acadStr.includes('tennis'))) {
+    return false;
+  }
+  if (!isTableTennis(clsStr) && (clsStr.includes('tenis') || clsStr.includes('tennis'))) {
+    return false;
+  }
+
   const sportCandidate = (
     selectedClass?.sport ||
     selectedClass?.sportName ||
