@@ -33,7 +33,7 @@ import {
   IdCard
 } from 'lucide-react';
 import GrowthTrackerSection from './GrowthTrackerSection';
-import { calculateAge } from '../utils/helpers';
+import { calculateAge, sortClassesByAgeGroup } from '../utils/helpers';
 
 export default function StudentDetailModal({
   isOpen,
@@ -439,7 +439,7 @@ export default function StudentDetailModal({
                       className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#354944] font-medium text-gray-800"
                     >
                       <option value="">-- Tidak Terikat Kelas --</option>
-                      {classesList.map((cls) => (
+                      {sortClassesByAgeGroup(classesList).map((cls) => (
                         <option key={cls.id} value={cls.id}>
                           {cls.className} ({cls.sport || 'Umum'}) - Pelatih: {cls.coachName || '-'}
                         </option>

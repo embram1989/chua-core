@@ -400,3 +400,56 @@ export function getSuggestedClassName(sportName, tier) {
 
   return `${tier.shortLabel} - Grup A`;
 }
+
+// 7. HELPER SORTING KELOMPOK UMUR (AGE-GROUP SORT)
+export function getClassAgeGroupWeight(cls) {
+  if (!cls) return 99;
+
+  // 1. Explicit tierCode or code
+  const code = String(cls.tierCode || cls.code || '').toUpperCase().replace(/\s+/g, '');
+  if (['U-8', 'U8', 'GRASSROOTS', 'LEVEL_1', 'T10_RED'].includes(code)) return 1;
+  if (['U-10', 'U10', 'FUNDAMENTAL', 'LEVEL_2', 'T10_ORANGE', 'T10_GREEN'].includes(code)) return 2;
+  if (['U-12', 'U12', 'GOLDENAGE', 'GOLDEN_AGE', 'LEVEL_3', 'PELTI_KU12'].includes(code)) return 3;
+  if (['U-14', 'U14', 'INTERMEDIATE', 'LEVEL_4', 'PELTI_KU14'].includes(code)) return 4;
+  if (['U-16', 'U16', 'YOUTH', 'LEVEL_5', 'PELTI_KU16'].includes(code)) return 5;
+  if (['U-18', 'U18', 'SENIOR', 'ELITE', 'LEVEL_6', 'PELTI_KU18'].includes(code)) return 6;
+  if (code === 'ALL_AGE') return 98;
+
+  // 2. minAge / maxAge
+  const minAge = typeof cls.minAge === 'number' ? cls.minAge : (parseInt(cls.minAge, 10) || null);
+  const maxAge = typeof cls.maxAge === 'number' ? cls.maxAge : (parseInt(cls.maxAge, 10) || null);
+  if (minAge !== null || maxAge !== null) {
+    const age = minAge !== null ? minAge : maxAge;
+    if (age <= 8) return 1;
+    if (age <= 10) return 2;
+    if (age <= 12) return 3;
+    if (age <= 14) return 4;
+    if (age <= 16) return 5;
+    if (age <= 18) return 6;
+  }
+
+  // 3. Inspection of className or name or label string
+  const str = String(cls.className || cls.name || cls.label || '').toUpperCase();
+  if (str.includes('U-8') || str.includes('U8') || str.includes('GRASSROOTS') || str.includes('RED BALL') || str.includes('PRA-USIA DINI')) return 1;
+  if (str.includes('U-10') || str.includes('U10') || str.includes('FUNDAMENTAL') || str.includes('ORANGE BALL') || str.includes('GREEN BALL') || str.includes('USIA DINI')) return 2;
+  if (str.includes('U-12') || str.includes('U12') || str.includes('GOLDEN AGE') || str.includes('ANAK-ANAK') || str.includes('KU-12')) return 3;
+  if (str.includes('U-14') || str.includes('U14') || str.includes('INTERMEDIATE') || str.includes('PEMULA') || str.includes('KU-14')) return 4;
+  if (str.includes('U-16') || str.includes('U16') || str.includes('YOUTH') || str.includes('REMAJA') || str.includes('KU-16')) return 5;
+  if (str.includes('U-18') || str.includes('U18') || str.includes('SENIOR') || str.includes('ELITE') || str.includes('TARUNA') || str.includes('DEWASA') || str.includes('KU-18')) return 6;
+
+  return 99;
+}
+
+export function sortClassesByAgeGroup(classesList = []) {
+  if (!Array.isArray(classesList)) return [];
+  return [...classesList].sort((a, b) => {
+    const weightA = getClassAgeGroupWeight(a);
+    const weightB = getClassAgeGroupWeight(b);
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    const nameA = String(a?.className || a?.name || '');
+    const nameB = String(b?.className || b?.name || '');
+    return nameA.localeCompare(nameB);
+  });
+}

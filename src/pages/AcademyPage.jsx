@@ -14,6 +14,7 @@ import { db, handleFirestoreError } from '../firebase';
 import { calculateAge, getStudentInitials, parseScheduleItems } from '../utils/helpers';
 import useArenaData from '../hooks/useArenaData';
 import { isTennisSport } from '../config/tennisAssessmentData';
+import { sortClassesByAgeGroup } from '../config/tierCurriculumConfig';
 
 import SppPaymentModal from '../components/SppPaymentModal';
 import GlobalReceiptModal from '../components/GlobalReceiptModal';
@@ -246,7 +247,7 @@ export default function AcademyPage({ userProfile }) {
   const activeCoaches = activeAcademy ? coaches.filter((c) => c.academyId === activeAcademy.id) : [];
   const activeClasses = useMemo(() => {
     if (!activeAcademy) return [];
-    return academyClasses
+    const rawList = academyClasses
       .filter((c) => c.academyId === activeAcademy.id)
       .map((c) => {
         if (isCurrentAcademyTennis && (!c.sport || c.sport.toLowerCase() === 'badminton' || !c.sport.toLowerCase().includes('tenis'))) {
@@ -254,6 +255,7 @@ export default function AcademyPage({ userProfile }) {
         }
         return c;
       });
+    return sortClassesByAgeGroup(rawList);
   }, [activeAcademy, academyClasses, isCurrentAcademyTennis]);
 
   // 3. AUTO-FIX / SELF-HEALING FIRESTORE MIGRATION:

@@ -34,7 +34,8 @@ import { uploadToCloudinary } from '../services/uploadService';
 import { calculateAge } from '../utils/helpers';
 import { 
   isStudentAgeMatchClass, 
-  getRecommendedTierForStudent 
+  getRecommendedTierForStudent,
+  sortClassesByAgeGroup
 } from '../config/tierCurriculumConfig';
 
 export default function StudentRegistrationModal({
@@ -444,10 +445,14 @@ export default function StudentRegistrationModal({
     ? getRecommendedTierForStudent(studentAge, sportCategory) 
     : null;
 
-  // Daftar Kelas Tersaring (Hanya kelas sesuai umur jika toggle aktif)
-  const filteredClassesList = onlyAgeAppropriate && studentAge > 0
-    ? classesList.filter((cls) => isStudentAgeMatchClass(studentAge, cls))
-    : classesList;
+  // Daftar Kelas Tersaring (Hanya kelas sesuai umur jika toggle aktif, diurutkan berdasar kelompok umur)
+  const filteredClassesList = useMemo(() => {
+    const sorted = sortClassesByAgeGroup(classesList);
+    if (onlyAgeAppropriate && studentAge > 0) {
+      return sorted.filter((cls) => isStudentAgeMatchClass(studentAge, cls));
+    }
+    return sorted;
+  }, [classesList, onlyAgeAppropriate, studentAge]);
 
   // Verifikasi apakah kelas terpilih di luar kelompok umur
   const isSelectedClassAgeMismatch = Boolean(

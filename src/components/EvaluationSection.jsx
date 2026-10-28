@@ -2961,24 +2961,46 @@ function FootballAssessmentView({
   // Sinkronisasi otomatis tier sepakbola dengan kelompok umur kelas terpilih
   useEffect(() => {
     if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
-      const code = selectedClass.tierCode;
-      if (code === 'U-8' || code === 'U-10' || code === 'U-12') {
-        setOverrideTier('1');
-      } else if (code === 'U-14') {
-        setOverrideTier('2');
-      } else if (code === 'U-16') {
-        setOverrideTier('3');
-      } else if (code === 'U-18') {
-        setOverrideTier('4');
-      } else if (['1', '2', '3', '4'].includes(String(code))) {
-        setOverrideTier(String(code));
+      const code = String(selectedClass.tierCode).toUpperCase().replace(/\s+/g, '');
+      if (['U-8', 'U8'].includes(code)) setOverrideTier('U8');
+      else if (['U-10', 'U10'].includes(code)) setOverrideTier('U10');
+      else if (['U-12', 'U12'].includes(code)) setOverrideTier('U12');
+      else if (['U-14', 'U14'].includes(code)) setOverrideTier('U14');
+      else if (['U-16', 'U16'].includes(code)) setOverrideTier('U16');
+      else if (['U-18', 'U18'].includes(code)) setOverrideTier('U18');
+      else if (['1', '2', '3', '4'].includes(code)) {
+        if (code === '1') setOverrideTier('U10');
+        else if (code === '2') setOverrideTier('U14');
+        else if (code === '3') setOverrideTier('U16');
+        else if (code === '4') setOverrideTier('U18');
+      }
+    } else if (selectedClass?.className || selectedClass?.name) {
+      const className = String(selectedClass.className || selectedClass.name).toUpperCase();
+      if (className.includes('U-8') || className.includes('U8')) setOverrideTier('U8');
+      else if (className.includes('U-10') || className.includes('U10')) setOverrideTier('U10');
+      else if (className.includes('U-12') || className.includes('U12')) setOverrideTier('U12');
+      else if (className.includes('U-14') || className.includes('U14')) setOverrideTier('U14');
+      else if (className.includes('U-16') || className.includes('U16')) setOverrideTier('U16');
+      else if (className.includes('U-18') || className.includes('U18')) setOverrideTier('U18');
+      else if (selectedClass?.minAge || selectedClass?.maxAge) {
+        const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
+        if (midAge <= 8) setOverrideTier('U8');
+        else if (midAge <= 10) setOverrideTier('U10');
+        else if (midAge <= 12) setOverrideTier('U12');
+        else if (midAge <= 14) setOverrideTier('U14');
+        else if (midAge <= 16) setOverrideTier('U16');
+        else setOverrideTier('U18');
       }
     } else if (selectedClass?.minAge || selectedClass?.maxAge) {
       const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
-      const tierNum = detectTierFromAge(midAge);
-      setOverrideTier(String(tierNum));
+      if (midAge <= 8) setOverrideTier('U8');
+      else if (midAge <= 10) setOverrideTier('U10');
+      else if (midAge <= 12) setOverrideTier('U12');
+      else if (midAge <= 14) setOverrideTier('U14');
+      else if (midAge <= 16) setOverrideTier('U16');
+      else setOverrideTier('U18');
     }
-  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge]);
+  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge, selectedClass?.className, selectedClass?.name]);
 
   const studentAge = useMemo(() => {
     if (!selectedStudent) return 0;
@@ -3001,14 +3023,49 @@ function FootballAssessmentView({
     return detectTierFromAge(studentAge);
   }, [studentAge]);
 
+  const detectedTierCode = useMemo(() => {
+    if (studentAge <= 8) return 'U8';
+    if (studentAge <= 10) return 'U10';
+    if (studentAge <= 12) return 'U12';
+    if (studentAge <= 14) return 'U14';
+    if (studentAge <= 16) return 'U16';
+    return 'U18';
+  }, [studentAge]);
+
   const activeTier = useMemo(() => {
     if (overrideTier && overrideTier !== 'AUTO') {
-      return parseInt(overrideTier, 10);
+      if (['U8', 'U-8', 'U10', 'U-10', 'U12', 'U-12', '1'].includes(String(overrideTier))) return 1;
+      if (['U14', 'U-14', '2'].includes(String(overrideTier))) return 2;
+      if (['U16', 'U-16', '3'].includes(String(overrideTier))) return 3;
+      if (['U18', 'U-18', '4'].includes(String(overrideTier))) return 4;
+      const parsed = parseInt(overrideTier, 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 4) return parsed;
     }
     return detectedTier;
   }, [overrideTier, detectedTier]);
 
-  const tierConfig = TIER_CONFIGS[activeTier] || TIER_CONFIGS[1];
+  const tierConfig = useMemo(() => {
+    const base = TIER_CONFIGS[activeTier] || TIER_CONFIGS[1];
+    if (overrideTier === 'U8' || overrideTier === 'U-8') {
+      return { ...base, label: 'U-8 (Usia 6 - 8 Thn • Grassroots Fun Phase)', shortLabel: 'U-8 Grassroots' };
+    }
+    if (overrideTier === 'U10' || overrideTier === 'U-10') {
+      return { ...base, label: 'U-10 (Usia 9 - 10 Thn • Fundamental Skill)', shortLabel: 'U-10 Fundamental' };
+    }
+    if (overrideTier === 'U12' || overrideTier === 'U-12') {
+      return { ...base, label: 'U-12 (Usia 11 - 12 Thn • Golden Age Development)', shortLabel: 'U-12 Golden Age' };
+    }
+    if (overrideTier === 'U14' || overrideTier === 'U-14') {
+      return { ...base, label: 'U-14 (Usia 13 - 14 Thn • Tactical Transition)', shortLabel: 'U-14 Tactical' };
+    }
+    if (overrideTier === 'U16' || overrideTier === 'U-16') {
+      return { ...base, label: 'U-16 (Usia 15 - 16 Thn • Youth Competitive)', shortLabel: 'U-16 Youth' };
+    }
+    if (overrideTier === 'U18' || overrideTier === 'U-18') {
+      return { ...base, label: 'U-18 / Senior (Usia 17+ Thn • Elite Performance)', shortLabel: 'U-18 Elite' };
+    }
+    return base;
+  }, [activeTier, overrideTier]);
 
   // Position, Specialization, StyleCode
   const [selectedPosition, setSelectedPosition] = useState('ST');
@@ -3535,11 +3592,13 @@ function FootballAssessmentView({
                     onChange={(e) => setOverrideTier(e.target.value)}
                     className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-[#354944] shadow-2xs cursor-pointer truncate"
                   >
-                    <option value="AUTO">Otomatis: Tier {detectedTier} ({studentAge} Thn)</option>
-                    <option value="1">Tier 1 — Usia Dini / SSB (U-6 s.d. U-12)</option>
-                    <option value="2">Tier 2 — Pemula (U-13)</option>
-                    <option value="3">Tier 3 — Pengembangan Taktik (U-15)</option>
-                    <option value="4">Tier 4 — Elit &amp; Profesional (U-16+)</option>
+                    <option value="AUTO">Otomatis: {detectedTierCode} ({studentAge} Thn)</option>
+                    <option value="U8">U-8 (Usia 6 - 8 Thn • Grassroots Fun Phase)</option>
+                    <option value="U10">U-10 (Usia 9 - 10 Thn • Fundamental Skill)</option>
+                    <option value="U12">U-12 (Usia 11 - 12 Thn • Golden Age Development)</option>
+                    <option value="U14">U-14 (Usia 13 - 14 Thn • Tactical Transition)</option>
+                    <option value="U16">U-16 (Usia 15 - 16 Thn • Youth Competitive)</option>
+                    <option value="U18">U-18 / Senior (Usia 17+ Thn • Elite Performance)</option>
                   </select>
                 </div>
               </div>
