@@ -10,67 +10,47 @@ export const normalizeSportString = (str) => {
 
 // 1. DAFTAR TIER & KELOMPOK UMUR BERDASARKAN CABANG OLAHRAGA
 export const SPORT_TIERS_CONFIG = {
-  // SEPAKBOLA, MINISOCCER, FUTSAL (FILANESIA / LTAD 4-TIER STANDARD)
+  // SEPAKBOLA (STANDAR RESMI KURIKULUM FILANESIA PSSI 4-FASE)
   football: [
     {
-      code: 'U-8',
-      name: 'U-8 Grassroots (Usia 6 - 8 Thn)',
-      shortLabel: 'U-8 Grassroots',
+      code: 'FILANESIA_F1',
+      name: 'U-8 & U-10 (Usia 6–9 Thn) — Fase Kegembiraan (Joy Phase)',
+      shortLabel: 'Fase 1 — Joy Phase (6-9 Thn)',
       minAge: 6,
-      maxAge: 8,
+      maxAge: 9,
       evaluationTier: 1,
       defaultQuota: 20,
-      description: 'Pengenalan motorik dasar, ball mastery, kegembiraan bermain, dan fun games.'
+      description: 'Fokus 4v4, tanpa posisi kaku, pengenalan bola, koordinasi motorik, dan kegembiraan bermain.'
     },
     {
-      code: 'U-10',
-      name: 'U-10 Fundamental (Usia 9 - 10 Thn)',
-      shortLabel: 'U-10 Fundamental',
-      minAge: 9,
-      maxAge: 10,
-      evaluationTier: 1,
-      defaultQuota: 20,
-      description: 'Penguasaan dasar passing, dribbling, 1v1 play, dan koordinasi kelincahan.'
-    },
-    {
-      code: 'U-12',
-      name: 'U-12 Golden Age (Usia 11 - 12 Thn)',
-      shortLabel: 'U-12 Golden Age',
-      minAge: 11,
-      maxAge: 12,
-      evaluationTier: 1,
-      defaultQuota: 20,
-      description: 'Usia emas penguasaan teknik, small-sided games (SSG), pemahaman posisi dasar.'
-    },
-    {
-      code: 'U-14',
-      name: 'U-14 Intermediate (Usia 13 - 14 Thn)',
-      shortLabel: 'U-14 Intermediate',
-      minAge: 13,
-      maxAge: 14,
+      code: 'FILANESIA_F2',
+      name: 'U-10 & U-12 (Usia 10–13 Thn) — Fase Pengembangan Skill (Skill Phase)',
+      shortLabel: 'Fase 2 — Skill Phase (10-13 Thn)',
+      minAge: 10,
+      maxAge: 13,
       evaluationTier: 2,
-      defaultQuota: 22,
-      description: 'Pengenalan taktik formasi, transisi bermain, koordinasi unit tim, dan fisik terprogram.'
+      defaultQuota: 20,
+      description: 'Fokus 4 core skills (passing, dribbling, 1v1, finishing), format 7v7, dan small-sided games.'
     },
     {
-      code: 'U-16',
-      name: 'U-16 Youth (Usia 15 - 16 Thn)',
-      shortLabel: 'U-16 Youth',
-      minAge: 15,
-      maxAge: 16,
+      code: 'FILANESIA_F3',
+      name: 'U-14 & U-16 (Usia 14–17 Thn) — Fase Taktik (Tactical Phase)',
+      shortLabel: 'Fase 3 — Taktik 4-3-3 (14-17 Thn)',
+      minAge: 14,
+      maxAge: 17,
       evaluationTier: 3,
       defaultQuota: 24,
-      description: 'Pematangan peran spesifik, kekuatan fisik intensif, pemahaman taktik 11v11 kompetitif.'
+      description: 'Fokus 11v11, zonal pressing, formasi 4-3-3 Filanesia PSSI, transisi bermain, dan unit tim.'
     },
     {
-      code: 'U-18',
-      name: 'U-18 Elite / Junior (Usia 17 - 18 Thn)',
-      shortLabel: 'U-18 Elite',
-      minAge: 17,
-      maxAge: 18,
+      code: 'FILANESIA_F4',
+      name: 'U-18 / Senior (Usia 18+ Thn) — Fase Penampilan (Performance Phase)',
+      shortLabel: 'Fase 4 — Penampilan (18+ Thn)',
+      minAge: 18,
+      maxAge: 99,
       evaluationTier: 4,
       defaultQuota: 25,
-      description: 'Kompetisi level elite, mental juara, taktikal lanjutan, persiapan jenjang pro/senior.'
+      description: 'Fokus kematangan kompetitif, efektivitas taktis, performa tinggi, dan jenjang profesional.'
     },
     {
       code: 'ALL_AGE',
@@ -378,7 +358,13 @@ export function getRecommendedTierForStudent(studentAge, sportName) {
 export function getSuggestedClassName(sportName, tier) {
   if (!tier) return '';
   const key = getSportCategoryKey(sportName);
-  
+  if (key === 'football') {
+    if (tier.code === 'FILANESIA_F1') return 'Fase Kegembiraan Joy Phase - Grup A';
+    if (tier.code === 'FILANESIA_F2') return 'Fase Skill Phase - Grup A';
+    if (tier.code === 'FILANESIA_F3') return 'Fase Taktik 4-3-3 - Grup A';
+    if (tier.code === 'FILANESIA_F4') return 'Fase Performance Phase - Prestasi';
+  }
+
   if (key === 'tennis') {
     if (tier.code === 'T10_RED') return 'ITF Red Ball - Grup A';
     if (tier.code === 'T10_ORANGE') return 'ITF Orange Ball - Grup A';
@@ -407,12 +393,10 @@ export function getClassAgeGroupWeight(cls) {
 
   // 1. Explicit tierCode or code
   const code = String(cls.tierCode || cls.code || '').toUpperCase().replace(/\s+/g, '');
-  if (['U-8', 'U8', 'GRASSROOTS', 'LEVEL_1', 'T10_RED'].includes(code)) return 1;
-  if (['U-10', 'U10', 'FUNDAMENTAL', 'LEVEL_2', 'T10_ORANGE', 'T10_GREEN'].includes(code)) return 2;
-  if (['U-12', 'U12', 'GOLDENAGE', 'GOLDEN_AGE', 'LEVEL_3', 'PELTI_KU12'].includes(code)) return 3;
-  if (['U-14', 'U14', 'INTERMEDIATE', 'LEVEL_4', 'PELTI_KU14'].includes(code)) return 4;
-  if (['U-16', 'U16', 'YOUTH', 'LEVEL_5', 'PELTI_KU16'].includes(code)) return 5;
-  if (['U-18', 'U18', 'SENIOR', 'ELITE', 'LEVEL_6', 'PELTI_KU18'].includes(code)) return 6;
+  if (['FILANESIA_F1', 'F1', 'U-8', 'U8', 'GRASSROOTS', 'LEVEL_1', 'T10_RED', 'JOY_PHASE'].includes(code)) return 1;
+  if (['FILANESIA_F2', 'F2', 'U-10', 'U10', 'U-12', 'U12', 'FUNDAMENTAL', 'LEVEL_2', 'T10_ORANGE', 'T10_GREEN', 'SKILL_PHASE'].includes(code)) return 2;
+  if (['FILANESIA_F3', 'F3', 'U-14', 'U14', 'U-16', 'U16', 'INTERMEDIATE', 'TACTICAL_PHASE', 'LEVEL_3', 'LEVEL_4', 'LEVEL_5', 'PELTI_KU14', 'PELTI_KU16'].includes(code)) return 3;
+  if (['FILANESIA_F4', 'F4', 'U-18', 'U18', 'SENIOR', 'ELITE', 'PERFORMANCE_PHASE', 'LEVEL_6', 'PELTI_KU18'].includes(code)) return 4;
   if (code === 'ALL_AGE') return 98;
 
   // 2. minAge / maxAge

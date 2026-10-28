@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   collection, 
   query, 
@@ -2962,43 +2963,29 @@ function FootballAssessmentView({
   useEffect(() => {
     if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
       const code = String(selectedClass.tierCode).toUpperCase().replace(/\s+/g, '');
-      if (['U-8', 'U8'].includes(code)) setOverrideTier('U8');
-      else if (['U-10', 'U10'].includes(code)) setOverrideTier('U10');
-      else if (['U-12', 'U12'].includes(code)) setOverrideTier('U12');
-      else if (['U-14', 'U14'].includes(code)) setOverrideTier('U14');
-      else if (['U-16', 'U16'].includes(code)) setOverrideTier('U16');
-      else if (['U-18', 'U18'].includes(code)) setOverrideTier('U18');
-      else if (['1', '2', '3', '4'].includes(code)) {
-        if (code === '1') setOverrideTier('U10');
-        else if (code === '2') setOverrideTier('U14');
-        else if (code === '3') setOverrideTier('U16');
-        else if (code === '4') setOverrideTier('U18');
-      }
+      if (['FILANESIA_F1', 'F1', 'U-8', 'U8', 'U10', 'U-10', '1'].includes(code)) setOverrideTier('FILANESIA_F1');
+      else if (['FILANESIA_F2', 'F2', 'U12', 'U-12', '2'].includes(code)) setOverrideTier('FILANESIA_F2');
+      else if (['FILANESIA_F3', 'F3', 'U14', 'U-14', 'U16', 'U-16', '3'].includes(code)) setOverrideTier('FILANESIA_F3');
+      else if (['FILANESIA_F4', 'F4', 'U18', 'U-18', '4'].includes(code)) setOverrideTier('FILANESIA_F4');
     } else if (selectedClass?.className || selectedClass?.name) {
       const className = String(selectedClass.className || selectedClass.name).toUpperCase();
-      if (className.includes('U-8') || className.includes('U8')) setOverrideTier('U8');
-      else if (className.includes('U-10') || className.includes('U10')) setOverrideTier('U10');
-      else if (className.includes('U-12') || className.includes('U12')) setOverrideTier('U12');
-      else if (className.includes('U-14') || className.includes('U14')) setOverrideTier('U14');
-      else if (className.includes('U-16') || className.includes('U16')) setOverrideTier('U16');
-      else if (className.includes('U-18') || className.includes('U18')) setOverrideTier('U18');
+      if (className.includes('FASE 1') || className.includes('JOY') || className.includes('KEGEMBIRAAN') || className.includes('U-8') || className.includes('U8')) setOverrideTier('FILANESIA_F1');
+      else if (className.includes('FASE 2') || className.includes('SKILL') || className.includes('U-10') || className.includes('U10') || className.includes('U-12') || className.includes('U12')) setOverrideTier('FILANESIA_F2');
+      else if (className.includes('FASE 3') || className.includes('TAKTIK') || className.includes('TACTICAL') || className.includes('U-14') || className.includes('U14') || className.includes('U-16') || className.includes('U16')) setOverrideTier('FILANESIA_F3');
+      else if (className.includes('FASE 4') || className.includes('PERFORMANCE') || className.includes('PENAMPILAN') || className.includes('U-18') || className.includes('U18') || className.includes('SENIOR')) setOverrideTier('FILANESIA_F4');
       else if (selectedClass?.minAge || selectedClass?.maxAge) {
         const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
-        if (midAge <= 8) setOverrideTier('U8');
-        else if (midAge <= 10) setOverrideTier('U10');
-        else if (midAge <= 12) setOverrideTier('U12');
-        else if (midAge <= 14) setOverrideTier('U14');
-        else if (midAge <= 16) setOverrideTier('U16');
-        else setOverrideTier('U18');
+        if (midAge <= 9) setOverrideTier('FILANESIA_F1');
+        else if (midAge <= 13) setOverrideTier('FILANESIA_F2');
+        else if (midAge <= 17) setOverrideTier('FILANESIA_F3');
+        else setOverrideTier('FILANESIA_F4');
       }
     } else if (selectedClass?.minAge || selectedClass?.maxAge) {
       const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
-      if (midAge <= 8) setOverrideTier('U8');
-      else if (midAge <= 10) setOverrideTier('U10');
-      else if (midAge <= 12) setOverrideTier('U12');
-      else if (midAge <= 14) setOverrideTier('U14');
-      else if (midAge <= 16) setOverrideTier('U16');
-      else setOverrideTier('U18');
+      if (midAge <= 9) setOverrideTier('FILANESIA_F1');
+      else if (midAge <= 13) setOverrideTier('FILANESIA_F2');
+      else if (midAge <= 17) setOverrideTier('FILANESIA_F3');
+      else setOverrideTier('FILANESIA_F4');
     }
   }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge, selectedClass?.className, selectedClass?.name]);
 
@@ -3024,20 +3011,18 @@ function FootballAssessmentView({
   }, [studentAge]);
 
   const detectedTierCode = useMemo(() => {
-    if (studentAge <= 8) return 'U8';
-    if (studentAge <= 10) return 'U10';
-    if (studentAge <= 12) return 'U12';
-    if (studentAge <= 14) return 'U14';
-    if (studentAge <= 16) return 'U16';
-    return 'U18';
+    if (studentAge <= 9) return 'Fase 1 (Joy Phase)';
+    if (studentAge <= 13) return 'Fase 2 (Skill Phase)';
+    if (studentAge <= 17) return 'Fase 3 (Tactical Phase)';
+    return 'Fase 4 (Performance Phase)';
   }, [studentAge]);
 
   const activeTier = useMemo(() => {
     if (overrideTier && overrideTier !== 'AUTO') {
-      if (['U8', 'U-8', 'U10', 'U-10', 'U12', 'U-12', '1'].includes(String(overrideTier))) return 1;
-      if (['U14', 'U-14', '2'].includes(String(overrideTier))) return 2;
-      if (['U16', 'U-16', '3'].includes(String(overrideTier))) return 3;
-      if (['U18', 'U-18', '4'].includes(String(overrideTier))) return 4;
+      if (['FILANESIA_F1', 'F1', 'U8', 'U-8', 'U10', 'U-10', '1'].includes(String(overrideTier))) return 1;
+      if (['FILANESIA_F2', 'F2', 'U12', 'U-12', '2'].includes(String(overrideTier))) return 2;
+      if (['FILANESIA_F3', 'F3', 'U14', 'U-14', 'U16', 'U-16', '3'].includes(String(overrideTier))) return 3;
+      if (['FILANESIA_F4', 'F4', 'U18', 'U-18', '4'].includes(String(overrideTier))) return 4;
       const parsed = parseInt(overrideTier, 10);
       if (!isNaN(parsed) && parsed >= 1 && parsed <= 4) return parsed;
     }
@@ -3046,23 +3031,17 @@ function FootballAssessmentView({
 
   const tierConfig = useMemo(() => {
     const base = TIER_CONFIGS[activeTier] || TIER_CONFIGS[1];
-    if (overrideTier === 'U8' || overrideTier === 'U-8') {
-      return { ...base, label: 'U-8 (Usia 6 - 8 Thn • Grassroots Fun Phase)', shortLabel: 'U-8 Grassroots' };
+    if (['FILANESIA_F1', 'F1', 'U8', 'U-8', 'U10'].includes(overrideTier)) {
+      return { ...base, label: 'U-8 & U-10 (Usia 6–9 Thn) — Fase Kegembiraan / Joy Phase', shortLabel: 'Fase 1 — Joy Phase' };
     }
-    if (overrideTier === 'U10' || overrideTier === 'U-10') {
-      return { ...base, label: 'U-10 (Usia 9 - 10 Thn • Fundamental Skill)', shortLabel: 'U-10 Fundamental' };
+    if (['FILANESIA_F2', 'F2', 'U12', 'U-12'].includes(overrideTier)) {
+      return { ...base, label: 'U-10 & U-12 (Usia 10–13 Thn) — Fase Pengembangan Skill / Skill Phase', shortLabel: 'Fase 2 — Skill Phase' };
     }
-    if (overrideTier === 'U12' || overrideTier === 'U-12') {
-      return { ...base, label: 'U-12 (Usia 11 - 12 Thn • Golden Age Development)', shortLabel: 'U-12 Golden Age' };
+    if (['FILANESIA_F3', 'F3', 'U14', 'U-14', 'U16', 'U-16'].includes(overrideTier)) {
+      return { ...base, label: 'U-14 & U-16 (Usia 14–17 Thn) — Fase Taktik / Tactical Phase', shortLabel: 'Fase 3 — Tactical Phase' };
     }
-    if (overrideTier === 'U14' || overrideTier === 'U-14') {
-      return { ...base, label: 'U-14 (Usia 13 - 14 Thn • Tactical Transition)', shortLabel: 'U-14 Tactical' };
-    }
-    if (overrideTier === 'U16' || overrideTier === 'U-16') {
-      return { ...base, label: 'U-16 (Usia 15 - 16 Thn • Youth Competitive)', shortLabel: 'U-16 Youth' };
-    }
-    if (overrideTier === 'U18' || overrideTier === 'U-18') {
-      return { ...base, label: 'U-18 / Senior (Usia 17+ Thn • Elite Performance)', shortLabel: 'U-18 Elite' };
+    if (['FILANESIA_F4', 'F4', 'U18', 'U-18'].includes(overrideTier)) {
+      return { ...base, label: 'U-18 / Senior (Usia 18+ Thn) — Fase Penampilan / Performance Phase', shortLabel: 'Fase 4 — Performance Phase' };
     }
     return base;
   }, [activeTier, overrideTier]);
@@ -3593,12 +3572,10 @@ function FootballAssessmentView({
                     className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-[#354944] shadow-2xs cursor-pointer truncate"
                   >
                     <option value="AUTO">Otomatis: {detectedTierCode} ({studentAge} Thn)</option>
-                    <option value="U8">U-8 (Usia 6 - 8 Thn • Grassroots Fun Phase)</option>
-                    <option value="U10">U-10 (Usia 9 - 10 Thn • Fundamental Skill)</option>
-                    <option value="U12">U-12 (Usia 11 - 12 Thn • Golden Age Development)</option>
-                    <option value="U14">U-14 (Usia 13 - 14 Thn • Tactical Transition)</option>
-                    <option value="U16">U-16 (Usia 15 - 16 Thn • Youth Competitive)</option>
-                    <option value="U18">U-18 / Senior (Usia 17+ Thn • Elite Performance)</option>
+                    <option value="FILANESIA_F1">Fase 1: U-8 &amp; U-10 (Usia 6–9 Thn) • Fase Kegembiraan (Joy Phase)</option>
+                    <option value="FILANESIA_F2">Fase 2: U-10 &amp; U-12 (Usia 10–13 Thn) • Fase Skill Phase</option>
+                    <option value="FILANESIA_F3">Fase 3: U-14 &amp; U-16 (Usia 14–17 Thn) • Fase Taktik 4-3-3</option>
+                    <option value="FILANESIA_F4">Fase 4: U-18 / Senior (Usia 18+ Thn) • Fase Penampilan (Performance)</option>
                   </select>
                 </div>
               </div>
@@ -4282,60 +4259,57 @@ export function CategoryAssessmentModal({
     (c) => getCategoryProgress(c).isCompleted
   ).length;
 
-  // Render nothing if modal is not open (evaluated strictly after all hooks)
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-[#162320] w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 lg:p-6 overflow-y-auto">
+      <div className="relative w-full max-w-5xl max-h-[92vh] bg-white dark:bg-[#162320] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col overflow-hidden my-auto text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
         {/* HEADER MODAL */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 border-2 border-[#C89D32] shadow-sm">
-                <Edit3 className="w-5 h-5 text-[#C89D32]" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
-                    Edit &amp; Input Penilaian Indikator
-                  </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#354944]/10 dark:bg-[#C89D32]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 dark:border-[#C89D32]/20">
-                    {categoryList.length} Kategori
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                    {completedCategoriesCount}/{categoryList.length} Selesai
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Pilih kategori di menu kiri, isi nilai indikator per kategori, dan gunakan navigasi berikutnya untuk alur kerja cepat.
-                </p>
-              </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#121c19]/80 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 border-2 border-[#C89D32] shadow-sm">
+              <Edit3 className="w-5 h-5 text-[#C89D32]" />
             </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden sm:flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Rata-rata:</span>
-                <span className="font-mono font-black text-sm text-[#354944] dark:text-[#C89D32]">
-                  {overallAvg} / 100
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 tracking-tight">
+                  Edit &amp; Input Penilaian Indikator
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#354944]/10 dark:bg-[#C89D32]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 dark:border-[#C89D32]/20">
+                  {categoryList.length} Kategori
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  {completedCategoriesCount}/{categoryList.length} Selesai
                 </span>
               </div>
-
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-                title="Tutup Jendela"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Pilih kategori di menu kiri, isi nilai indikator per kategori, dan gunakan navigasi berikutnya untuk alur kerja cepat.
+              </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Rata-rata:</span>
+              <span className="font-mono font-black text-sm text-[#354944] dark:text-[#C89D32]">
+                {overallAvg} / 100
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              title="Tutup Jendela"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
         {/* MOBILE HORIZONTAL CATEGORY SELECTOR (< md) */}
-        <div className="flex md:hidden items-center gap-1.5 overflow-x-auto p-2.5 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 scrollbar-none shrink-0">
+        <div className="flex md:hidden items-center gap-1.5 overflow-x-auto p-2.5 bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-white/10 scrollbar-none shrink-0">
           {categoryList.map((cat, idx) => {
             const isActive = cat.key === activeCategory?.key;
             const { total, rated, isCompleted } = getCategoryProgress(cat);
@@ -4367,7 +4341,7 @@ export function CategoryAssessmentModal({
         <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
           
           {/* LEFT SIDE VERTICAL CATEGORY MENU (w-64 DESKTOP) */}
-          <div className="hidden md:flex flex-col w-64 shrink-0 border-r border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 p-3 space-y-2 overflow-y-auto scrollbar-thin">
+          <div className="hidden md:flex flex-col w-64 shrink-0 border-r border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/70 p-3 space-y-2 overflow-y-auto scrollbar-thin">
             <div className="flex items-center justify-between px-2 pb-0.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 Pilih Kategori
@@ -4530,7 +4504,7 @@ export function CategoryAssessmentModal({
                     Tidak ada indikator aktif untuk kategori ini.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(activeCategory.indicators || []).map((ind) => {
                       const val = scores[ind] !== undefined ? scores[ind] : 0;
                       return (
@@ -4553,7 +4527,7 @@ export function CategoryAssessmentModal({
         </div>
 
         {/* FOOTER MODAL: STEPPER NAVIGATION (PREV / NEXT) & DONE BUTTON */}
-        <div className="p-3.5 sm:p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-900/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div className="sticky bottom-0 px-6 py-4 bg-slate-50/90 dark:bg-[#121c19]/90 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           
           {/* STEPPER BUTTONS */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
@@ -4607,6 +4581,8 @@ export function CategoryAssessmentModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
 
 // =====================================================================

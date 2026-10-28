@@ -5,31 +5,31 @@
 export const TIER_CONFIGS = {
   1: {
     tier: 1,
-    label: 'Tier 1: Usia Dini / SSB (U-6 s.d. U-12)',
-    shortLabel: 'Tier 1 — Usia Dini (SSB)',
+    label: 'U-8 & U-10 (Usia 6–9 Thn) — Fase Kegembiraan / Joy Phase',
+    shortLabel: 'Fase 1 — Joy Phase (U-8 & U-10)',
     badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
-    desc: 'Pengenalan bola, koordinasi dasar, motorik, dan fun game.'
+    desc: 'Fokus 4v4, tanpa posisi kaku, pengenalan bola, gerak dasar motorik, dan kegembiraan bermain.'
   },
   2: {
     tier: 2,
-    label: 'Tier 2: Pemula (U-13)',
-    shortLabel: 'Tier 2 — U-13',
+    label: 'U-10 & U-12 (Usia 10–13 Thn) — Fase Pengembangan Skill / Skill Phase',
+    shortLabel: 'Fase 2 — Skill Phase (U-10 & U-12)',
     badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
-    desc: 'Mulai memahami posisi dasar, teknik spesifik, dan aturan kompetisi.'
+    desc: 'Fokus 4 core skills (passing, dribbling, 1v1, finishing), format 7v7, dan small-sided games.'
   },
   3: {
     tier: 3,
-    label: 'Tier 3: Pengembangan Taktik (U-15)',
-    shortLabel: 'Tier 3 — U-15',
+    label: 'U-14 & U-16 (Usia 14–17 Thn) — Fase Taktik / Tactical Phase',
+    shortLabel: 'Fase 3 — Tactical Phase (U-14 & U-16)',
     badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
-    desc: 'Pengembangan taktik tim, fisik, transisi permainan, dan pembentukan karakter.'
+    desc: 'Fokus 11v11, zonal pressing, formasi 4-3-3 Filanesia PSSI, transisi bermain, dan koordinasi unit tim.'
   },
   4: {
     tier: 4,
-    label: 'Tier 4: Elit & Profesional (U-16 s.d. Pro)',
-    shortLabel: 'Tier 4 — U-16 s.d. Pro',
+    label: 'U-18 / Senior (Usia 18+ Thn) — Fase Penampilan / Performance Phase',
+    shortLabel: 'Fase 4 — Performance Phase (U-18 / Senior)',
     badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    desc: 'Kompetisi tingkat elit, pematangan taktik, persiapan level profesional / Timnas.'
+    desc: 'Fokus kematangan kompetitif, performa tinggi, efektivitas taktis, dan jenjang profesional.'
   }
 };
 
@@ -44,10 +44,10 @@ export function detectTierFromAge(ageInput) {
   }
 
   if (parsed <= 0) return 1;
-  if (parsed <= 12) return 1; // SSB (U-6 s.d. U-12)
-  if (parsed === 13) return 2; // U-13
-  if (parsed >= 14 && parsed <= 15) return 3; // U-15
-  return 4; // U-16, U-17, U-18, U-20 & Profesional
+  if (parsed <= 9) return 1; // Fase 1: Joy Phase (Usia 6-9 Thn)
+  if (parsed <= 13) return 2; // Fase 2: Skill Phase (Usia 10-13 Thn)
+  if (parsed <= 17) return 3; // Fase 3: Tactical Phase (Usia 14-17 Thn)
+  return 4; // Fase 4: Performance Phase (Usia 18+ Thn)
 }
 
 export const FOOTBALL_POSITIONS = [
