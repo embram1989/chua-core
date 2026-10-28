@@ -427,23 +427,23 @@ export default function StudentRegistrationModal({
     }
   };
 
-  if (!isOpen) return null;
-
   const currentSelectedClass = classesList.find((c) => c.id === studentClassId);
 
   // Menghitung Usia Siswa Secara Dinamis dari Tanggal Lahir
-  const studentAge = (() => {
+  const studentAge = useMemo(() => {
     if (!birthDate) return 0;
     const ageStr = calculateAge(birthDate);
     if (!ageStr || ageStr === '-') return 0;
     const num = parseInt(String(ageStr).replace(/\D/g, ''), 10);
     return isNaN(num) ? 0 : num;
-  })();
+  }, [birthDate]);
 
   // Rekomendasi Kelompok Umur Berdasarkan Usia & Cabang Olahraga
-  const recommendedTier = studentAge > 0 
-    ? getRecommendedTierForStudent(studentAge, sportCategory) 
-    : null;
+  const recommendedTier = useMemo(() => {
+    return studentAge > 0 
+      ? getRecommendedTierForStudent(studentAge, sportCategory) 
+      : null;
+  }, [studentAge, sportCategory]);
 
   // Daftar Kelas Tersaring (Hanya kelas sesuai umur jika toggle aktif, diurutkan berdasar kelompok umur)
   const filteredClassesList = useMemo(() => {
@@ -460,6 +460,8 @@ export default function StudentRegistrationModal({
     studentAge > 0 && 
     !isStudentAgeMatchClass(studentAge, currentSelectedClass)
   );
+
+  if (!isOpen) return null;
 
   const modalContent = (
     <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 lg:p-6 overflow-y-auto">
