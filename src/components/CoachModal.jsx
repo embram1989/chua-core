@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import { X, User, Phone, Award, Dumbbell, MapPin, Loader2, FileText, Check, Camera, Upload, Trash2 } from 'lucide-react';
@@ -317,11 +318,13 @@ export default function CoachModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-[#162320] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+  if (!isOpen) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 lg:p-6 overflow-y-auto">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-[#162320] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col overflow-hidden my-auto text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Header (Sticky) */}
+        {/* Header (Sticky / Fixed) */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
           <div>
             <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
@@ -350,274 +353,274 @@ export default function CoachModal({
 
         <form onSubmit={handleSubmitCoach} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Body (Scrollable) */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="p-6 overflow-y-auto flex-1 space-y-6">
             {/* AREA UNGGAH FOTO PROFIL PELATIH (OPSIONAL - UNTUK ID CARD & BARCODE) */}
-          <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-left">
-            <div className="relative shrink-0">
-              {photoPreview ? (
-                <div className="relative group">
-                  <img
-                    src={photoPreview}
-                    alt="Preview Pelatih"
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#354944]/30 shadow-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemovePhoto}
-                    title="Hapus Foto"
-                    className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-sm cursor-pointer transition-transform hover:scale-110"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#354944]/10 border-2 border-dashed border-[#354944]/30 flex flex-col items-center justify-center text-[#354944]">
-                  <Camera className="w-6 h-6" />
-                  <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 text-center sm:text-left">
-              <label className="block text-xs font-bold text-gray-800 mb-0.5">
-                Foto Profil Pelatih <span className="text-gray-400 font-normal">(Opsional)</span>
-              </label>
-              <p className="text-[11px] text-gray-500 mb-2.5">
-                Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> instruktur dan sistem <strong>Barcode</strong> kehadiran.
-              </p>
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#354944]/10 text-[#354944] border border-[#354944]/20 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoFileChange}
-                    className="hidden"
-                  />
-                </label>
-                {photoPreview && (
-                  <button
-                    type="button"
-                    onClick={handleRemovePhoto}
-                    className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium cursor-pointer"
-                  >
-                    Hapus Foto
-                  </button>
+            <div className="p-4 bg-slate-50 dark:bg-[#1e2f2b] border border-slate-200/90 dark:border-white/10 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-left">
+              <div className="relative shrink-0">
+                {photoPreview ? (
+                  <div className="relative group">
+                    <img
+                      src={photoPreview}
+                      alt="Preview Pelatih"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#354944]/30 shadow-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      title="Hapus Foto"
+                      className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-sm cursor-pointer transition-transform hover:scale-110"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#354944]/10 border-2 border-dashed border-[#354944]/30 flex flex-col items-center justify-center text-[#354944]">
+                    <Camera className="w-6 h-6" />
+                    <span className="text-[9px] font-bold mt-0.5">Belum Ada</span>
+                  </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-            
-            {/* KOLOM KIRI: DATA PRIBADI & LEGAL */}
-            <div className="space-y-3.5">
-              <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
-                  <User className="w-3.5 h-3.5" />
-                  <span>Identitas &amp; Legal Pelatih</span>
-                </h4>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Lengkap Pelatih <span className="text-[#C89D32]">*</span>
+              <div className="flex-1 text-center sm:text-left">
+                <label className="block text-xs font-bold text-gray-800 dark:text-gray-100 mb-0.5">
+                  Foto Profil Pelatih <span className="text-gray-400 font-normal">(Opsional)</span>
                 </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={coachName}
-                    onChange={(e) => setCoachName(e.target.value)}
-                    placeholder="Nama lengkap sesuai KTP"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nama Panggilan
-                </label>
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder="Nama panggilan harian"
-                  className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nomor KTP (NIK)
-                </label>
-                <div className="relative">
-                  <FileText className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    maxLength={16}
-                    value={nik}
-                    onChange={(e) => setNik(e.target.value)}
-                    placeholder="16 digit NIK KTP"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                  Nomor WhatsApp <span className="text-[#C89D32]">*</span>
-                </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                  <input
-                    type="tel"
-                    required
-                    value={coachPhone}
-                    onChange={(e) => setCoachPhone(e.target.value)}
-                    placeholder="081234567890"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Cabang Olahraga
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2.5">
+                  Foto ini akan otomatis digunakan pada <strong>ID Card resmi</strong> instruktur dan sistem <strong>Barcode</strong> kehadiran.
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-2">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#162320] hover:bg-[#354944]/10 text-[#354944] dark:text-[#C89D32] border border-[#354944]/20 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{photoPreview ? 'Ganti Foto' : 'Unggah Foto'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoFileChange}
+                      className="hidden"
+                    />
                   </label>
-                  <select
-                    value={sportSpecialty}
-                    onChange={(e) => setSportSpecialty(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800"
-                  >
-                    {uniqueSports?.length > 0 ? (
-                      uniqueSports.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))
-                    ) : (
-                      <option value="Badminton">Badminton</option>
-                    )}
-                  </select>
+                  {photoPreview && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors font-medium cursor-pointer"
+                    >
+                      Hapus Foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+              
+              {/* KOLOM KIRI: DATA PRIBADI & LEGAL */}
+              <div className="space-y-3.5">
+                <div className="border-b border-gray-100 dark:border-white/10 pb-2">
+                  <h4 className="text-xs font-bold text-[#354944] dark:text-[#C89D32] uppercase tracking-wider flex items-center space-x-1.5">
+                    <User className="w-3.5 h-3.5" />
+                    <span>Identitas &amp; Legal Pelatih</span>
+                  </h4>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                    Lisensi / Sertifikasi
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                    Nama Lengkap Pelatih <span className="text-[#C89D32]">*</span>
                   </label>
                   <div className="relative">
-                    <Award className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                     <input
                       type="text"
-                      value={license}
-                      onChange={(e) => setLicense(e.target.value)}
-                      placeholder="Lisensi B / BWF"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
+                      required
+                      value={coachName}
+                      onChange={(e) => setCoachName(e.target.value)}
+                      placeholder="Nama lengkap sesuai KTP"
+                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                     />
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* KOLOM KANAN: ALAMAT BERJENJANG EMSIFA */}
-            <div className="space-y-3.5">
-              <div className="border-b border-gray-100 pb-2">
-                <h4 className="text-xs font-bold text-[#354944] uppercase tracking-wider flex items-center space-x-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Domisili &amp; Alamat (Emsifa API)</span>
-                </h4>
-              </div>
-
-              <div className="space-y-2.5">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Provinsi</label>
-                  <select
-                    value={selectedProvince?.id || ''}
-                    onChange={handleProvinceChange}
-                    disabled={loadingProvinces}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
-                  >
-                    <option value="">
-                      {selectedProvince?.name ? selectedProvince.name : (loadingProvinces ? 'Memuat Provinsi...' : '-- Pilih Provinsi --')}
-                    </option>
-                    {provinces.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Kabupaten / Kota</label>
-                  <select
-                    value={selectedRegency?.id || ''}
-                    onChange={handleRegencyChange}
-                    disabled={!selectedProvince?.id || loadingRegencies}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
-                  >
-                    <option value="">
-                      {selectedRegency?.name ? selectedRegency.name : (loadingRegencies ? 'Memuat Kab/Kota...' : '-- Pilih Kabupaten/Kota --')}
-                    </option>
-                    {regencies.map((r) => (
-                      <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Kecamatan</label>
-                  <select
-                    value={selectedDistrict?.id || ''}
-                    onChange={handleDistrictChange}
-                    disabled={!selectedRegency?.id || loadingDistricts}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
-                  >
-                    <option value="">
-                      {selectedDistrict?.name ? selectedDistrict.name : (loadingDistricts ? 'Memuat Kecamatan...' : '-- Pilih Kecamatan --')}
-                    </option>
-                    {districts.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Kelurahan / Desa</label>
-                  <select
-                    value={selectedVillage?.id || ''}
-                    onChange={handleVillageChange}
-                    disabled={!selectedDistrict?.id || loadingVillages}
-                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
-                  >
-                    <option value="">
-                      {selectedVillage?.name ? selectedVillage.name : (loadingVillages ? 'Memuat Kelurahan...' : '-- Pilih Kelurahan --')}
-                    </option>
-                    {villages.map((v) => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Detail Alamat Rumah</label>
-                  <textarea
-                    rows={2}
-                    value={addressDetail}
-                    onChange={(e) => setAddressDetail(e.target.value)}
-                    placeholder="Nama jalan, nomor rumah, RT/RW, blok..."
-                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] resize-none"
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                    Nama Panggilan
+                  </label>
+                  <input
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="Nama panggilan harian"
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                    Nomor KTP (NIK)
+                  </label>
+                  <div className="relative">
+                    <FileText className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      maxLength={16}
+                      value={nik}
+                      onChange={(e) => setNik(e.target.value)}
+                      placeholder="16 digit NIK KTP"
+                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                    Nomor WhatsApp <span className="text-[#C89D32]">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    <input
+                      type="tel"
+                      required
+                      value={coachPhone}
+                      onChange={(e) => setCoachPhone(e.target.value)}
+                      placeholder="081234567890"
+                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                      Cabang Olahraga
+                    </label>
+                    <select
+                      value={sportSpecialty}
+                      onChange={(e) => setSportSpecialty(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] font-bold text-slate-800 dark:text-slate-100"
+                    >
+                      {uniqueSports?.length > 0 ? (
+                        uniqueSports.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))
+                      ) : (
+                        <option value="Badminton">Badminton</option>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">
+                      Lisensi / Sertifikasi
+                    </label>
+                    <div className="relative">
+                      <Award className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        value={license}
+                        onChange={(e) => setLicense(e.target.value)}
+                        placeholder="Lisensi B / BWF"
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* KOLOM KANAN: ALAMAT BERJENJANG EMSIFA */}
+              <div className="space-y-3.5">
+                <div className="border-b border-gray-100 dark:border-white/10 pb-2">
+                  <h4 className="text-xs font-bold text-[#354944] dark:text-[#C89D32] uppercase tracking-wider flex items-center space-x-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Domisili &amp; Alamat (Emsifa API)</span>
+                  </h4>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Provinsi</label>
+                    <select
+                      value={selectedProvince?.id || ''}
+                      onChange={handleProvinceChange}
+                      disabled={loadingProvinces}
+                      className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
+                    >
+                      <option value="">
+                        {selectedProvince?.name ? selectedProvince.name : (loadingProvinces ? 'Memuat Provinsi...' : '-- Pilih Provinsi --')}
+                      </option>
+                      {provinces.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Kabupaten / Kota</label>
+                    <select
+                      value={selectedRegency?.id || ''}
+                      onChange={handleRegencyChange}
+                      disabled={!selectedProvince?.id || loadingRegencies}
+                      className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
+                    >
+                      <option value="">
+                        {selectedRegency?.name ? selectedRegency.name : (loadingRegencies ? 'Memuat Kab/Kota...' : '-- Pilih Kabupaten/Kota --')}
+                      </option>
+                      {regencies.map((r) => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Kecamatan</label>
+                    <select
+                      value={selectedDistrict?.id || ''}
+                      onChange={handleDistrictChange}
+                      disabled={!selectedRegency?.id || loadingDistricts}
+                      className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
+                    >
+                      <option value="">
+                        {selectedDistrict?.name ? selectedDistrict.name : (loadingDistricts ? 'Memuat Kecamatan...' : '-- Pilih Kecamatan --')}
+                      </option>
+                      {districts.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Kelurahan / Desa</label>
+                    <select
+                      value={selectedVillage?.id || ''}
+                      onChange={handleVillageChange}
+                      disabled={!selectedDistrict?.id || loadingVillages}
+                      className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] disabled:opacity-50"
+                    >
+                      <option value="">
+                        {selectedVillage?.name ? selectedVillage.name : (loadingVillages ? 'Memuat Kelurahan...' : '-- Pilih Kelurahan --')}
+                      </option>
+                      {villages.map((v) => (
+                        <option key={v.id} value={v.id}>{v.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase mb-1">Detail Alamat Rumah</label>
+                    <textarea
+                      rows={2}
+                      value={addressDetail}
+                      onChange={(e) => setAddressDetail(e.target.value)}
+                      placeholder="Nama jalan, nomor rumah, RT/RW, blok..."
+                      className="w-full px-3.5 py-2 text-xs bg-gray-50 dark:bg-[#1a2925] border border-gray-200 dark:border-white/10 rounded-xl focus:bg-white dark:focus:bg-[#162320] focus:outline-none focus:border-[#354944] focus:ring-1 focus:ring-[#354944] resize-none"
+                    />
+                  </div>
+                </div>
+
               </div>
 
             </div>
-
-          </div>
           </div>
 
-          {/* Footer (Sticky) */}
+          {/* Footer (Sticky / Fixed) */}
           <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
             <button
               type="button"
@@ -650,4 +653,6 @@ export default function CoachModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

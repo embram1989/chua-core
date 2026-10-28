@@ -1558,24 +1558,49 @@ export default function AcademyPage({ userProfile }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredClasses.map((cls) => {
                 const scheduleItems = parseScheduleItems(cls);
+                const enrolledCount = filteredStudents.filter((s) => s.classId === cls.id).length;
+                const maxQuota = Number(cls.maxQuota) > 0 ? Number(cls.maxQuota) : 20;
+                const isFull = enrolledCount >= maxQuota;
+
                 return (
                   <div key={cls.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-2xl p-4 hover:border-[#354944]/40 transition-all space-y-3 flex flex-col justify-between">
                     <div className="space-y-2.5">
                       {/* Header Kelas */}
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 bg-[#354944]/10 dark:bg-[#354944]/30 text-[#354944] dark:text-[#C89D32] font-bold text-[10px] rounded-md uppercase border border-[#354944]/20">
-                          {cls.sport || 'Sports'}
-                        </span>
+                      <div className="flex items-center justify-between flex-wrap gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2.5 py-0.5 bg-[#354944]/10 dark:bg-[#354944]/30 text-[#354944] dark:text-[#C89D32] font-bold text-[10px] rounded-md uppercase border border-[#354944]/20">
+                            {cls.sport || 'Sports'}
+                          </span>
+                          {cls.tierCode && cls.tierCode !== 'ALL_AGE' && (
+                            <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-[#C89D32] font-extrabold text-[10px] rounded-md border border-amber-200/80 dark:border-amber-800/60 truncate max-w-[150px]" title={cls.tierLabel || cls.tierCode}>
+                              {cls.tierLabel || cls.tierCode}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/50">Aktif</span>
                       </div>
 
                       {/* Judul & Pelatih */}
                       <div>
                         <h4 className="font-bold text-base text-slate-900 dark:text-slate-100 tracking-tight">{cls.className}</h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5 flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>Pelatih: <strong className="text-slate-800 dark:text-slate-200">{cls.coachName || 'Pelatih Utama'}</strong></span>
-                        </p>
+                        <div className="flex items-center justify-between mt-1 flex-wrap gap-1 text-xs">
+                          <p className="text-slate-600 dark:text-slate-400 font-medium flex items-center gap-1">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>Pelatih: <strong className="text-slate-800 dark:text-slate-200">{cls.coachName || 'Pelatih Utama'}</strong></span>
+                          </p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            isFull 
+                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          }`}>
+                            Kuota: {enrolledCount}/{maxQuota} Atlet {isFull ? '● Penuh' : ''}
+                          </span>
+                        </div>
+                        {((cls.minAge !== undefined && cls.minAge !== null) || (cls.maxAge !== undefined && cls.maxAge !== null)) && (
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            Target Usia: <strong className="text-slate-600 dark:text-slate-300">{cls.minAge || 0} - {cls.maxAge || 99} Tahun</strong>
+                          </p>
+                        )}
                       </div>
 
                       {/* Daftar Jadwal Per Hari (Vertical List) */}
@@ -1760,7 +1785,7 @@ export default function AcademyPage({ userProfile }) {
                   if (!currentClass) return null;
 
                   return (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 rounded-xl px-4 py-2.5">
+                    <div className={`${attendanceSubTab === 'evaluasi' || attendanceSubTab === 'antropometri' ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 rounded-xl px-4 py-2.5`}>
                       <div className="flex flex-wrap items-center gap-3">
                         <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 tracking-tight">
                           {currentClass.className}

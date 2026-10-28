@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   collection, 
   query, 
@@ -211,9 +212,11 @@ export default function StudentDetailModal({
     currentStudent.province
   ].filter(Boolean).join(', ');
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-[#162320] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+  if (!isOpen || !student) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 lg:p-6 overflow-y-auto">
+      <div className="relative w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-200">
         
         {/* MODAL HEADER (Sticky) */}
         <div className="bg-gradient-to-r from-[#1E2B28] to-[#243531] text-white p-5 sm:p-6 flex items-center justify-between shrink-0 border-b border-[#354944]">
@@ -728,4 +731,6 @@ export default function StudentDetailModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

@@ -94,6 +94,22 @@ export default function TennisAssessmentView({
   // 2. DETEKSI USIA & LEVEL TENIS (7 JENJANG RESMI ITF TENNIS10s & PELTI/ITF JUNIORS)
   const [overrideTennisLevel, setOverrideTennisLevel] = useState('AUTO');
 
+  // Sinkronisasi otomatis level tenis dengan kelompok umur (tier) kelas terpilih
+  useEffect(() => {
+    if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
+      const isKnown = TENNIS_AGE_LEVELS.some((l) => l.code === selectedClass.tierCode);
+      if (isKnown) {
+        setOverrideTennisLevel(selectedClass.tierCode);
+      }
+    } else if (selectedClass?.minAge || selectedClass?.maxAge) {
+      const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
+      const level = detectTennisLevelFromAge(midAge);
+      if (level?.code) {
+        setOverrideTennisLevel(level.code);
+      }
+    }
+  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge]);
+
   const studentAge = useMemo(() => {
     if (!selectedStudent) return 0;
     if (selectedStudent.birthDate) {

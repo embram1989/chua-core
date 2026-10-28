@@ -419,6 +419,28 @@ function FutsalAssessmentView({
   // DETEKSI OTOMATIS TIER FUTSAL DARI USIA + OVERRIDE DROPDOWN
   const [overrideFutsalTier, setOverrideFutsalTier] = useState('AUTO');
 
+  // Sinkronisasi otomatis tier futsal dengan kelompok umur kelas terpilih
+  useEffect(() => {
+    if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
+      const code = selectedClass.tierCode;
+      if (code === 'U-8' || code === 'U-10' || code === 'U-12') {
+        setOverrideFutsalTier('1');
+      } else if (code === 'U-14') {
+        setOverrideFutsalTier('2');
+      } else if (code === 'U-16') {
+        setOverrideFutsalTier('3');
+      } else if (code === 'U-18') {
+        setOverrideFutsalTier('4');
+      } else if (['1', '2', '3', '4'].includes(String(code))) {
+        setOverrideFutsalTier(String(code));
+      }
+    } else if (selectedClass?.minAge || selectedClass?.maxAge) {
+      const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
+      const tierNum = detectFutsalTierFromAge(midAge);
+      setOverrideFutsalTier(String(tierNum));
+    }
+  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge]);
+
   const studentAge = useMemo(() => {
     if (!selectedStudent) return 0;
     if (selectedStudent.birthDate) {
@@ -470,6 +492,7 @@ function FutsalAssessmentView({
   // Status indicator loading state
   const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
   const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+  const [showMobileRadar, setShowMobileRadar] = useState(true);
 
   const sportName = selectedClass?.sport || activeAcademy?.sport || 'Futsal';
 
@@ -809,17 +832,39 @@ function FutsalAssessmentView({
     <div className="space-y-6 text-left">
       {/* 1. COMPACT HEADER BAR */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
-        {/* BARIS 1: JUDUL KARTU & STATUS RIWAYAT */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        {/* MOBILE COMPACT TITLE BAR (< 1024px) */}
+        <div className="flex lg:hidden items-center justify-between pb-2.5 border-b border-slate-100">
+          <h2 className="font-extrabold text-sm text-slate-900 tracking-tight">
+            Evaluasi Atlet
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
+              Futsal
+            </span>
+            {latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>Terisi ({formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-[10px] font-bold">
+                <span>Belum Ada</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* DESKTOP TITLE BAR (>= 1024px) */}
+        <div className="hidden lg:flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-              <Flame className="w-5 h-5 text-orange-100" />
+            <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 shadow-xs border border-[#C89D32]/40">
+              <Flame className="w-5 h-5 text-[#C89D32]" />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
                 Athlete Development Assessment
               </h2>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-orange-50 text-orange-800 border border-orange-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
                 Futsal
               </span>
             </div>
@@ -865,19 +910,19 @@ function FutsalAssessmentView({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, & JENJANG (RATA 3 KOLOM) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
-              {/* 1. Pilih Atlet */}
+            {/* INPUT FILTER AREA (2 BARIS KOMPAK DI MOBILE) */}
+            <div className="bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2.5">
+              {/* Baris 1: Pilih Atlet (1 Kolom Penuh) */}
               <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-orange-600" />
+                <label className="block text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-[#354944]" />
                   <span>Pilih Atlet ({students.length})</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStudent?.id || ''}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
                   >
                     {students.map((st) => {
                       const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
@@ -895,37 +940,38 @@ function FutsalAssessmentView({
                 </div>
               </div>
 
-              {/* 2. Tanggal Evaluasi */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-orange-600" />
-                  <span>Tanggal Evaluasi</span>
-                </label>
-                <input
-                  type="date"
-                  value={evaluationDate}
-                  onChange={(e) => setEvaluationDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
-                />
-              </div>
+              {/* Baris 2: Tanggal Evaluasi & Jenjang Evaluasi (2 Kolom Berdampingan) */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Tanggal</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={evaluationDate}
+                    onChange={(e) => setEvaluationDate(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer"
+                  />
+                </div>
 
-              {/* 3. Jenjang Evaluasi */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-orange-600" />
-                  <span>Jenjang Evaluasi</span>
-                </label>
-                <select
-                  value={overrideFutsalTier}
-                  onChange={(e) => setOverrideFutsalTier(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-orange-500 shadow-2xs cursor-pointer"
-                >
-                  <option value="AUTO">Otomatis: Tier {detectedFutsalTier} (Usia {studentAge} Thn)</option>
-                  <option value="1">Tier 1 — Usia Dini Futsal (6–12 Thn)</option>
-                  <option value="2">Tier 2 — Youth Futsal (13–15 Thn)</option>
-                  <option value="3">Tier 3 — Junior Futsal (16–19 Thn)</option>
-                  <option value="4">Tier 4 — Fase Profesional (&gt;19 Thn)</option>
-                </select>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <GraduationCap className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Jenjang</span>
+                  </label>
+                  <select
+                    value={overrideFutsalTier}
+                    onChange={(e) => setOverrideFutsalTier(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-[#354944] shadow-2xs cursor-pointer truncate"
+                  >
+                    <option value="AUTO">Otomatis: Tier {detectedFutsalTier} ({studentAge} Thn)</option>
+                    <option value="1">Tier 1 — Usia Dini (6–12 Thn)</option>
+                    <option value="2">Tier 2 — Youth (13–15 Thn)</option>
+                    <option value="3">Tier 3 — Junior (16–19 Thn)</option>
+                    <option value="4">Tier 4 — Profesional (&gt;19 Thn)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -935,31 +981,58 @@ function FutsalAssessmentView({
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   
                   {/* RADAR 7-AXIS */}
-                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                      <span className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
-                        <BarChart2 className="w-4 h-4 text-orange-400" />
-                        <span>Scouting Radar</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
-                        Total: {axisScores.overall}/100
-                      </span>
+                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4 text-[#C89D32]" />
+                        <span className="text-xs font-black uppercase tracking-wider text-white">
+                          Scouting Radar
+                        </span>
+                      </div>
+
+                      {/* Header kanan: Skor Realtime & Toggle Mobile */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-[#C89D32] bg-slate-800 px-2 py-0.5 rounded-full border border-white/10">
+                          {axisScores.overall}/100
+                        </span>
+                        <span className={`lg:hidden px-2 py-0.5 text-[10px] font-bold rounded-full ${overallGrade.badge}`}>
+                          {overallGrade.grade.split(' ')[0]}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowMobileRadar(!showMobileRadar)}
+                          className="lg:hidden text-[10px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
+                        >
+                          {showMobileRadar ? 'Lipat ▴' : 'Buka ▾'}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="h-64 w-full flex items-center justify-center my-auto">
-                      <ResponsiveContainer width="100%" height={250}>
-                        <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
-                          <PolarGrid stroke="#334155" />
-                          <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
-                          <Radar name="Skor Futsal" dataKey="A" stroke="#f97316" fill="#ea580c" fillOpacity={0.55} />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    {showMobileRadar && (
+                      <div className="h-56 sm:h-64 w-full flex items-center justify-center my-auto">
+                        <ResponsiveContainer width="100%" height={230}>
+                          <RadarChart cx="50%" cy="50%" outerRadius="62%" data={radarData} margin={{ top: 8, right: 15, bottom: 8, left: 15 }}>
+                            <PolarGrid stroke="#334155" />
+                            <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
+                            <Radar
+                              name="Skor Futsal"
+                              dataKey="A"
+                              stroke="#C89D32"
+                              fill="#354944"
+                              fillOpacity={0.65}
+                            />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
 
-                    <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
-                      <span>Rata-Rata 7 Kategori:</span>
-                      <strong className="text-orange-400 font-black">{axisScores.overall} / 100</strong>
+                    <div className="text-[11px] text-slate-300 bg-slate-800/80 p-2.5 rounded-xl flex items-center justify-between border border-white/5">
+                      <span className="text-slate-400">Rata-Rata (7 Kategori):</span>
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-[#C89D32] font-black text-xs">{axisScores.overall} / 100</strong>
+                        <span className="text-[10px] font-bold text-slate-400">({overallGrade.grade})</span>
+                      </div>
                     </div>
                   </div>
 
@@ -1052,36 +1125,36 @@ function FutsalAssessmentView({
                         <span>Preset Nilai Cepat:</span>
                       </span>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
+                      <div className="grid grid-cols-4 gap-1.5 w-full">
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(0)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                           title="Reset semua indikator ke 0"
                         >
-                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-                          <span>Reset (0)</span>
+                          <RotateCcw className="w-3 h-3 shrink-0" />
+                          <span>Reset</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(50)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Standard (50)
+                          Standard
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(75)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-[#354944]/10 hover:bg-[#354944] hover:text-white text-[#354944] border border-[#354944]/20 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Good (75)
+                          Good
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(90)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Elite (90)
+                          Elite
                         </button>
                       </div>
                     </div>
@@ -1089,23 +1162,23 @@ function FutsalAssessmentView({
                   </div>
                 </div>
 
-                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
-                <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div>
+                {/* PANEL RINGKASAN SKOR KATEGORI (GRID 2 KOLOM DI MOBILE) */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-sm w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BarChart2 className="w-4 h-4 text-[#354944]" />
-                        <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                        <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 uppercase tracking-wider">
                           Ringkasan Skor Kategori
                         </h3>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
-                      </p>
+                      <span className="text-xs font-bold text-slate-600 sm:hidden">
+                        Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall}</strong>
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="text-xs font-bold text-slate-600 mr-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-600 mr-1 hidden sm:inline">
                         Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
                       </span>
 
@@ -1115,29 +1188,30 @@ function FutsalAssessmentView({
                           setActiveModalCategoryKey(futsalCategoryList[0]?.key);
                           setIsModalOpen(true);
                         }}
-                        className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                        className="flex-1 sm:flex-none px-3 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all shrink-0"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
-                        <span>✎ Edit / Input Penilaian</span>
+                        <span>✎ Edit Penilaian</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setShowAllInline(!showAllInline)}
-                        className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        className={`flex-1 sm:flex-none px-3 py-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                           showAllInline
                             ? 'bg-slate-900 text-white border-slate-900'
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                         }`}
                       >
                         <LayoutGrid className="w-3.5 h-3.5" />
-                        <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                        <span>{showAllInline ? 'Tutup' : 'Buka Semua'}</span>
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
-                    {futsalCategoryList.map((cat) => {
+                  {/* GRID 2 KOLOM DI MOBILE (< 1024px), 3 KOLOM DI DESKTOP */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 w-full">
+                    {futsalCategoryList.map((cat, idx) => {
                       const isFilled = (cat.score || 0) > 0;
                       return (
                         <div
@@ -1146,38 +1220,32 @@ function FutsalAssessmentView({
                             setActiveModalCategoryKey(cat.key);
                             setIsModalOpen(true);
                           }}
-                          className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                          className="bg-slate-50 p-3 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2"
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="space-y-1 min-w-0">
-                              <span className="font-extrabold text-xs text-slate-900 block leading-snug">
-                                {cat.label}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                          <div className="space-y-1 min-w-0">
+                            <span className="font-bold text-xs text-slate-900 block leading-tight line-clamp-1" title={cat.label}>
+                              {idx + 1}. {cat.label}
+                            </span>
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-500 font-medium">
                                 {cat.count} Indikator
                               </span>
+                              {isFilled ? (
+                                <span className="text-emerald-700 font-extrabold">✓ Terisi</span>
+                              ) : (
+                                <span className="text-slate-400 font-medium">Kosong</span>
+                              )}
                             </div>
-
-                            {isFilled ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                <span>Terisi</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
-                                <span>Belum Dinilai</span>
-                              </span>
-                            )}
                           </div>
 
-                          <div className="space-y-1.5 pt-1">
+                          <div className="space-y-1 pt-1">
                             <div className="flex items-baseline justify-between">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
-                              <span className="text-base font-black text-slate-900 font-mono">
-                                {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">Skor</span>
+                              <span className="text-sm font-extrabold text-slate-900 font-mono">
+                                {cat.score || 0}
                               </span>
                             </div>
-                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#354944] rounded-full transition-all duration-300"
                                 style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
@@ -1505,6 +1573,28 @@ function BadmintonAssessmentView({
   // DETEKSI OTOMATIS TIER BADMINTON & LEVEL PBSI DARI USIA + OVERRIDE DROPDOWN
   const [overrideBadmintonTier, setOverrideBadmintonTier] = useState('AUTO');
 
+  // Sinkronisasi otomatis tier badminton dengan kelompok umur kelas terpilih
+  useEffect(() => {
+    if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
+      const code = selectedClass.tierCode;
+      if (code === 'LEVEL_1' || code === 'LEVEL_2' || code === 'U-8' || code === 'U-10' || code === 'U-12') {
+        setOverrideBadmintonTier('1');
+      } else if (code === 'LEVEL_3' || code === 'U-14') {
+        setOverrideBadmintonTier('2');
+      } else if (code === 'LEVEL_4' || code === 'LEVEL_5' || code === 'U-16') {
+        setOverrideBadmintonTier('3');
+      } else if (code === 'LEVEL_6' || code === 'U-18') {
+        setOverrideBadmintonTier('4');
+      } else if (['1', '2', '3', '4'].includes(String(code))) {
+        setOverrideBadmintonTier(String(code));
+      }
+    } else if (selectedClass?.minAge || selectedClass?.maxAge) {
+      const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
+      const tierNum = detectBadmintonTierFromAge(midAge);
+      setOverrideBadmintonTier(String(tierNum));
+    }
+  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge]);
+
   const studentAge = useMemo(() => {
     if (!selectedStudent) return 0;
     if (selectedStudent.birthDate) {
@@ -1554,6 +1644,8 @@ function BadmintonAssessmentView({
   const [healthPhysicalReadiness, setHealthPhysicalReadiness] = useState('Fit 100%');
   const [healthInjuryNotes, setHealthInjuryNotes] = useState('');
   const [healthRecoveryQuality, setHealthRecoveryQuality] = useState('Bagus (8+ Jam)');
+  const [showRecoveryNotes, setShowRecoveryNotes] = useState(false);
+  const [showMobileRadar, setShowMobileRadar] = useState(true);
 
   // Active Category Tab & Modal States
   const [activeTab, setActiveTab] = useState('fisik');
@@ -1760,12 +1852,12 @@ function BadmintonAssessmentView({
       { subject: 'Teknik', A: axisScores.teknik, fullMark: 100 },
       { subject: 'Taktik', A: axisScores.taktik, fullMark: 100 },
       { subject: 'Mental', A: axisScores.mental, fullMark: 100 },
-      { subject: 'Perkembangan', A: axisScores.perkembangan, fullMark: 100 },
+      { subject: 'Progres', A: axisScores.perkembangan, fullMark: 100 },
     ];
     if (isDoubles && activeBadmintonTier >= 2) {
       list.push({ subject: 'Komunikasi', A: axisScores.komunikasi || 0, fullMark: 100 });
     }
-    list.push({ subject: 'Khusus Nomor', A: axisScores.khususNomor, fullMark: 100 });
+    list.push({ subject: 'Khusus', A: axisScores.khususNomor, fullMark: 100 });
     return list;
   }, [axisScores, isDoubles, activeBadmintonTier]);
 
@@ -1958,17 +2050,39 @@ function BadmintonAssessmentView({
     <div className="space-y-6 text-left">
       {/* 1. COMPACT HEADER BAR */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
-        {/* BARIS 1: JUDUL KARTU & STATUS RIWAYAT */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        {/* MOBILE COMPACT TITLE BAR (< 1024px) */}
+        <div className="flex lg:hidden items-center justify-between pb-2.5 border-b border-slate-100">
+          <h2 className="font-extrabold text-sm text-slate-900 tracking-tight">
+            Evaluasi Atlet
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
+              Badminton
+            </span>
+            {latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>Terisi ({formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-[10px] font-bold">
+                <span>Belum Ada</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* DESKTOP TITLE BAR (>= 1024px) */}
+        <div className="hidden lg:flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-              <Target className="w-5 h-5 text-teal-100" />
+            <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 shadow-xs border border-[#C89D32]/40">
+              <Target className="w-5 h-5 text-[#C89D32]" />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
                 Athlete Development Assessment
               </h2>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-teal-50 text-teal-800 border border-teal-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
                 Badminton
               </span>
             </div>
@@ -2014,19 +2128,19 @@ function BadmintonAssessmentView({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* BARIS 2: BAR PEMILIH SISWA, TANGGAL, & JENJANG (RATA 3 KOLOM) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
-              {/* 1. Pilih Atlet */}
+            {/* INPUT FILTER AREA (2 BARIS KOMPAK DI MOBILE) */}
+            <div className="bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2.5">
+              {/* Baris 1: Pilih Atlet (1 Kolom Penuh) */}
               <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-teal-600" />
+                <label className="block text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-[#354944]" />
                   <span>Pilih Atlet ({students.length})</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStudentId}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
                   >
                     {students.map((st) => (
                       <option key={st.id} value={st.id}>
@@ -2040,37 +2154,38 @@ function BadmintonAssessmentView({
                 </div>
               </div>
 
-              {/* 2. Tanggal Evaluasi */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-600" />
-                  <span>Tanggal Evaluasi</span>
-                </label>
-                <input
-                  type="date"
-                  value={evaluationDate}
-                  onChange={(e) => setEvaluationDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
-                />
-              </div>
+              {/* Baris 2: Tanggal Evaluasi & Jenjang Evaluasi (2 Kolom Berdampingan) */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Tanggal</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={evaluationDate}
+                    onChange={(e) => setEvaluationDate(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer"
+                  />
+                </div>
 
-              {/* 3. Jenjang Evaluasi */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-teal-600" />
-                  <span>Jenjang Evaluasi</span>
-                </label>
-                <select
-                  value={overrideBadmintonTier}
-                  onChange={(e) => setOverrideBadmintonTier(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 shadow-2xs cursor-pointer"
-                >
-                  <option value="AUTO">Otomatis: Tier {detectedBadmintonTier} ({pbsiLevelInfo.name})</option>
-                  <option value="1">Tier 1 — Pra-Usia Dini &amp; Usia Dini (&le;10 Thn)</option>
-                  <option value="2">Tier 2 — Anak-Anak / Sirnas U-13 (11–13 Thn)</option>
-                  <option value="3">Tier 3 — Pemula &amp; Remaja / Sirnas U-15/U-17 (14–17 Thn)</option>
-                  <option value="4">Tier 4 — Taruna &amp; Dewasa / Sirnas U-19 &amp; Pro (&ge;18 Thn)</option>
-                </select>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <GraduationCap className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Jenjang</span>
+                  </label>
+                  <select
+                    value={overrideBadmintonTier}
+                    onChange={(e) => setOverrideBadmintonTier(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-[#354944] shadow-2xs cursor-pointer truncate"
+                  >
+                    <option value="AUTO">Otomatis: Tier {detectedBadmintonTier} ({pbsiLevelInfo.name})</option>
+                    <option value="1">Tier 1 — Usia Dini (&le;10 Thn)</option>
+                    <option value="2">Tier 2 — Anak-Anak (11–13 Thn)</option>
+                    <option value="3">Tier 3 — Pemula/Remaja (14–17 Thn)</option>
+                    <option value="4">Tier 4 — Taruna/Pro (&ge;18 Thn)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -2079,56 +2194,77 @@ function BadmintonAssessmentView({
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   {/* RADAR CHART */}
-                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                      <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-                        <BarChart2 className="w-4 h-4 text-teal-400" />
-                        <span>Scouting Radar</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
-                        Total: {axisScores.overall}/100
-                      </span>
+                  <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4 text-[#C89D32]" />
+                        <span className="text-xs font-black uppercase tracking-wider text-white">
+                          Scouting Radar
+                        </span>
+                      </div>
+
+                      {/* Header kanan: Skor Realtime & Toggle Mobile */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-[#C89D32] bg-slate-800 px-2 py-0.5 rounded-full border border-white/10">
+                          {axisScores.overall}/100
+                        </span>
+                        <span className={`lg:hidden px-2 py-0.5 text-[10px] font-bold rounded-full ${gradeInfo.badge}`}>
+                          {gradeInfo.grade.split(' ')[0]}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowMobileRadar(!showMobileRadar)}
+                          className="lg:hidden text-[10px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
+                        >
+                          {showMobileRadar ? 'Lipat ▴' : 'Buka ▾'}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="h-64 w-full flex items-center justify-center my-auto">
-                      <ResponsiveContainer width="100%" height={250}>
-                        <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                          <PolarGrid stroke="#334155" />
-                          <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
-                          <Radar
-                            name="Performa"
-                            dataKey="A"
-                            stroke="#0d9488"
-                            fill="#14b8a6"
-                            fillOpacity={0.45}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    {showMobileRadar && (
+                      <div className="h-56 sm:h-64 w-full flex items-center justify-center my-auto">
+                        <ResponsiveContainer width="100%" height={230}>
+                          <RadarChart cx="50%" cy="50%" outerRadius="62%" data={radarData} margin={{ top: 8, right: 15, bottom: 8, left: 15 }}>
+                            <PolarGrid stroke="#334155" />
+                            <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
+                            <Radar
+                              name="Performa"
+                              dataKey="A"
+                              stroke="#C89D32"
+                              fill="#354944"
+                              fillOpacity={0.65}
+                            />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
 
-                    <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
-                      <span>Rata-Rata 7 Kategori:</span>
-                      <strong className="text-teal-400 font-black">{axisScores.overall} / 100</strong>
+                    <div className="text-[11px] text-slate-300 bg-slate-800/80 p-2.5 rounded-xl flex items-center justify-between border border-white/5">
+                      <span className="text-slate-400">Rata-Rata ({radarData.length} Kategori):</span>
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-[#C89D32] font-black text-xs">{axisScores.overall} / 100</strong>
+                        <span className="text-[10px] font-bold text-slate-400">({gradeInfo.grade})</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* KONFIGURASI NOMOR & PERAN + HEALTH PANEL */}
-                  <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs h-full flex flex-col justify-between space-y-4">
-                    <div className="space-y-4">
+                  <div className="lg:col-span-7 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5">
+                    <div className="space-y-3.5">
                       {/* Header Kartu */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                          <Layers className="w-4 h-4 text-teal-600" />
+                          <Layers className="w-4 h-4 text-[#354944]" />
                           <span>Konfigurasi Nomor &amp; Peran</span>
                         </span>
-                        <span className="text-[10px] text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full font-bold">
+                        <span className="text-[10px] text-[#354944] bg-[#354944]/10 px-2.5 py-1 rounded-full font-bold border border-[#354944]/20">
                           {eventConfig.shortLabel}
                         </span>
                       </div>
 
                       {/* Banner Skor Realtime & Predikat Evaluasi */}
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-2">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
@@ -2147,23 +2283,23 @@ function BadmintonAssessmentView({
                         </div>
                         <div className="w-full bg-slate-200/70 h-1.5 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-teal-500 rounded-full transition-all duration-300" 
+                            className="h-full bg-[#354944] rounded-full transition-all duration-300" 
                             style={{ width: `${Math.min(100, Math.max(0, axisScores.overall))}%` }} 
                           />
                         </div>
                       </div>
 
                       {/* Dropdown Nomor & Peran */}
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         {/* NOMOR PERTANDINGAN */}
                         <div>
-                          <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                          <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">
                             1. Nomor Pertandingan
                           </label>
                           <select
                             value={eventCode}
                             onChange={(e) => setEventCode(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                            className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 cursor-pointer"
                           >
                             {availableEvents.map((ev) => (
                               <option key={ev.code} value={ev.code}>
@@ -2176,13 +2312,13 @@ function BadmintonAssessmentView({
                         {/* STY DROPDOWN - RENDER ONLY IF UNLOCKED */}
                         {isStyleUnlocked && (
                           <div>
-                            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">
                               2. Profil Gaya Bermain (STY)
                             </label>
                             <select
                               value={styleCode}
                               onChange={(e) => setStyleCode(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 cursor-pointer"
                             >
                               {BADMINTON_PLAYING_STYLES.map((st) => (
                                 <option key={st.code} value={st.code}>
@@ -2196,13 +2332,13 @@ function BadmintonAssessmentView({
                         {/* SPESIALISASI GANDA - RENDER ONLY IF DOUBLES & UNLOCKED */}
                         {isDoubles && isDoublesSpecUnlocked && (
                           <div>
-                            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                            <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">
                               3. Spesialisasi Nomor Ganda
                             </label>
                             <select
                               value={doublesSpecCode}
                               onChange={(e) => setDoublesSpecCode(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-800 cursor-pointer"
+                              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 cursor-pointer"
                             >
                               {BADMINTON_DOUBLES_SPECS.map((sp) => (
                                 <option key={sp.code} value={sp.code}>
@@ -2214,29 +2350,69 @@ function BadmintonAssessmentView({
                         )}
                       </div>
 
-                      {/* HEALTH & RECOVERY PANEL */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
-                        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-1.5">
-                          <Activity className="w-4 h-4 text-teal-600" />
-                          <h4 className="text-xs font-extrabold text-slate-800">
-                            Catatan Fisik &amp; Pemulihan (Non-Skor)
-                          </h4>
+                      {/* HEALTH & RECOVERY PANEL (COLLAPSIBLE ON MOBILE) */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+                        <div
+                          onClick={() => setShowRecoveryNotes(!showRecoveryNotes)}
+                          className="flex items-center justify-between cursor-pointer select-none"
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Activity className="w-3.5 h-3.5 text-[#354944] shrink-0" />
+                            <h4 className="text-xs font-extrabold text-slate-800 truncate">
+                              Catatan Fisik &amp; Pemulihan
+                            </h4>
+                            <span className="text-[10px] text-slate-500 font-semibold truncate hidden sm:inline">
+                              ({healthPhysicalReadiness} • {healthRecoveryQuality})
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-[10px] font-bold text-[#354944] sm:hidden">
+                              {healthPhysicalReadiness.split(' ')[0]}
+                            </span>
+                            <button
+                              type="button"
+                              className="text-slate-400 p-0.5 rounded cursor-pointer"
+                              aria-label="Toggle recovery notes"
+                            >
+                              {showRecoveryNotes ? (
+                                <ChevronUp className="w-4 h-4 text-slate-600" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-slate-600" />
+                              )}
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-600 block mb-1">Kesiapan Fisik:</label>
-                            <select
-                              value={healthPhysicalReadiness}
-                              onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
-                            >
-                              <option value="Fit 100%">Fit 100% (Prima)</option>
-                              <option value="Sangat Fit">Sangat Fit</option>
-                              <option value="Kelelahan Ringan">Kelelahan Ringan</option>
-                              <option value="Kelelahan Sedang">Kelelahan Sedang</option>
-                              <option value="Perlu Istirahat">Perlu Istirahat / Rest</option>
-                            </select>
+                        {/* Collapsible Content */}
+                        <div className={`${showRecoveryNotes ? 'block' : 'hidden lg:block'} pt-2 border-t border-slate-200/70 space-y-2`}>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-600 block mb-1">Kesiapan Fisik:</label>
+                              <select
+                                value={healthPhysicalReadiness}
+                                onChange={(e) => setHealthPhysicalReadiness(e.target.value)}
+                                className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
+                              >
+                                <option value="Fit 100%">Fit 100% (Prima)</option>
+                                <option value="Sangat Fit">Sangat Fit</option>
+                                <option value="Kelelahan Ringan">Kelelahan Ringan</option>
+                                <option value="Kelelahan Sedang">Kelelahan Sedang</option>
+                                <option value="Perlu Istirahat">Perlu Istirahat</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-600 block mb-1">Kualitas Tidur:</label>
+                              <select
+                                value={healthRecoveryQuality}
+                                onChange={(e) => setHealthRecoveryQuality(e.target.value)}
+                                className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
+                              >
+                                <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
+                                <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
+                                <option value="Kurang (<6 Jam)">Kurang (&lt;6 Jam)</option>
+                              </select>
+                            </div>
                           </div>
 
                           <div>
@@ -2245,64 +2421,51 @@ function BadmintonAssessmentView({
                               type="text"
                               value={healthInjuryNotes}
                               onChange={(e) => setHealthInjuryNotes(e.target.value)}
-                              placeholder="Misal: Nyeri lutut ringan..."
+                              placeholder="Misal: Bebas cedera / nyeri lutut..."
                               className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
                             />
-                          </div>
-
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-600 block mb-1">Kualitas Tidur:</label>
-                            <select
-                              value={healthRecoveryQuality}
-                              onChange={(e) => setHealthRecoveryQuality(e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-[11px] bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none"
-                            >
-                              <option value="Bagus (8+ Jam)">Bagus (8+ Jam)</option>
-                              <option value="Cukup (6-7 Jam)">Cukup (6-7 Jam)</option>
-                              <option value="Kurang (<6 Jam)">Kurang (&lt;6 Jam)</option>
-                            </select>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* BAR KONTROL PRESET SKOR CEPAT (DI BAGIAN BAWAH KARTU) */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2">
-                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                    {/* BAR KONTROL PRESET SKOR CEPAT (1 BARIS 4 KOLOM DI MOBILE) */}
+                    <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
+                      <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-[#354944]" />
                         <span>Preset Nilai Cepat:</span>
                       </span>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
+                      <div className="grid grid-cols-4 gap-1.5 w-full">
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(0)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                           title="Reset semua indikator ke 0"
                         >
-                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-                          <span>Reset (0)</span>
+                          <RotateCcw className="w-3 h-3 shrink-0" />
+                          <span>Reset</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(50)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Standard (50)
+                          Standard
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(75)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Good (75)
+                          Good
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSetAllGlobalValue(90)}
-                          className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
+                          className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                         >
-                          Elite (90)
+                          Elite
                         </button>
                       </div>
                     </div>
@@ -2310,23 +2473,23 @@ function BadmintonAssessmentView({
                   </div>
                 </div>
 
-                {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
-                <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div>
+                {/* PANEL RINGKASAN SKOR KATEGORI (GRID 2 KOLOM DI MOBILE) */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-sm w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BarChart2 className="w-4 h-4 text-[#354944]" />
-                        <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                        <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 uppercase tracking-wider">
                           Ringkasan Skor Kategori
                         </h3>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
-                      </p>
+                      <span className="text-xs font-bold text-slate-600 sm:hidden">
+                        Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall}</strong>
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="text-xs font-bold text-slate-600 mr-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-600 mr-1 hidden sm:inline">
                         Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
                       </span>
 
@@ -2336,29 +2499,30 @@ function BadmintonAssessmentView({
                           setActiveModalCategoryKey(badmintonCategoryList[0]?.key);
                           setIsModalOpen(true);
                         }}
-                        className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                        className="flex-1 sm:flex-none px-3 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all shrink-0"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
-                        <span>✎ Edit / Input Penilaian</span>
+                        <span>✎ Edit Penilaian</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setShowAllInline(!showAllInline)}
-                        className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        className={`flex-1 sm:flex-none px-3 py-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                           showAllInline
                             ? 'bg-slate-900 text-white border-slate-900'
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                         }`}
                       >
                         <LayoutGrid className="w-3.5 h-3.5" />
-                        <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                        <span>{showAllInline ? 'Tutup' : 'Buka Semua'}</span>
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
-                    {badmintonCategoryList.map((cat) => {
+                  {/* GRID 2 KOLOM DI MOBILE (< 1024px), 3 KOLOM DI DESKTOP */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 w-full">
+                    {badmintonCategoryList.map((cat, idx) => {
                       const isFilled = (cat.score || 0) > 0;
                       return (
                         <div
@@ -2367,38 +2531,32 @@ function BadmintonAssessmentView({
                             setActiveModalCategoryKey(cat.key);
                             setIsModalOpen(true);
                           }}
-                          className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                          className="bg-slate-50 p-3 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2"
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="space-y-1 min-w-0">
-                              <span className="font-extrabold text-xs text-slate-900 block leading-snug">
-                                {cat.label}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                          <div className="space-y-1 min-w-0">
+                            <span className="font-bold text-xs text-slate-900 block leading-tight line-clamp-1" title={cat.label}>
+                              {idx + 1}. {cat.label}
+                            </span>
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-500 font-medium">
                                 {cat.count} Indikator
                               </span>
+                              {isFilled ? (
+                                <span className="text-emerald-700 font-extrabold">✓ Terisi</span>
+                              ) : (
+                                <span className="text-slate-400 font-medium">Kosong</span>
+                              )}
                             </div>
-
-                            {isFilled ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                <span>Terisi</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
-                                <span>Belum Dinilai</span>
-                              </span>
-                            )}
                           </div>
 
-                          <div className="space-y-1.5 pt-1">
+                          <div className="space-y-1 pt-1">
                             <div className="flex items-baseline justify-between">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
-                              <span className="text-base font-black text-slate-900 font-mono">
-                                {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">Skor</span>
+                              <span className="text-sm font-extrabold text-slate-900 font-mono">
+                                {cat.score || 0}
                               </span>
                             </div>
-                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#354944] rounded-full transition-all duration-300"
                                 style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
@@ -2688,7 +2846,7 @@ function BadmintonAssessmentView({
         <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-4.5 h-4.5 text-teal-600" />
+              <MessageSquare className="w-4.5 h-4.5 text-[#354944]" />
               <h3 className="font-extrabold text-sm text-slate-900">
                 Catatan Pelatih ({pbsiLevelInfo.name})
               </h3>
@@ -2697,9 +2855,9 @@ function BadmintonAssessmentView({
             <button
               type="button"
               onClick={handleGenerateDraft}
-              className="px-3 py-1.5 text-xs font-extrabold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              className="px-3 py-1.5 text-xs font-extrabold bg-[#354944]/10 hover:bg-[#354944]/20 text-[#354944] border border-[#354944]/30 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
             >
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C89D32]" />
               <span>Buat Draf Analisis Otomatis</span>
             </button>
           </div>
@@ -2709,7 +2867,7 @@ function BadmintonAssessmentView({
             onChange={(e) => setCoachNote(e.target.value)}
             rows={5}
             placeholder="Tuliskan umpan balik pelatih, keunggulan pukulan, area perbaikan footwork/taktik, dan rekomendasi program latihan..."
-            className="w-full p-4 text-xs font-medium bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 leading-relaxed text-slate-800 placeholder:text-slate-400"
+            className="w-full p-4 text-xs font-medium bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#354944] leading-relaxed text-slate-800 placeholder:text-slate-400"
           />
 
           {errorMsg && (
@@ -2731,16 +2889,16 @@ function BadmintonAssessmentView({
               type="button"
               onClick={handleSaveEvaluation}
               disabled={isSaving}
-              className="w-full sm:w-auto px-8 py-3.5 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-black text-sm rounded-2xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-[#354944] hover:bg-[#2B3D38] active:bg-[#1E2E2A] text-white border-b-2 border-[#C89D32] font-black text-sm rounded-2xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#C89D32]" />
                   <span>Menyimpan Rapor Badminton...</span>
                 </>
               ) : (
                 <>
-                  <Award className="w-4.5 h-4.5" />
+                  <Award className="w-4.5 h-4.5 text-[#C89D32]" />
                   <span>Simpan Assessment Badminton ({badmintonTierConfig.shortLabel})</span>
                 </>
               )}
@@ -2800,6 +2958,28 @@ function FootballAssessmentView({
   // DETEKSI OTOMATIS TIER DARI USIA + MANUAL OVERRIDE DROPDOWN
   const [overrideTier, setOverrideTier] = useState('AUTO');
 
+  // Sinkronisasi otomatis tier sepakbola dengan kelompok umur kelas terpilih
+  useEffect(() => {
+    if (selectedClass?.tierCode && selectedClass.tierCode !== 'ALL_AGE') {
+      const code = selectedClass.tierCode;
+      if (code === 'U-8' || code === 'U-10' || code === 'U-12') {
+        setOverrideTier('1');
+      } else if (code === 'U-14') {
+        setOverrideTier('2');
+      } else if (code === 'U-16') {
+        setOverrideTier('3');
+      } else if (code === 'U-18') {
+        setOverrideTier('4');
+      } else if (['1', '2', '3', '4'].includes(String(code))) {
+        setOverrideTier(String(code));
+      }
+    } else if (selectedClass?.minAge || selectedClass?.maxAge) {
+      const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
+      const tierNum = detectTierFromAge(midAge);
+      setOverrideTier(String(tierNum));
+    }
+  }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge]);
+
   const studentAge = useMemo(() => {
     if (!selectedStudent) return 0;
     if (selectedStudent.birthDate) {
@@ -2852,6 +3032,7 @@ function FootballAssessmentView({
   // Status indicator loading state per student
   const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
   const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+  const [showMobileRadar, setShowMobileRadar] = useState(true);
 
   const sportName = selectedClass?.sport || activeAcademy?.sport || 'SepakBola / Minisoccer';
 
@@ -3220,37 +3401,57 @@ function FootballAssessmentView({
       {/* HEADER BAR */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        {/* MOBILE COMPACT TITLE BAR (< 1024px) */}
+        <div className="flex lg:hidden items-center justify-between pb-2.5 border-b border-slate-100">
+          <h2 className="font-extrabold text-sm text-slate-900 tracking-tight">
+            Evaluasi Atlet
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
+              {detectedSport}
+            </span>
+            {latestEvalDoc ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>Terisi ({formatDateIndonesian(latestEvalDoc.date)})</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-[10px] font-bold">
+                <span>Belum Ada</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* DESKTOP TITLE BAR (>= 1024px) */}
+        <div className="hidden lg:flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-              <Compass className="w-6 h-6 text-emerald-100" />
+            <div className="w-10 h-10 rounded-2xl bg-[#354944] text-white flex items-center justify-center font-bold shrink-0 shadow-xs border border-[#C89D32]/40">
+              <Compass className="w-5 h-5 text-[#C89D32]" />
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
-                  Athlete Development Assessment
-                </h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                  <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{detectedSport}</span>
-                </span>
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                Athlete Development Assessment
+              </h2>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#354944]/10 text-[#354944] border border-[#354944]/20">
+                {detectedSport}
+              </span>
             </div>
           </div>
 
           <div className="self-start sm:self-center">
             {fetchingStudentHistory ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
                 <span>Memuat riwayat...</span>
               </span>
             ) : latestEvalDoc ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Riwayat Terakhir Terpasang (Tanggal: {formatDateIndonesian(latestEvalDoc.date)})</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full text-xs font-bold">
                 <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                 <span>Belum ada riwayat (Mulai dari 0)</span>
               </span>
@@ -3260,36 +3461,38 @@ function FootballAssessmentView({
 
         {/* ALERTS */}
         {successMsg && (
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-bold flex items-center gap-2 shadow-2xs animate-fadeIn">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
         {errorMsg && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-2xl font-bold flex items-center gap-2 shadow-2xs animate-fadeIn">
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-2xl font-bold flex items-center gap-2 animate-fadeIn">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {students.length === 0 ? (
-          <div className="py-12 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
-            <User className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700">Belum ada siswa terdaftar di kelas ini.</p>
+          <div className="py-8 border border-dashed border-slate-200 rounded-2xl text-center p-6 bg-slate-50/50">
+            <User className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-700">Belum ada siswa terdaftar di kelas ini.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90">
+            {/* INPUT FILTER AREA (2 BARIS KOMPAK DI MOBILE) */}
+            <div className="bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2.5">
+              {/* Baris 1: Pilih Atlet (1 Kolom Penuh) */}
               <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-emerald-600" />
+                <label className="block text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-[#354944]" />
                   <span>Pilih Atlet ({students.length})</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStudent?.id || ''}
                     onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer appearance-none pr-8"
                   >
                     {students.map((st) => {
                       const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
@@ -3307,35 +3510,38 @@ function FootballAssessmentView({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-emerald-600" />
-                  <span>Tanggal Evaluasi</span>
-                </label>
-                <input
-                  type="date"
-                  value={evaluationDate}
-                  onChange={(e) => setEvaluationDate(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 shadow-2xs cursor-pointer"
-                />
-              </div>
+              {/* Baris 2: Tanggal Evaluasi & Jenjang Evaluasi (2 Kolom Berdampingan) */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Tanggal</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={evaluationDate}
+                    onChange={(e) => setEvaluationDate(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#354944] font-bold text-slate-800 shadow-2xs cursor-pointer"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-emerald-600" />
-                  <span>Jenjang Evaluasi</span>
-                </label>
-                <select
-                  value={overrideTier}
-                  onChange={(e) => setOverrideTier(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
-                >
-                  <option value="AUTO">Otomatis: Tier {detectedTier} (Usia {studentAge} Thn)</option>
-                  <option value="1">Tier 1 — Usia Dini / SSB (U-6 s.d. U-12)</option>
-                  <option value="2">Tier 2 — Pemula (U-13)</option>
-                  <option value="3">Tier 3 — Pengembangan Taktik (U-15)</option>
-                  <option value="4">Tier 4 — Elit &amp; Profesional (U-16+)</option>
-                </select>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <GraduationCap className="w-3.5 h-3.5 text-[#354944]" />
+                    <span>Jenjang</span>
+                  </label>
+                  <select
+                    value={overrideTier}
+                    onChange={(e) => setOverrideTier(e.target.value)}
+                    className="w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-[#354944] shadow-2xs cursor-pointer truncate"
+                  >
+                    <option value="AUTO">Otomatis: Tier {detectedTier} ({studentAge} Thn)</option>
+                    <option value="1">Tier 1 — Usia Dini / SSB (U-6 s.d. U-12)</option>
+                    <option value="2">Tier 2 — Pemula (U-13)</option>
+                    <option value="3">Tier 3 — Pengembangan Taktik (U-15)</option>
+                    <option value="4">Tier 4 — Elit &amp; Profesional (U-16+)</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -3348,31 +3554,58 @@ function FootballAssessmentView({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             {/* RADAR 7-AXIS */}
-            <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-5 text-white shadow-md h-full flex flex-col justify-between space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                  <BarChart2 className="w-4 h-4 text-emerald-400" />
-                  <span>Scouting Radar</span>
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
-                  Total: {axisScores.overall}/100
-                </span>
+            <div className="lg:col-span-5 bg-slate-900 rounded-3xl p-4 sm:p-5 text-white shadow-md flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-[#C89D32]" />
+                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                    Scouting Radar
+                  </span>
+                </div>
+
+                {/* Header kanan: Skor Realtime & Toggle Mobile */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-[#C89D32] bg-slate-800 px-2 py-0.5 rounded-full border border-white/10">
+                    {axisScores.overall}/100
+                  </span>
+                  <span className={`lg:hidden px-2 py-0.5 text-[10px] font-bold rounded-full ${overallGrade.badge}`}>
+                    {overallGrade.grade.split(' ')[0]}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileRadar(!showMobileRadar)}
+                    className="lg:hidden text-[10px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
+                  >
+                    {showMobileRadar ? 'Lipat ▴' : 'Buka ▾'}
+                  </button>
+                </div>
               </div>
 
-              <div className="h-64 w-full flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={250}>
-                  <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
-                    <PolarGrid stroke="#334155" />
-                    <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 8 }} />
-                    <Radar name="Skor Atlet" dataKey="A" stroke="#10b981" fill="#059669" fillOpacity={0.55} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
+              {showMobileRadar && (
+                <div className="h-56 sm:h-64 w-full flex items-center justify-center my-auto">
+                  <ResponsiveContainer width="100%" height={230}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="62%" data={radarData} margin={{ top: 8, right: 15, bottom: 8, left: 15 }}>
+                      <PolarGrid stroke="#334155" />
+                      <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#e2e8f0', fontSize: 10, fontWeight: 700 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
+                      <Radar
+                        name="Skor Atlet"
+                        dataKey="A"
+                        stroke="#C89D32"
+                        fill="#354944"
+                        fillOpacity={0.65}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
-              <div className="text-[11px] text-slate-400 bg-slate-800/60 p-2.5 rounded-xl flex items-center justify-between">
-                <span>Rata-Rata 7 Kategori:</span>
-                <strong className="text-emerald-400 font-black">{axisScores.overall} / 100</strong>
+              <div className="text-[11px] text-slate-300 bg-slate-800/80 p-2.5 rounded-xl flex items-center justify-between border border-white/5">
+                <span className="text-slate-400">Rata-Rata (7 Kategori):</span>
+                <div className="flex items-center gap-1.5">
+                  <strong className="text-[#C89D32] font-black text-xs">{axisScores.overall} / 100</strong>
+                  <span className="text-[10px] font-bold text-slate-400">({overallGrade.grade})</span>
+                </div>
               </div>
             </div>
 
@@ -3497,59 +3730,59 @@ function FootballAssessmentView({
                   <span>Preset Nilai Cepat:</span>
                 </span>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
+                <div className="grid grid-cols-4 gap-1.5 w-full">
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(0)}
-                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
+                    className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 border border-rose-200 transition-all cursor-pointer shadow-2xs"
                     title="Reset semua indikator ke 0"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-                    <span>Reset (0)</span>
+                    <RotateCcw className="w-3 h-3 shrink-0" />
+                    <span>Reset</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(50)}
-                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                    className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-800 border border-slate-200 transition-all cursor-pointer shadow-2xs"
                   >
-                    Standard (50)
+                    Standard
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(75)}
-                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                    className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-800 border border-blue-200 transition-all cursor-pointer shadow-2xs"
                   >
-                    Good (75)
+                    Good
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSetAllGlobalValue(90)}
-                    className="whitespace-nowrap py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
+                    className="py-1.5 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
                   >
-                    Elite (90)
+                    Elite
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* PANEL RINGKASAN SKOR KATEGORI (FULL-WIDTH INTERACTIVE CARDS) */}
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-5 space-y-4 shadow-sm w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div>
+          {/* PANEL RINGKASAN SKOR KATEGORI (GRID 2 KOLOM DI MOBILE) */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-sm w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BarChart2 className="w-4 h-4 text-[#354944]" />
-                  <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 uppercase tracking-wider">
                     Ringkasan Skor Kategori
                   </h3>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Klik kartu kategori mana saja atau tombol &quot;Edit / Input Penilaian&quot; untuk mengisi indikator
-                </p>
+                <span className="text-xs font-bold text-slate-600 sm:hidden">
+                  Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall}</strong>
+                </span>
               </div>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-xs font-bold text-slate-600 mr-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-600 mr-1 hidden sm:inline">
                   Rata-Rata: <strong className="text-slate-900 font-black">{axisScores.overall} / 100</strong>
                 </span>
 
@@ -3559,29 +3792,30 @@ function FootballAssessmentView({
                     setActiveModalCategoryKey(footballCategoryList[0]?.key);
                     setIsModalOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm shadow-[#354944]/20 flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                  className="flex-1 sm:flex-none px-3 py-2 bg-[#354944] hover:bg-[#2B3D38] text-white border-b-2 border-[#C89D32] rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all shrink-0"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-[#C89D32]" />
-                  <span>✎ Edit / Input Penilaian</span>
+                  <span>✎ Edit Penilaian</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowAllInline(!showAllInline)}
-                  className={`px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`flex-1 sm:flex-none px-3 py-2 text-xs font-extrabold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     showAllInline
                       ? 'bg-slate-900 text-white border-slate-900'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                   }`}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>{showAllInline ? 'Sembunyikan List' : 'Buka Semua di Halaman'}</span>
+                  <span>{showAllInline ? 'Tutup' : 'Buka Semua'}</span>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full">
-              {footballCategoryList.map((cat) => {
+            {/* GRID 2 KOLOM DI MOBILE (< 1024px), 3 KOLOM DI DESKTOP */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 w-full">
+              {footballCategoryList.map((cat, idx) => {
                 const isFilled = (cat.score || 0) > 0;
                 return (
                   <div
@@ -3590,38 +3824,32 @@ function FootballAssessmentView({
                       setActiveModalCategoryKey(cat.key);
                       setIsModalOpen(true);
                     }}
-                    className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                    className="bg-slate-50 p-3 rounded-2xl border border-slate-200/90 hover:border-[#354944] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <span className="font-extrabold text-xs text-slate-900 block leading-snug">
-                          {cat.label}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-slate-600 inline-block">
+                    <div className="space-y-1 min-w-0">
+                      <span className="font-bold text-xs text-slate-900 block leading-tight line-clamp-1" title={cat.label}>
+                        {idx + 1}. {cat.label}
+                      </span>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 font-medium">
                           {cat.count} Indikator
                         </span>
+                        {isFilled ? (
+                          <span className="text-emerald-700 font-extrabold">✓ Terisi</span>
+                        ) : (
+                          <span className="text-slate-400 font-medium">Kosong</span>
+                        )}
                       </div>
-
-                      {isFilled ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Terisi</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-500 shrink-0">
-                          <span>Belum Dinilai</span>
-                        </span>
-                      )}
                     </div>
 
-                    <div className="space-y-1.5 pt-1">
+                    <div className="space-y-1 pt-1">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skor Rata-Rata</span>
-                        <span className="text-base font-black text-slate-900 font-mono">
-                          {cat.score || 0} <span className="text-[10px] text-slate-400 font-normal">/ 100</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Skor</span>
+                        <span className="text-sm font-extrabold text-slate-900 font-mono">
+                          {cat.score || 0}
                         </span>
                       </div>
-                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-[#354944] rounded-full transition-all duration-300"
                           style={{ width: `${Math.min(100, Math.max(0, cat.score || 0))}%` }}
@@ -3847,15 +4075,15 @@ function FootballAssessmentView({
                 <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                      <MessageSquare className="w-4 h-4 text-emerald-600" />
+                      <MessageSquare className="w-4 h-4 text-[#354944]" />
                       <span>Catatan Evaluasi Taktis &amp; Rekomendasi Pelatih ({tierConfig.shortLabel})</span>
                     </label>
                     <button
                       type="button"
                       onClick={handleGenerateDraft}
-                      className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 text-emerald-800 border border-emerald-200 text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+                      className="px-3.5 py-1.5 bg-[#354944]/10 hover:bg-[#354944]/20 text-[#354944] border border-[#354944]/30 text-xs font-extrabold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <Sparkles className="w-3.5 h-3.5 text-[#C89D32]" />
                       <span>Buat Draf Analisis Otomatis</span>
                     </button>
                   </div>
@@ -3865,7 +4093,7 @@ function FootballAssessmentView({
                     value={coachNote}
                     onChange={(e) => setCoachNote(e.target.value)}
                     placeholder={`Contoh: Atlet ${selectedStudent.studentName} menunjukkan penempatan posisi dan timing finishing yang tajam. Perlu peningkatan koordinasi pressing.`}
-                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800 leading-relaxed"
+                    className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#354944] font-medium text-slate-800 leading-relaxed"
                   />
 
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
@@ -3875,7 +4103,7 @@ function FootballAssessmentView({
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-8 py-3.5 bg-[#354944] hover:bg-[#2B3D38] text-white font-black text-xs rounded-2xl border-b-2 border-[#C89D32] shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isSaving ? (
                         <>
@@ -3884,7 +4112,7 @@ function FootballAssessmentView({
                         </>
                       ) : (
                         <>
-                          <Award className="w-4 h-4 text-emerald-100" />
+                          <Award className="w-4 h-4 text-[#C89D32]" />
                           <span>Simpan Assessment ({tierConfig.shortLabel})</span>
                         </>
                       )}

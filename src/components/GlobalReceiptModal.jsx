@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Printer, X, CheckCircle, Receipt } from 'lucide-react';
 
 /**
@@ -74,7 +75,7 @@ export default function GlobalReceiptModal({ isOpen, onClose, transactionData, t
     window.print();
   };
 
-  return (
+  const modalContent = (
     <>
       {/* CSS @media print terisolasi khusus cetak printer thermal (58mm/80mm) */}
       <style>{`
@@ -114,7 +115,7 @@ export default function GlobalReceiptModal({ isOpen, onClose, transactionData, t
       `}</style>
 
       {/* Modal Backdrop & Container */}
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+      <div className="fixed inset-0 z-[999] overflow-y-auto bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
         <div className="bg-white rounded-3xl border border-slate-100 max-w-md w-full p-5 space-y-4 shadow-2xl relative my-auto">
           
           {/* Header Dialog (Tidak ikut dicetak) */}
@@ -301,4 +302,6 @@ export default function GlobalReceiptModal({ isOpen, onClose, transactionData, t
       </div>
     </>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
