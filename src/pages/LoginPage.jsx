@@ -22,8 +22,8 @@ export default function LoginPage({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error('Google Sign-In failed:', err);
-      if (err.message && err.message.includes('Akses ditolak')) {
-        setErrorMessage('Akses ditolak. Hubungi Super Admin atau Owner GOR.');
+      if (err.message && (err.message.includes('Akses Ditolak') || err.message.includes('Akses ditolak'))) {
+        setErrorMessage(err.message);
       } else if (err.code === 'auth/popup-closed-by-user') {
         setErrorMessage('Proses login dibatalkan.');
       } else {
@@ -51,8 +51,8 @@ export default function LoginPage({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error('Email Sign-In failed:', err);
-      if (err.message && err.message.includes('Akses ditolak')) {
-        setErrorMessage('Akses ditolak. Hubungi Owner GOR.');
+      if (err.message && (err.message.includes('Akses Ditolak') || err.message.includes('Akses ditolak'))) {
+        setErrorMessage(err.message);
       } else {
         setErrorMessage(err.message || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.');
       }

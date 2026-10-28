@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Phone, Hash, ArrowRight, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { GraduationCap, Phone, Hash, ArrowRight, Loader2, ShieldCheck, AlertCircle, Lock, Calendar } from 'lucide-react';
 
 export default function PortalLogin() {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState('');
   const [parentPhone, setParentPhone] = useState('');
+  const [parentPin, setParentPin] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -15,6 +17,16 @@ export default function PortalLogin() {
 
     if (!studentId.trim() || !parentPhone.trim()) {
       setError('Mohon isi ID Siswa dan Nomor HP Wali Murid.');
+      return;
+    }
+
+    if (!parentPin.trim() && !birthDate.trim()) {
+      setError('Mohon isi PIN Akses Wali (6 Digit) ATAU Tanggal Lahir Siswa untuk verifikasi keamanan.');
+      return;
+    }
+
+    if (parentPin.trim() && parentPin.trim().length !== 6) {
+      setError('PIN Akses Wali harus berupa 6 digit angka.');
       return;
     }
 
@@ -28,7 +40,9 @@ export default function PortalLogin() {
         },
         body: JSON.stringify({
           studentId: studentId.trim(),
-          parentPhone: parentPhone.trim()
+          parentPhone: parentPhone.trim(),
+          parentPin: parentPin.trim() || undefined,
+          birthDate: birthDate.trim() || undefined
         })
       });
 
@@ -41,7 +55,7 @@ export default function PortalLogin() {
         navigate('/portal/dashboard');
       } else {
         // HTTP 401/500 atau kredensial tidak cocok
-        setError(data.message || data.details || data.error || 'Kredensial tidak ditemukan');
+        setError(data.message || data.details || data.error || 'Kredensial tidak ditemukan atau verifikasi keamanan gagal.');
       }
     } catch (err) {
       console.error('Login request failed:', err);
@@ -75,7 +89,7 @@ export default function PortalLogin() {
           {/* Input ID Siswa */}
           <div className="space-y-1.5 text-left">
             <label className="block text-xs font-bold text-slate-700">
-              ID Siswa (Firestore Doc ID)
+              ID Siswa (Firestore Doc ID) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -99,7 +113,7 @@ export default function PortalLogin() {
           {/* Input Nomor HP Wali */}
           <div className="space-y-1.5 text-left">
             <label className="block text-xs font-bold text-slate-700">
-              Nomor WhatsApp / HP Wali
+              Nomor WhatsApp / HP Wali <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -117,6 +131,54 @@ export default function PortalLogin() {
             </div>
             <p className="text-[10px] text-slate-400">
               Gunakan nomor HP yang terdaftar saat registrasi siswa di akademi.
+            </p>
+          </div>
+
+          {/* PIN Akses atau Tanggal Lahir Siswa (Verifikasi Keamanan 2FA) */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-3 text-left">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-blue-600" />
+                <span>Verifikasi Identitas Keamanan <span className="text-red-500">*</span></span>
+              </label>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                Wajib Isi Salah Satu
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* PIN Akses Wali 6-Digit */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                  PIN Akses Wali (6 Digit)
+                </label>
+                <input
+                  type="password"
+                  maxLength={6}
+                  disabled={loading}
+                  value={parentPin}
+                  onChange={(e) => setParentPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Contoh: 123456"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+              </div>
+
+              {/* Tanggal Lahir Siswa */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                  Atau Tanggal Lahir Siswa
+                </label>
+                <input
+                  type="date"
+                  disabled={loading}
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-500 italic">
+              Portal memverifikasi PIN 6-Digit atau Tanggal Lahir Siswa untuk mencegah akses tidak sah.
             </p>
           </div>
 

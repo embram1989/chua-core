@@ -91,6 +91,120 @@ async function getGoogleAccessToken(serviceAccount: any): Promise<string> {
   return data.access_token;
 }
 
+function parseFirestoreFields(fields: any): any {
+  if (!fields) return {};
+  const obj: any = {};
+  for (const key of Object.keys(fields)) {
+    const valObj = fields[key];
+    if ('stringValue' in valObj) obj[key] = valObj.stringValue;
+    else if ('integerValue' in valObj) obj[key] = parseInt(valObj.integerValue, 10);
+    else if ('doubleValue' in valObj) obj[key] = parseFloat(valObj.doubleValue);
+    else if ('booleanValue' in valObj) obj[key] = valObj.booleanValue;
+    else if ('mapValue' in valObj) obj[key] = parseFirestoreFields(valObj.mapValue?.fields);
+    else if ('arrayValue' in valObj) obj[key] = (valObj.arrayValue?.values || []).map((v: any) => parseFirestoreFields({ item: v }).item);
+    else obj[key] = null;
+  }
+  return obj;
+}
+
+async function getFirestoreDoc(docPath: string, idToken?: string) {
+  const serviceAccount = parseServiceAccountKey();
+  let bearerToken = idToken;
+  if (serviceAccount) {
+    try {
+      bearerToken = await getGoogleAccessToken(serviceAccount);
+    } catch {
+      // ignore
+    }
+  } else if (!bearerToken) {
+    try {
+      const metaRes = await fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {
+        headers: { 'Metadata-Flavor': 'Google' },
+      });
+      if (metaRes.ok) {
+        const metaData: any = await metaRes.json();
+        bearerToken = metaData.access_token;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${docPath}`;
+  const headers: Record<string, string> = {};
+  if (bearerToken) {
+    headers['Authorization'] = `Bearer ${bearerToken}`;
+  }
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) return null;
+  const data: any = await res.json();
+  return parseFirestoreFields(data.fields);
+}
+
+async function findStudentDoc(studentId: string, idToken?: string) {
+  const directDoc = await getFirestoreDoc(`students/${studentId}`, idToken);
+  if (directDoc && (directDoc.name || directDoc.nama || directDoc.id)) {
+    return { id: studentId, ...directDoc };
+  }
+
+  const serviceAccount = parseServiceAccountKey();
+  let bearerToken = idToken;
+  if (serviceAccount) {
+    try {
+      bearerToken = await getGoogleAccessToken(serviceAccount);
+    } catch {}
+  } else if (!bearerToken) {
+    try {
+      const metaRes = await fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {
+        headers: { 'Metadata-Flavor': 'Google' },
+      });
+      if (metaRes.ok) {
+        const metaData: any = await metaRes.json();
+        bearerToken = metaData.access_token;
+      }
+    } catch {}
+  }
+
+  const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents:runQuery`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (bearerToken) headers['Authorization'] = `Bearer ${bearerToken}`;
+
+  const body = {
+    structuredQuery: {
+      from: [{ collectionId: 'students' }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: 'id' },
+          op: 'EQUAL',
+          value: { stringValue: studentId },
+        },
+      },
+      limit: 1,
+    },
+  };
+
+  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+  if (!res.ok) return null;
+  const list: any = await res.json();
+  if (Array.isArray(list) && list[0]?.document) {
+    const docPath = list[0].document.name;
+    const docId = docPath.split('/').pop();
+    const fields = parseFirestoreFields(list[0].document.fields);
+    return { id: docId, ...fields };
+  }
+  return null;
+}
+
+function normalizePhone(phone: string): string {
+  if (!phone) return '';
+  let cleaned = String(phone).replace(/\D/g, '');
+  if (cleaned.startsWith('62')) {
+    cleaned = '0' + cleaned.substring(2);
+  }
+  return cleaned;
+}
+
 async function verifyCallerToken(req: express.Request) {
   const authHeader = req.headers.authorization || '';
   const idToken = authHeader.replace(/^Bearer\s+/i, '').trim();
@@ -131,11 +245,42 @@ async function verifyCallerToken(req: express.Request) {
     }
   }
 
+  let role = customClaims.role || payload?.role;
+  let tenantId = customClaims.tenantId || payload?.tenantId;
+
+  const userEmail = (user.email || payload?.email || '').toLowerCase().trim();
+
+  // If claims missing, perform database verification
+  if (!role || !tenantId) {
+    if (userEmail === 'embram1989@gmail.com') {
+      role = 'superadmin';
+      tenantId = 'global';
+    } else {
+      // Check tenant owner record
+      const tenantDoc = await getFirestoreDoc(`tenants/${user.localId}`, idToken);
+      if (tenantDoc && (tenantDoc.ownerUid === user.localId || tenantDoc.email === userEmail)) {
+        role = 'owner';
+        tenantId = user.localId;
+      } else {
+        // Check staff record
+        const staffDoc = await getFirestoreDoc(`users_staff/${user.localId}`, idToken);
+        if (staffDoc && staffDoc.tenantId) {
+          role = staffDoc.role || 'kasir';
+          tenantId = staffDoc.tenantId;
+        } else {
+          // Fail-closed default: unassigned, no tenant access
+          role = 'unassigned';
+          tenantId = null;
+        }
+      }
+    }
+  }
+
   return {
     uid: user.localId,
-    email: (user.email || payload?.email || '').toLowerCase().trim(),
-    role: customClaims.role || payload?.role || 'owner',
-    tenantId: customClaims.tenantId || payload?.tenantId || user.localId,
+    email: userEmail,
+    role: role,
+    tenantId: tenantId,
     emailVerified: user.emailVerified || false,
   };
 }
@@ -229,8 +374,8 @@ async function startServer() {
       }
 
       const isSuperAdmin = caller.email === 'embram1989@gmail.com' || caller.role === 'superadmin';
-      const isOwner = caller.role === 'owner' || caller.uid === tenantId;
-      const isAuthorized = isSuperAdmin || (isOwner && (caller.tenantId === tenantId || caller.uid === tenantId));
+      const isOwner = caller.role === 'owner' && (caller.tenantId === tenantId || caller.uid === tenantId);
+      const isAuthorized = isSuperAdmin || isOwner;
 
       if (!isAuthorized) {
         return res.status(403).json({
@@ -266,7 +411,7 @@ async function startServer() {
               password: password,
               displayName: cleanDisplayName || (assignedRole === 'kasir' ? 'Staff Kasir' : 'Pelatih Akademi'),
               customAttributes: JSON.stringify(customClaims),
-              emailVerified: true,
+              emailVerified: false,
             }),
           }
         );

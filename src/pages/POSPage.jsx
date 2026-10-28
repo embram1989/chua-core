@@ -390,7 +390,7 @@ export default function POSPage({ userProfile }) {
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // =====================================================================
-  // 9. CHECKOUT HANDLER & BATCH WRITE STOK DEDUCTION + TRANSACTION RECORD
+  // 9. CHECKOUT HANDLER & ATOMIC TRANSACTION (STOK DEDUCTION + KAS LEDGER)
   // =====================================================================
   const handleCheckout = async () => {
     if (cart.length === 0 || !tenantId) return;
@@ -401,50 +401,48 @@ export default function POSPage({ userProfile }) {
       const itemsSummary = cart.map((i) => `${i.name} (${i.qty}x)`).join(', ');
       const hasSpp = cart.some((i) => i.type === 'spp');
 
-      const batch = writeBatch(db);
+      await runTransaction(db, async (transaction) => {
+        // 1. Read & Validate stock for all physical items in cart
+        const physicalItems = cart.filter((i) => i.type !== 'spp' && i.type !== 'sewa' && i.id);
+        const productUpdates = [];
 
-      // 1. Simpan Rekam Transaksi ke Firestore `transactions`
-      const txRef = doc(collection(db, 'transactions'));
-      batch.set(txRef, {
-        tenantId,
-        itemCategory: hasSpp ? 'POS & Tagihan SPP Akademi' : 'Penjualan Retail POS',
-        itemName: itemsSummary,
-        amount: cartTotal,
-        paymentMethod,
-        itemsCount: cart.reduce((a, b) => a + b.qty, 0),
-        items: cart.map((i) => ({
-          id: i.id,
-          productId: i.id,
-          name: i.name,
-          price: i.price,
-          cogs: i.cogs || 0, // CRITICAL: COGS / HPP Modal untuk Laporan Keuangan Laba Kotor
-          qty: i.qty,
-          type: i.type || 'jual',
-          category: i.category || 'Retail',
-          barcode: i.barcode || '',
-          studentId: i.studentId || null,
-          academyId: i.academyId || null
-        })),
-        createdAt: serverTimestamp()
-      });
+        for (const item of physicalItems) {
+          const prodRef = doc(db, 'products', item.id);
+          const prodSnap = await transaction.get(prodRef);
+          if (!prodSnap.exists()) {
+            throw new Error(`Produk "${item.name}" tidak ditemukan di database.`);
+          }
+          const currentStock = prodSnap.data().stock ?? 0;
+          if (currentStock < item.qty) {
+            throw new Error(`Stok produk "${item.name}" tidak mencukupi. Sisa stok: ${currentStock} unit, dipesan: ${item.qty} unit.`);
+          }
+          productUpdates.push({ ref: prodRef, newStock: currentStock - item.qty });
+        }
 
-      // 2. Pengurangan Stok Produk Fisik di Koleksi `products` menggunakan increment(-qty)
-      const physicalItems = cart.filter((i) => i.type !== 'spp' && i.type !== 'sewa' && i.id);
-      for (const item of physicalItems) {
-        const prodDocRef = doc(db, 'products', item.id);
-        batch.update(prodDocRef, {
-          stock: increment(-item.qty),
-          updatedAt: serverTimestamp()
-        });
-      }
+        // 2. Read student docs for SPP items
+        const sppItems = cart.filter((i) => i.type === 'spp' && i.studentId);
+        const studentUpdates = [];
 
-      await batch.commit();
+        for (const item of sppItems) {
+          const studentRef = doc(db, 'students', item.studentId);
+          const studentSnap = await transaction.get(studentRef);
+          if (studentSnap.exists()) {
+            studentUpdates.push({ ref: studentRef, item });
+          }
+        }
 
-      // 3. Pelunasan Status SPP Siswa ke Koleksi `students`
-      const sppItems = cart.filter((i) => i.type === 'spp' && i.studentId);
-      for (const item of sppItems) {
-        try {
-          await updateDoc(doc(db, 'students', item.studentId), {
+        // 3. Perform Writes in Transaction
+        // Update product stocks
+        for (const p of productUpdates) {
+          transaction.update(p.ref, {
+            stock: p.newStock,
+            updatedAt: serverTimestamp()
+          });
+        }
+
+        // Update student SPP status & record spp_payments
+        for (const s of studentUpdates) {
+          transaction.update(s.ref, {
             paymentStatus: 'lunas',
             sppStatus: 'Lunas',
             lastPaidMonth: currentMonth,
@@ -452,21 +450,92 @@ export default function POSPage({ userProfile }) {
             lastPaymentMethod: paymentMethod,
             updatedAt: serverTimestamp()
           });
-        } catch (updateErr) {
-          console.error(`Error updating student SPP status for ${item.studentId}:`, updateErr);
+
+          const newSppPayRef = doc(collection(db, 'spp_payments'));
+          transaction.set(newSppPayRef, {
+            id: newSppPayRef.id,
+            tenantId,
+            studentId: s.item.studentId,
+            studentName: s.item.studentName || 'Siswa',
+            amount: s.item.price,
+            paidMonth: currentMonth,
+            paymentMethod,
+            status: 'COMPLETED',
+            createdAt: serverTimestamp()
+          });
         }
-      }
+
+        // Create transaction record in `transactions`
+        const newTxRef = doc(collection(db, 'transactions'));
+        transaction.set(newTxRef, {
+          id: newTxRef.id,
+          tenantId,
+          itemCategory: hasSpp ? 'POS & Tagihan SPP Akademi' : 'Penjualan Retail POS',
+          itemName: itemsSummary,
+          amount: cartTotal,
+          paymentMethod,
+          itemsCount: cart.reduce((a, b) => a + b.qty, 0),
+          items: cart.map((i) => ({
+            id: i.id,
+            productId: i.id,
+            name: i.name,
+            price: i.price,
+            cogs: i.cogs || 0,
+            qty: i.qty,
+            type: i.type || 'jual',
+            category: i.category || 'Retail',
+            barcode: i.barcode || '',
+            studentId: i.studentId || null,
+            academyId: i.academyId || null
+          })),
+          status: 'COMPLETED',
+          createdAt: serverTimestamp()
+        });
+
+        // Create POS receipt record in `pos_transactions`
+        const newPosTxRef = doc(collection(db, 'pos_transactions'));
+        transaction.set(newPosTxRef, {
+          id: newPosTxRef.id,
+          tenantId,
+          amount: cartTotal,
+          total: cartTotal,
+          paymentMethod,
+          items: cart,
+          transactionId: newTxRef.id,
+          status: 'LUNAS',
+          createdAt: serverTimestamp()
+        });
+
+        // Create cash record in `global_ledger`
+        const newLedgerRef = doc(collection(db, 'global_ledger'));
+        transaction.set(newLedgerRef, {
+          id: newLedgerRef.id,
+          tenantId,
+          type: 'PEMASUKAN',
+          source: 'KASIR_POS',
+          description: `Penjualan POS Kasir (${itemsSummary})`,
+          amount: cartTotal,
+          paymentMethod,
+          referenceId: newTxRef.id,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp()
+        });
+      });
 
       setCheckoutSuccessMsg(
         hasSpp 
-          ? 'Transaksi kasir & pelunasan SPP Akademi berhasil disimpan! Stok produk fisik telah dikurangi.' 
-          : 'Transaksi kasir berhasil disimpan & stok produk telah dikurangi otomatis!'
+          ? 'Transaksi kasir & pelunasan SPP Akademi berhasil disimpan secara atomik! Stok produk telah dikurangi.' 
+          : 'Transaksi kasir berhasil disimpan secara atomik & stok produk telah dikurangi!'
       );
       setCart([]);
       setTimeout(() => setCheckoutSuccessMsg(null), 4000);
     } catch (err) {
       console.error('Error during POS checkout:', err);
-      handleFirestoreError(err, 'create', 'transactions');
+      if (err.message && err.message.includes('Stok produk')) {
+        setCheckoutSuccessMsg(err.message);
+      } else {
+        handleFirestoreError(err, 'create', 'transactions');
+      }
     } finally {
       setSubmittingCheckout(false);
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, runTransaction, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
 import { X, Calendar, Clock, User, Phone, DollarSign, Calculator, QrCode, CreditCard, Banknote } from 'lucide-react';
@@ -40,28 +40,102 @@ export default function BookingPaymentModal({
     setErrorMsg(null);
 
     try {
-      const bookingPayload = {
-        ...pendingBookingData,
-        tenantId,
-        paymentMethod,
-        status: 'Lunas',
-        totalPrice: totalBiaya,
-        cashReceived: paymentMethod === 'Cash' ? cashNum : totalBiaya,
-        changeAmount: paymentMethod === 'Cash' ? Math.max(0, kembalian) : 0,
-        createdAt: serverTimestamp(),
-      };
-      
-      await addDoc(collection(db, 'bookings'), bookingPayload);
+      let createdBookingData = null;
 
-      if (onPaymentSuccess) {
-        onPaymentSuccess(bookingPayload);
+      await runTransaction(db, async (transaction) => {
+        // 1. Check for overlapping bookings for same court & date
+        const qOverlap = query(
+          collection(db, 'bookings'),
+          where('tenantId', '==', tenantId),
+          where('courtId', '==', pendingBookingData.courtId),
+          where('bookingDate', '==', pendingBookingData.bookingDate)
+        );
+
+        const existingSnaps = await getDocs(qOverlap);
+        const newStart = pendingBookingData.startTime || '08:00';
+        const newEnd = pendingBookingData.endTime || '09:00';
+
+        const hasConflict = existingSnaps.docs.some((docSnap) => {
+          const b = docSnap.data();
+          const status = String(b.status || '').toUpperCase();
+          if (status === 'VOID' || status === 'BATAL' || status === 'CANCELLED') {
+            return false;
+          }
+          const existingStart = b.startTime || '00:00';
+          const existingEnd = b.endTime || '00:00';
+          return newStart < existingEnd && newEnd > existingStart;
+        });
+
+        if (hasConflict) {
+          throw new Error('Maaf, slot lapangan pada jam tersebut baru saja dipesan oleh pengguna lain.');
+        }
+
+        // 2. Prepare atomic write documents
+        const newBookingRef = doc(collection(db, 'bookings'));
+        const newTxRef = doc(collection(db, 'transactions'));
+        const newLedgerRef = doc(collection(db, 'global_ledger'));
+
+        createdBookingData = {
+          ...pendingBookingData,
+          id: newBookingRef.id,
+          tenantId,
+          paymentMethod,
+          status: 'Lunas',
+          totalPrice: totalBiaya,
+          cashReceived: paymentMethod === 'Cash' ? cashNum : totalBiaya,
+          changeAmount: paymentMethod === 'Cash' ? Math.max(0, kembalian) : 0,
+          createdAt: new Date().toISOString(),
+        };
+
+        const bookingPayload = {
+          ...createdBookingData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+
+        const txPayload = {
+          id: newTxRef.id,
+          tenantId,
+          itemCategory: 'Sewa Lapangan',
+          itemName: `Sewa ${pendingBookingData.courtName} (${pendingBookingData.customerName})`,
+          amount: totalBiaya,
+          paymentMethod,
+          bookingId: newBookingRef.id,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp(),
+        };
+
+        const ledgerPayload = {
+          id: newLedgerRef.id,
+          tenantId,
+          type: 'PEMASUKAN',
+          source: 'RESERVASI_LAPANGAN',
+          description: `Pembayaran Sewa Lapangan ${pendingBookingData.courtName} - ${pendingBookingData.customerName}`,
+          amount: totalBiaya,
+          paymentMethod,
+          referenceId: newBookingRef.id,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp(),
+        };
+
+        transaction.set(newBookingRef, bookingPayload);
+        transaction.set(newTxRef, txPayload);
+        transaction.set(newLedgerRef, ledgerPayload);
+      });
+
+      if (onPaymentSuccess && createdBookingData) {
+        onPaymentSuccess(createdBookingData);
       }
 
       onClose();
     } catch (err) {
       console.error('Error processing booking payment:', err);
-      handleFirestoreError(err, 'create', 'bookings');
-      setErrorMsg('Gagal memproses pembayaran. Silakan coba lagi.');
+      if (err.message && err.message.includes('slot lapangan')) {
+        setErrorMsg(err.message);
+      } else {
+        handleFirestoreError(err, 'create', 'bookings');
+        setErrorMsg(err.message || 'Gagal memproses pembayaran. Silakan coba lagi.');
+      }
     } finally {
       setIsSubmitting(false);
     }

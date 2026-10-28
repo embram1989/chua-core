@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
 import { 
@@ -91,63 +91,107 @@ export default function SppPaymentModal({
 
     try {
       const monthToRecord = selectedMonth || currentMonth;
-
-      // 1. Update Student Record in Firestore
-      const studentRef = doc(db, 'students', student.id);
-      const updatedStudentFields = {
-        updatedAt: serverTimestamp()
-      };
-
-      if (paySppFee) {
-        updatedStudentFields.lastPaidMonth = monthToRecord;
-        updatedStudentFields.sppStatus = 'Lunas';
-        updatedStudentFields.lastSppPaidAt = serverTimestamp();
-        updatedStudentFields.lastPaidDate = new Date().toISOString().split('T')[0];
-      }
-
-      if (payRegistrationFee) {
-        updatedStudentFields.registrationFeePaid = true;
-        updatedStudentFields.isRegistrationFeePaid = true;
-        updatedStudentFields.registrationFeePaidAt = serverTimestamp();
-      }
-
-      await updateDoc(studentRef, updatedStudentFields);
-
-      // 2. Record Transaction in 'transactions' collection
-      await addDoc(collection(db, 'transactions'), {
-        tenantId,
-        itemCategory: 'SPP & Pendaftaran Akademi',
-        itemName: `Pembayaran Akademi: ${student.studentName}`,
-        amount: totalTagihan,
-        paymentMethod,
-        studentId: student.id,
-        monthPaid: paySppFee ? monthToRecord : '',
-        payRegistrationFee,
-        paySppFee,
-        createdAt: serverTimestamp()
-      });
-
-      // 3. Record Transaction in 'pos_transactions' collection for Global Kasir & Struk Thermal
       const receiptNo = `AKD-${Date.now().toString().slice(-6)}`;
-      await addDoc(collection(db, 'pos_transactions'), {
-        tenantId,
-        type: 'AKADEMI',
-        receiptNo,
-        customerName: student.studentName,
-        parentName: student.parentName || '',
-        amount: totalTagihan,
-        total: totalTagihan,
-        paymentMethod,
-        status: 'LUNAS',
-        notes: `Akademi: ${student.academyName || 'SIMAK Workspace'}`,
-        createdAt: serverTimestamp()
+      const studentName = student.studentName || student.nama || student.name || 'Siswa';
+      let updatedStudentFields = {};
+
+      await runTransaction(db, async (transaction) => {
+        const studentRef = doc(db, 'students', student.id);
+        const studentSnap = await transaction.get(studentRef);
+
+        if (!studentSnap.exists()) {
+          throw new Error('Data siswa tidak ditemukan di database.');
+        }
+
+        updatedStudentFields = {
+          updatedAt: serverTimestamp(),
+        };
+
+        if (paySppFee) {
+          updatedStudentFields.lastPaidMonth = monthToRecord;
+          updatedStudentFields.sppStatus = 'Lunas';
+          updatedStudentFields.paymentStatus = 'lunas';
+          updatedStudentFields.lastSppPaidAt = serverTimestamp();
+          updatedStudentFields.lastPaidDate = new Date().toISOString().split('T')[0];
+        }
+
+        if (payRegistrationFee) {
+          updatedStudentFields.registrationFeePaid = true;
+          updatedStudentFields.isRegistrationFeePaid = true;
+          updatedStudentFields.registrationFeePaidAt = serverTimestamp();
+        }
+
+        transaction.update(studentRef, updatedStudentFields);
+
+        // 1. Record in 'transactions'
+        const newTxRef = doc(collection(db, 'transactions'));
+        transaction.set(newTxRef, {
+          id: newTxRef.id,
+          tenantId,
+          itemCategory: 'SPP & Pendaftaran Akademi',
+          itemName: `Pembayaran Akademi: ${studentName}`,
+          amount: totalTagihan,
+          paymentMethod,
+          studentId: student.id,
+          monthPaid: paySppFee ? monthToRecord : '',
+          payRegistrationFee,
+          paySppFee,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp(),
+        });
+
+        // 2. Record in 'pos_transactions'
+        const newPosTxRef = doc(collection(db, 'pos_transactions'));
+        transaction.set(newPosTxRef, {
+          id: newPosTxRef.id,
+          tenantId,
+          type: 'AKADEMI',
+          receiptNo,
+          customerName: studentName,
+          parentName: student.parentName || '',
+          amount: totalTagihan,
+          total: totalTagihan,
+          paymentMethod,
+          status: 'LUNAS',
+          notes: `Akademi: ${student.academyName || 'SIMAK Workspace'}`,
+          createdAt: serverTimestamp(),
+        });
+
+        // 3. Record in 'global_ledger'
+        const newLedgerRef = doc(collection(db, 'global_ledger'));
+        transaction.set(newLedgerRef, {
+          id: newLedgerRef.id,
+          tenantId,
+          type: 'PEMASUKAN',
+          source: 'SPP_AKADEMI',
+          description: `Pembayaran SPP ${studentName} (${monthToRecord})`,
+          amount: totalTagihan,
+          paymentMethod,
+          referenceId: newTxRef.id,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp(),
+        });
+
+        // 4. Record in 'spp_payments'
+        const newSppPayRef = doc(collection(db, 'spp_payments'));
+        transaction.set(newSppPayRef, {
+          id: newSppPayRef.id,
+          tenantId,
+          studentId: student.id,
+          studentName,
+          amount: totalTagihan,
+          paidMonth: monthToRecord,
+          paymentMethod,
+          status: 'COMPLETED',
+          createdAt: serverTimestamp(),
+        });
       });
 
-      // 4. Construct Thermal Receipt Payload
+      // Construct Thermal Receipt Payload
       const receiptItems = [];
       if (payRegistrationFee && regFeeAmount > 0) {
         receiptItems.push({
-          name: `Biaya Pendaftaran - ${student.studentName}`,
+          name: `Biaya Pendaftaran - ${studentName}`,
           qty: 1,
           price: regFeeAmount,
           subtotal: regFeeAmount
@@ -155,7 +199,7 @@ export default function SppPaymentModal({
       }
       if (paySppFee && sppAmount > 0) {
         receiptItems.push({
-          name: `SPP Akademi (${monthLabel}) - ${student.studentName}`,
+          name: `SPP Akademi (${monthLabel}) - ${studentName}`,
           qty: 1,
           price: sppAmount,
           subtotal: sppAmount
@@ -172,7 +216,7 @@ export default function SppPaymentModal({
           minute: '2-digit'
         }),
         cashierName: userProfile?.displayName || userProfile?.name || 'Kasir Akademi',
-        customerName: `${student.studentName} (Wali: ${student.parentName || '-'})`,
+        customerName: `${studentName} (Wali: ${student.parentName || '-'})`,
         items: receiptItems,
         total: totalTagihan,
         paymentMethod,

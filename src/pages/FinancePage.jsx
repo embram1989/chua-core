@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db, handleFirestoreError } from '../firebase';
 import useArenaData from '../hooks/useArenaData';
 import { 
   DollarSign, 
@@ -6,7 +8,9 @@ import {
   ArrowUpRight, 
   Filter, 
   Download, 
-  Sparkles 
+  Sparkles,
+  AlertTriangle,
+  Ban
 } from 'lucide-react';
 import {
   Booking3DIcon,
@@ -27,39 +31,61 @@ export default function FinancePage({ userProfile }) {
   // Category Filter
   const [filterCategory, setFilterCategory] = useState('ALL'); // 'ALL' | 'SEWA' | 'POS' | 'SPP'
 
+  // Helper check for active vs voided records
+  const isRecordActive = (item) => {
+    const status = String(item.status || '').toUpperCase();
+    return status !== 'VOID' && status !== 'BATAL' && status !== 'CANCELLED' && !item.isVoid;
+  };
+
   // Filter Data by Time Period
   const filteredBookings = filterDataByTime(bookings, 'bookingDate', timeFilter, customDate);
   const filteredTransactions = filterDataByTime(transactions, 'createdAt', timeFilter, customDate);
 
-  // 1. Calculate KPI Metrics based on filtered records
-  const bookingRevenue = filteredBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+  // Active records for KPI revenue calculations (strictly excludes VOID)
+  const activeBookings = filteredBookings.filter(isRecordActive);
+  const activeTransactions = filteredTransactions.filter(isRecordActive);
 
-  const posRevenue = filteredTransactions
-    .filter((t) => t.itemCategory !== 'SPP Akademi')
+  // 1. Calculate KPI Metrics based on active records
+  const bookingRevenue = activeBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+
+  const posRevenue = activeTransactions
+    .filter((t) => t.itemCategory !== 'SPP & Pendaftaran Akademi' && t.itemCategory !== 'SPP Akademi')
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-  const sppRevenue = filteredTransactions
-    .filter((t) => t.itemCategory === 'SPP Akademi')
+  const sppRevenue = activeTransactions
+    .filter((t) => t.itemCategory === 'SPP & Pendaftaran Akademi' || t.itemCategory === 'SPP Akademi')
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   const totalGrossRevenue = bookingRevenue + posRevenue + sppRevenue;
 
-  // 2. Merge Filtered Bookings & Transactions into Single Integrated Ledger History
+  // 2. Merge Filtered Bookings & Transactions into Single Integrated Ledger History (Includes VOID for audit trail)
   const mergedLedger = [
-    ...filteredBookings.map((b) => ({
-      id: `booking-${b.id}`,
-      type: 'SEWA',
-      categoryLabel: 'Sewa Lapangan',
-      title: b.customerName || 'Pelanggan Lapangan',
-      detail: `${b.courtName || `Lapangan ${b.courtNumber}`} (${b.startTime || '08:00'} - ${b.endTime || '09:00'})`,
-      amount: b.price || 0,
-      date: b.bookingDate || b.date || 'Hari ini',
-      rawDate: b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date()
-    })),
+    ...filteredBookings.map((b) => {
+      const isVoid = !isRecordActive(b);
+      return {
+        id: `booking-${b.id}`,
+        rawId: b.id,
+        collectionName: 'bookings',
+        type: 'SEWA',
+        categoryLabel: 'Sewa Lapangan',
+        title: b.customerName || 'Pelanggan Lapangan',
+        detail: `${b.courtName || `Lapangan ${b.courtNumber}`} (${b.startTime || '08:00'} - ${b.endTime || '09:00'})`,
+        amount: b.price || 0,
+        date: b.bookingDate || b.date || 'Hari ini',
+        rawDate: b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(),
+        isVoid,
+        voidedBy: b.voidedBy || null,
+        voidedAt: b.voidedAt || null,
+        voidReason: b.voidReason || null
+      };
+    }),
     ...filteredTransactions.map((t) => {
-      const isSPP = t.itemCategory === 'SPP Akademi';
+      const isSPP = t.itemCategory === 'SPP & Pendaftaran Akademi' || t.itemCategory === 'SPP Akademi';
+      const isVoid = !isRecordActive(t);
       return {
         id: `tx-${t.id}`,
+        rawId: t.id,
+        collectionName: 'transactions',
         type: isSPP ? 'SPP' : 'POS',
         categoryLabel: isSPP ? 'SPP Akademi' : 'Kasir POS',
         title: t.itemName || 'Transaksi Kasir',
@@ -68,7 +94,11 @@ export default function FinancePage({ userProfile }) {
         date: t.createdAt?.seconds 
           ? new Date(t.createdAt.seconds * 1000).toLocaleDateString('id-ID')
           : 'Hari ini',
-        rawDate: t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date()
+        rawDate: t.createdAt?.seconds ? new Date(t.createdAt.seconds * 1000) : new Date(),
+        isVoid,
+        voidedBy: t.voidedBy || null,
+        voidedAt: t.voidedAt || null,
+        voidReason: t.voidReason || null
       };
     })
   ].sort((a, b) => b.rawDate - a.rawDate);
@@ -78,6 +108,34 @@ export default function FinancePage({ userProfile }) {
     if (filterCategory === 'ALL') return true;
     return item.type === filterCategory;
   });
+
+  // Soft-Delete / Void Handler (preserves audit trail)
+  const handleVoidTransaction = async (item) => {
+    if (item.isVoid) return;
+    const confirmVoid = window.confirm(
+      `Apakah Anda yakin ingin melakukan VOID/Pembatalan pada transaksi "${item.title}"?\n\nTransaksi akan ditandai VOID dan dikeluarkan dari rekap pendapatan tanpa menghapus jejak audit.`
+    );
+    if (!confirmVoid) return;
+
+    try {
+      const voidPayload = {
+        status: 'VOID',
+        isVoid: true,
+        voidedAt: serverTimestamp(),
+        voidedBy: userProfile?.displayName || userProfile?.name || userProfile?.email || 'Admin',
+        voidReason: 'Pembatalan transaksi oleh Pengelola GOR'
+      };
+
+      if (item.collectionName === 'bookings') {
+        await updateDoc(doc(db, 'bookings', item.rawId), voidPayload);
+      } else if (item.collectionName === 'transactions') {
+        await updateDoc(doc(db, 'transactions', item.rawId), voidPayload);
+      }
+    } catch (err) {
+      console.error('Error voiding transaction:', err);
+      handleFirestoreError(err, 'update', item.collectionName);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -97,15 +155,15 @@ export default function FinancePage({ userProfile }) {
             <Keuangan3DIcon className="w-5 h-5 shrink-0" />
             <span>Laporan Arus Kas Terpadu (General Ledger)</span>
           </div>
-          <p className="text-xs text-white/80 font-medium mt-1">Total Pendapatan Kotor Seluruh Operasional Arena</p>
+          <p className="text-xs text-white/80 font-medium mt-1">Total Pendapatan Bersih (Tidak Termasuk Transaksi VOID)</p>
           <h1 className="text-3xl font-black font-mono tracking-tight text-white mt-1">
             Rp {totalGrossRevenue.toLocaleString('id-ID')}
           </h1>
         </div>
 
         <div className="bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl px-4 py-2.5 text-center sm:text-right shrink-0 z-10">
-          <p className="text-[10px] uppercase tracking-wider text-white/80 font-extrabold">Total Transaksi</p>
-          <p className="text-base font-black font-mono text-white">{mergedLedger.length} Transaksi</p>
+          <p className="text-[10px] uppercase tracking-wider text-white/80 font-extrabold">Transaksi Aktif</p>
+          <p className="text-base font-black font-mono text-white">{mergedLedger.filter((i) => !i.isVoid).length} Aktif ({mergedLedger.filter((i) => i.isVoid).length} VOID)</p>
         </div>
       </div>
 
@@ -134,7 +192,7 @@ export default function FinancePage({ userProfile }) {
             </p>
           </div>
           <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
-            {filteredBookings.length} Reservasi Terkonfirmasi
+            {activeBookings.length} Reservasi Terkonfirmasi
           </div>
         </div>
 
@@ -152,7 +210,7 @@ export default function FinancePage({ userProfile }) {
             </p>
           </div>
           <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
-            {filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length} Penjualan Retail &amp; F&amp;B
+            {activeTransactions.filter((t) => t.itemCategory !== 'SPP & Pendaftaran Akademi' && t.itemCategory !== 'SPP Akademi').length} Penjualan Retail &amp; F&amp;B
           </div>
         </div>
 
@@ -170,7 +228,7 @@ export default function FinancePage({ userProfile }) {
             </p>
           </div>
           <div className="border-t border-white/20 pt-2 text-[11px] font-bold text-white/80 z-10 truncate mt-2">
-            {filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length} Pembayaran Iuran Siswa
+            {activeTransactions.filter((t) => t.itemCategory === 'SPP & Pendaftaran Akademi' || t.itemCategory === 'SPP Akademi').length} Pembayaran Iuran Siswa
           </div>
         </div>
 
@@ -181,7 +239,7 @@ export default function FinancePage({ userProfile }) {
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
           <div>
-            <h2 className="font-black text-base text-slate-900 dark:text-slate-100">Histori Transaksi Terpadu</h2>
+            <h2 className="font-black text-base text-slate-900 dark:text-slate-100">Histori Transaksi Terpadu &amp; Audit Trail</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Gabungan arus kas masuk dari Sewa Lapangan, Kasir POS, &amp; SPP Akademi</p>
           </div>
 
@@ -215,7 +273,7 @@ export default function FinancePage({ userProfile }) {
                   : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 hover:bg-purple-100'
               }`}
             >
-              POS ({filteredTransactions.filter((t) => t.itemCategory !== 'SPP Akademi').length})
+              POS ({filteredTransactions.filter((t) => t.itemCategory !== 'SPP & Pendaftaran Akademi' && t.itemCategory !== 'SPP Akademi').length})
             </button>
             <button
               onClick={() => setFilterCategory('SPP')}
@@ -225,13 +283,12 @@ export default function FinancePage({ userProfile }) {
                   : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
               }`}
             >
-              SPP ({filteredTransactions.filter((t) => t.itemCategory === 'SPP Akademi').length})
+              SPP ({filteredTransactions.filter((t) => t.itemCategory === 'SPP & Pendaftaran Akademi' || t.itemCategory === 'SPP Akademi').length})
             </button>
           </div>
         </div>
 
         {filteredLedger.length === 0 ? (
-          /* ZERO MOCK DATA MANDATORY EMPTY STATE UI */
           <div className="py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-center flex flex-col items-center justify-center p-6">
             <Inbox className="w-10 h-10 text-slate-300 dark:text-slate-700 mb-2" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Tidak ada riwayat transaksi keuangan pada periode ini</p>
@@ -242,14 +299,20 @@ export default function FinancePage({ userProfile }) {
         ) : (
           <div className="space-y-2.5">
             {filteredLedger.map((item) => {
-              // Badge colors based on transaction type
               let badgeStyle = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
               if (item.type === 'SEWA') badgeStyle = 'bg-[#354944]/15 text-[#354944] dark:text-[#C89D32] border border-[#354944]/30';
               if (item.type === 'POS') badgeStyle = 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border border-purple-200/80';
               if (item.type === 'SPP') badgeStyle = 'bg-[#C89D32]/15 text-[#C89D32] border border-[#C89D32]/30';
 
               return (
-                <div key={item.id} className="ticket-notch-container relative bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 p-3.5 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all">
+                <div 
+                  key={item.id} 
+                  className={`ticket-notch-container relative border p-3.5 rounded-2xl transition-all ${
+                    item.isVoid 
+                      ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 opacity-75' 
+                      : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
+                  }`}
+                >
                   <span className="ticket-notch-left" />
                   <span className="ticket-notch-right" />
                   <div className="flex items-center justify-between pl-2 pr-2">
@@ -259,16 +322,41 @@ export default function FinancePage({ userProfile }) {
                           {item.categoryLabel}
                         </span>
                         <span className="text-[10px] text-slate-400 font-mono">{item.date}</span>
+                        {item.isVoid && (
+                          <span className="bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300 px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-wider">
+                            VOID / DIBATALKAN
+                          </span>
+                        )}
                       </div>
-                      <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">{item.title}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.detail}</p>
+                      <p className={`font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate ${item.isVoid ? 'line-through text-slate-400' : ''}`}>
+                        {item.title}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {item.detail} {item.isVoid && item.voidedBy ? `• Void oleh ${item.voidedBy}` : ''}
+                      </p>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="font-black font-mono text-xs sm:text-sm text-[#354944] dark:text-[#C89D32] block">
-                        + Rp {item.amount.toLocaleString('id-ID')}
-                      </span>
-                      <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Terkonfirmasi</span>
+                    <div className="text-right shrink-0 flex items-center space-x-3">
+                      <div>
+                        <span className={`font-black font-mono text-xs sm:text-sm block ${item.isVoid ? 'line-through text-slate-400' : 'text-[#354944] dark:text-[#C89D32]'}`}>
+                          + Rp {item.amount.toLocaleString('id-ID')}
+                        </span>
+                        <span className={`text-[9px] font-extrabold uppercase tracking-wider ${item.isVoid ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                          {item.isVoid ? 'Dibatalkan' : 'Terkonfirmasi'}
+                        </span>
+                      </div>
+
+                      {!item.isVoid && (
+                        <button
+                          type="button"
+                          onClick={() => handleVoidTransaction(item)}
+                          title="Void / Batalkan Transaksi ini"
+                          className="px-2 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-[10px] font-bold rounded-lg border border-red-200 dark:border-red-800 transition-colors flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Ban className="w-3 h-3" />
+                          <span>Void</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import {
   collection, 
   query, 
   where, 
+  limit,
   onSnapshot, 
   doc 
 } from 'firebase/firestore';
@@ -10,6 +11,7 @@ import { db, handleFirestoreError } from '../firebase';
 
 /**
  * Real-time custom hook for listening to tenant profile, courts, bookings, and transactions
+ * Optimized with query limits and proper listener cleanup to prevent memory leaks and high read costs.
  */
 export default function useArenaData(userProfile) {
   const [tenantProfile, setTenantProfile] = useState(userProfile?.tenant || null);
@@ -43,14 +45,13 @@ export default function useArenaData(userProfile) {
       }
     );
 
-    // 2. Listen to Courts Collection (where tenantId == current tenantId)
+    // 2. Listen to Courts Collection
     const courtsRef = collection(db, 'courts');
     const qCourts = query(courtsRef, where('tenantId', '==', tenantId));
     const unsubCourts = onSnapshot(
       qCourts,
       (snapshot) => {
         const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-        // Global alphabetical and numeric sorting for court names
         list.sort((a, b) => 
           (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
         );
@@ -63,9 +64,13 @@ export default function useArenaData(userProfile) {
       }
     );
 
-    // 3. Listen to Bookings Collection (where tenantId == current tenantId)
+    // 3. Listen to Bookings Collection (limited to 150 most recent to prevent high read costs)
     const bookingsRef = collection(db, 'bookings');
-    const qBookings = query(bookingsRef, where('tenantId', '==', tenantId));
+    const qBookings = query(
+      bookingsRef, 
+      where('tenantId', '==', tenantId),
+      limit(150)
+    );
     const unsubBookings = onSnapshot(
       qBookings,
       (snapshot) => {
@@ -81,9 +86,13 @@ export default function useArenaData(userProfile) {
       }
     );
 
-    // 4. Listen to Transactions Collection
+    // 4. Listen to Transactions Collection (limited to 150 most recent to prevent high read costs)
     const txRef = collection(db, 'transactions');
-    const qTx = query(txRef, where('tenantId', '==', tenantId));
+    const qTx = query(
+      txRef, 
+      where('tenantId', '==', tenantId),
+      limit(150)
+    );
     const unsubTx = onSnapshot(
       qTx,
       (snapshot) => {
