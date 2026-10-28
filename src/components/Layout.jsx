@@ -522,57 +522,27 @@ export default function Layout({ userProfile }) {
         </div>
       </header>
 
-      {/* STICKY HORIZONTAL / GRID SUB-MENU BAR FOR AKADEMI OR PROFIL (< 1024px) */}
-      {(isAkademiActive || isProfilActive) && (
+      {/* STICKY HORIZONTAL / GRID SUB-MENU BAR FOR PROFIL (< 1024px) */}
+      {isProfilActive && (
         <div className="flex lg:hidden sticky top-14 z-30 border-b border-slate-200/70 dark:border-white/10 shrink-0 bg-[#EBF0EE] dark:bg-[#0C1412] p-2">
-          {isAkademiActive && (
-            <div className="w-full flex flex-wrap justify-center gap-1.5 p-2 bg-white dark:bg-[#162320] rounded-2xl shadow-sm border border-slate-200/70 dark:border-white/10">
-              {academySubMenuItems.map((sub) => {
-                const isSubActive = currentTab === sub.id;
-                return (
-                  <Link
-                    key={sub.id}
-                    to={sub.path}
-                    className={`text-[11px] py-1.5 px-3 rounded-xl font-bold transition-all border flex items-center justify-center shrink-0 ${
-                      isSubActive
-                        ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-xs'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>{sub.label}</span>
-                    {sub.count !== null && sub.count !== undefined && sub.count > 0 && (
-                      <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[9px] font-black ${
-                        isSubActive ? 'bg-[#C89D32] text-slate-900' : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        {sub.count}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {isProfilActive && (
-            <div className="w-full flex overflow-x-auto no-scrollbar gap-2 py-1 px-1">
-              {profileSubMenuItems.map((sub) => {
-                const isSubActive = currentProfileTab === sub.id;
-                return (
-                  <Link
-                    key={sub.id}
-                    to={sub.path}
-                    className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
-                      isSubActive
-                        ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>{sub.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div className="w-full flex overflow-x-auto no-scrollbar gap-2 py-1 px-1">
+            {profileSubMenuItems.map((sub) => {
+              const isSubActive = currentProfileTab === sub.id;
+              return (
+                <Link
+                  key={sub.id}
+                  to={sub.path}
+                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                    isSubActive
+                      ? 'bg-[#354944] text-white border-b-2 border-[#C89D32] shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>{sub.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
 
