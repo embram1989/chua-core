@@ -73,7 +73,8 @@ export default function TennisAssessmentView({
   loadingHistory = false,
   filterStudentId,
   setFilterStudentId,
-  onDeleteEvaluation
+  onDeleteEvaluation,
+  onEvaluationSaved
 }) {
   // 1. STATE SELEKSI SISWA & TANGGAL
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -207,7 +208,15 @@ export default function TennisAssessmentView({
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+
+  // Memoized latest evaluation doc for current student in Tennis
+  const latestEvalDoc = useMemo(() => {
+    if (!selectedStudent?.id || !history || history.length === 0) return null;
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    if (studentHistory.length === 0) return null;
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    return studentHistory[0];
+  }, [selectedStudent?.id, history]);
 
   // Tab aktif (fisik, teknik, taktik, mental, komunikasi, perkembangan, khususNomor)
   const [activeTab, setActiveTab] = useState('fisik');
@@ -221,35 +230,25 @@ export default function TennisAssessmentView({
   // Reset / Load history data saat siswa berganti
   useEffect(() => {
     if (!selectedStudent?.id) {
-      setLatestEvalDoc(null);
       setScores({});
       return;
     }
 
-    setScores({});
     setCoachNote('');
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Cari riwayat evaluasi tenis terbaru siswa ini
-    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
-    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
-
-    if (latest) {
-      setLatestEvalDoc(latest);
-      setScores(latest.scores || {});
-      setCoachNote(latest.notes || latest.coachNote || '');
-      setEventCode(latest.eventCode || latest.playerRole || (isTennis10sTier ? 'T10_EXPLORE' : 'MS'));
-      setPrimaryStyleCode(latest.primaryStyleCode || latest.styleCode || 'STY01');
-      setSecondaryStyleCodes(latest.secondaryStyleCodes || ['STY03']);
-      setIncludeCommunicationInSingles(Boolean(latest.includeCommunicationInSingles));
-      setDominantHandAndBackhand(latest.dominantHandAndBackhand || 'Kanan - Backhand 2 Tangan');
-      setGripAdaptation(latest.gripAdaptation || 'Tahap Pengenalan Grip');
-      setRallyReadinessAndTransition(latest.rallyReadinessAndTransition || 'Tahap Kontrol Pantulan Dasar');
+    if (latestEvalDoc) {
+      setScores(latestEvalDoc.scores || {});
+      setCoachNote(latestEvalDoc.notes || latestEvalDoc.coachNote || '');
+      setEventCode(latestEvalDoc.eventCode || latestEvalDoc.playerRole || (isTennis10sTier ? 'T10_EXPLORE' : 'MS'));
+      setPrimaryStyleCode(latestEvalDoc.primaryStyleCode || latestEvalDoc.styleCode || 'STY01');
+      setSecondaryStyleCodes(latestEvalDoc.secondaryStyleCodes || ['STY03']);
+      setIncludeCommunicationInSingles(Boolean(latestEvalDoc.includeCommunicationInSingles));
+      setDominantHandAndBackhand(latestEvalDoc.dominantHandAndBackhand || 'Kanan - Backhand 2 Tangan');
+      setGripAdaptation(latestEvalDoc.gripAdaptation || 'Tahap Pengenalan Grip');
+      setRallyReadinessAndTransition(latestEvalDoc.rallyReadinessAndTransition || 'Tahap Kontrol Pantulan Dasar');
     } else {
-      setLatestEvalDoc(null);
       setScores({});
       setCoachNote('');
       setEventCode(isTennis10sTier ? 'T10_EXPLORE' : 'MS');
@@ -260,7 +259,7 @@ export default function TennisAssessmentView({
       setGripAdaptation('Tahap Pengenalan Grip');
       setRallyReadinessAndTransition('Tahap Kontrol Pantulan Dasar');
     }
-  }, [selectedStudent?.id, history, isTennis10sTier]);
+  }, [selectedStudent?.id, latestEvalDoc?.id, isTennis10sTier]);
 
   // Sinkronisasi otomatis saat nilai skor berubah
   const handleScoreChange = (indicatorName, value) => {
@@ -519,6 +518,7 @@ export default function TennisAssessmentView({
         setSuccessMsg(`Evaluasi Tenis untuk ${payload.studentName} berhasil disimpan!`);
       }
 
+      if (onEvaluationSaved) onEvaluationSaved();
       setTimeout(() => setSuccessMsg(null), 3500);
     } catch (err) {
       console.error('Error saving tennis assessment:', err);

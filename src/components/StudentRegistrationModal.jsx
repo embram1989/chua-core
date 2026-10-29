@@ -8,7 +8,7 @@ import {
   serverTimestamp, 
   query, 
   where, 
-  onSnapshot 
+  getDocs 
 } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../firebase';
 import { 
@@ -152,13 +152,23 @@ export default function StudentRegistrationModal({
     if (academyClasses && academyClasses.length > 0) {
       setClassesList(academyClasses);
     } else if (tenantId && isOpen) {
-      const q = query(collection(db, 'academy_classes'), where('tenantId', '==', tenantId));
-      const unsub = onSnapshot(q, (snap) => {
-        setClassesList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-      return () => unsub();
+      const fetchClasses = async () => {
+        try {
+          const targetAcademyId = activeAcademyId || activeAcademy?.id || '';
+          let q = query(collection(db, 'academy_classes'), where('tenantId', '==', tenantId));
+          if (targetAcademyId) {
+            q = query(q, where('academyId', '==', targetAcademyId));
+          }
+          const snap = await getDocs(q);
+          setClassesList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        } catch (err) {
+          console.error('Error fetching academy_classes fallback:', err);
+          handleFirestoreError(err, 'list', 'academy_classes');
+        }
+      };
+      fetchClasses();
     }
-  }, [academyClasses, tenantId, isOpen]);
+  }, [academyClasses, tenantId, isOpen, activeAcademyId, activeAcademy?.id]);
 
   // Pre-fill form if editing
   useEffect(() => {

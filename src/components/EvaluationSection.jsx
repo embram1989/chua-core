@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   collection, 
   query, 
   where, 
-  onSnapshot, 
+  getDocs,
+  limit,
+  orderBy,
   addDoc, 
   updateDoc, 
   deleteDoc, 
@@ -248,46 +250,48 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
     return students.filter((s) => s.classId === selectedClass?.id);
   }, [students, selectedClass?.id]);
 
-  // Firestore real-time evaluation history
+  // Firestore fetch-once evaluation history (limited to 100 docs)
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [filterStudentId, setFilterStudentId] = useState('ALL');
 
-  useEffect(() => {
+  const fetchHistory = useCallback(async () => {
     if (!tenantId || !selectedClass?.id) {
       setHistory([]);
       setLoadingHistory(false);
       return;
     }
     setLoadingHistory(true);
-    const ref = collection(db, 'academy_evaluations');
-    const q = query(
-      ref,
-      where('tenantId', '==', tenantId),
-      where('classId', '==', selectedClass.id)
-    );
-    const unsub = onSnapshot(
-      q,
-      (snapshot) => {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-        list.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-        setHistory(list);
-        setLoadingHistory(false);
-      },
-      (err) => {
-        console.error('Error fetching academy_evaluations:', err);
-        handleFirestoreError(err, 'list', 'academy_evaluations');
-        setHistory([]);
-        setLoadingHistory(false);
-      }
-    );
-    return () => unsub();
+    try {
+      const ref = collection(db, 'academy_evaluations');
+      const q = query(
+        ref,
+        where('tenantId', '==', tenantId),
+        where('classId', '==', selectedClass.id),
+        limit(100)
+      );
+      const snapshot = await getDocs(q);
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      list.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+      setHistory(list);
+    } catch (err) {
+      console.error('Error fetching academy_evaluations:', err);
+      handleFirestoreError(err, 'list', 'academy_evaluations');
+      setHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
   }, [tenantId, selectedClass?.id]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const handleDeleteEvaluation = async (id, studentName) => {
     if (!window.confirm(`Hapus data rapor evaluasi untuk ${studentName}?`)) return;
     try {
       await deleteDoc(doc(db, 'academy_evaluations', id));
+      setHistory((prev) => prev.filter((h) => h.id !== id));
     } catch (err) {
       console.error('Failed to delete evaluation:', err);
       handleFirestoreError(err, 'delete', 'academy_evaluations');
@@ -330,6 +334,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         filterStudentId={filterStudentId}
         setFilterStudentId={setFilterStudentId}
         onDeleteEvaluation={handleDeleteEvaluation}
+        onEvaluationSaved={fetchHistory}
       />
     );
   }
@@ -346,6 +351,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         filterStudentId={filterStudentId}
         setFilterStudentId={setFilterStudentId}
         onDeleteEvaluation={handleDeleteEvaluation}
+        onEvaluationSaved={fetchHistory}
       />
     );
   }
@@ -362,6 +368,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         filterStudentId={filterStudentId}
         setFilterStudentId={setFilterStudentId}
         onDeleteEvaluation={handleDeleteEvaluation}
+        onEvaluationSaved={fetchHistory}
       />
     );
   }
@@ -378,6 +385,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
         filterStudentId={filterStudentId}
         setFilterStudentId={setFilterStudentId}
         onDeleteEvaluation={handleDeleteEvaluation}
+        onEvaluationSaved={fetchHistory}
       />
     );
   }
@@ -393,6 +401,7 @@ export default function EvaluationSection({ selectedClass, students = [], tenant
       filterStudentId={filterStudentId}
       setFilterStudentId={setFilterStudentId}
       onDeleteEvaluation={handleDeleteEvaluation}
+      onEvaluationSaved={fetchHistory}
     />
   );
 }
@@ -409,7 +418,8 @@ function FutsalAssessmentView({
   loadingHistory,
   filterStudentId,
   setFilterStudentId,
-  onDeleteEvaluation
+  onDeleteEvaluation,
+  onEvaluationSaved
 }) {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -493,11 +503,18 @@ function FutsalAssessmentView({
   const [errorMsg, setErrorMsg] = useState(null);
 
   // Status indicator loading state
-  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
-  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
   const [showMobileRadar, setShowMobileRadar] = useState(true);
 
   const sportName = selectedClass?.sport || activeAcademy?.sport || 'Futsal';
+
+  // Memoized latest evaluation doc for current student
+  const latestEvalDoc = useMemo(() => {
+    if (!selectedStudent?.id || !history || history.length === 0) return null;
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    if (studentHistory.length === 0) return null;
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    return studentHistory[0];
+  }, [selectedStudent?.id, history]);
 
   // Available positions depending on activeFutsalTier
   const availablePositions = useMemo(() => {
@@ -529,45 +546,31 @@ function FutsalAssessmentView({
   // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA BERUBAH
   useEffect(() => {
     if (!selectedStudent?.id) {
-      setLatestEvalDoc(null);
       setScores({});
-      setFetchingStudentHistory(false);
       return;
     }
 
-    setFetchingStudentHistory(true);
-    setScores({});
     setCoachNote('');
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Cari riwayat Futsal terbaru
-    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
-    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    if (latestEvalDoc) {
+      setScores(latestEvalDoc.scores || {});
 
-    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
-
-    if (latest) {
-      setLatestEvalDoc(latest);
-      setScores(latest.scores || {});
-
-      const posCode = latest.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeFutsalTier === 1 ? 'COURT_DASAR' : 'FIXO');
+      const posCode = latestEvalDoc.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeFutsalTier === 1 ? 'COURT_DASAR' : 'FIXO');
       setSelectedPosition(posCode);
 
-      const styleVal = latest.styleCode || selectedStudent.styleCode || 'STY01';
+      const styleVal = latestEvalDoc.styleCode || selectedStudent.styleCode || 'STY01';
       setSelectedStyleCode(styleVal);
     } else {
       // Siswa Baru: Default 0
-      setLatestEvalDoc(null);
       setScores({});
 
       const posCode = selectedStudent.playerRole || selectedStudent.position || (activeFutsalTier === 1 ? 'COURT_DASAR' : 'FIXO');
       setSelectedPosition(posCode);
       setSelectedStyleCode(selectedStudent.styleCode || 'STY01');
     }
-
-    setFetchingStudentHistory(false);
-  }, [selectedStudent?.id, selectedClass?.id, history, activeFutsalTier]);
+  }, [selectedStudent?.id, latestEvalDoc?.id]);
 
   // Filtered Indicator Names for each of the 6 Futsal Core Categories based on minTier <= activeFutsalTier
   const filteredCategoryIndicators = useMemo(() => {
@@ -1664,9 +1667,14 @@ function BadmintonAssessmentView({
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // Status indicator loading state
-  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
-  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+  // Memoized latest evaluation doc for current student in Badminton
+  const latestEvalDoc = useMemo(() => {
+    if (!selectedStudent?.id || !history || history.length === 0) return null;
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    if (studentHistory.length === 0) return null;
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    return studentHistory[0];
+  }, [selectedStudent?.id, history]);
 
   // Validate eventCode when activeBadmintonTier changes
   useEffect(() => {
@@ -1701,44 +1709,32 @@ function BadmintonAssessmentView({
   // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA BERUBAH
   useEffect(() => {
     if (!selectedStudent?.id) {
-      setLatestEvalDoc(null);
       setScores({});
-      setFetchingStudentHistory(false);
       return;
     }
 
-    setFetchingStudentHistory(true);
-    setScores({});
     setCoachNote('');
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Cari riwayat Badminton terbaru
-    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
-    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
-
-    if (latest) {
-      setLatestEvalDoc(latest);
-      setScores(latest.scores || {});
+    if (latestEvalDoc) {
+      setScores(latestEvalDoc.scores || {});
 
       const defaultEv = activeBadmintonTier === 1 ? 'BASIC_SINGLE' : 'MS';
-      const evCode = latest.eventCode || latest.playerRole || selectedStudent.playerRole || selectedStudent.position || defaultEv;
+      const evCode = latestEvalDoc.eventCode || latestEvalDoc.playerRole || selectedStudent.playerRole || selectedStudent.position || defaultEv;
       setEventCode(evCode);
 
-      const stCode = latest.styleCode || selectedStudent.styleCode || 'STY01';
+      const stCode = latestEvalDoc.styleCode || selectedStudent.styleCode || 'STY01';
       setStyleCode(stCode);
 
-      const dSpec = latest.doublesSpecCode || latest.specialization || selectedStudent.specialization || 'SPC01';
+      const dSpec = latestEvalDoc.doublesSpecCode || latestEvalDoc.specialization || selectedStudent.specialization || 'SPC01';
       setDoublesSpecCode(dSpec);
 
-      setHealthPhysicalReadiness(latest.healthPhysicalReadiness || 'Fit 100%');
-      setHealthInjuryNotes(latest.healthInjuryNotes || '');
-      setHealthRecoveryQuality(latest.healthRecoveryQuality || 'Bagus (8+ Jam)');
+      setHealthPhysicalReadiness(latestEvalDoc.healthPhysicalReadiness || 'Fit 100%');
+      setHealthInjuryNotes(latestEvalDoc.healthInjuryNotes || '');
+      setHealthRecoveryQuality(latestEvalDoc.healthRecoveryQuality || 'Bagus (8+ Jam)');
     } else {
       // Siswa Baru: Default 0
-      setLatestEvalDoc(null);
       setScores({});
 
       const defaultEv = activeBadmintonTier === 1 ? 'BASIC_SINGLE' : 'MS';
@@ -1751,9 +1747,7 @@ function BadmintonAssessmentView({
       setHealthInjuryNotes('');
       setHealthRecoveryQuality('Bagus (8+ Jam)');
     }
-
-    setFetchingStudentHistory(false);
-  }, [selectedStudent?.id, selectedClass?.id, history, activeBadmintonTier]);
+  }, [selectedStudent?.id, latestEvalDoc?.id]);
 
   // Category Indicators filtered by minTier <= activeBadmintonTier
   const filteredCategoryIndicators = useMemo(() => {
@@ -2037,6 +2031,7 @@ function BadmintonAssessmentView({
       }
 
       setSuccessMsg(`Rapor Badminton (${pbsiLevelInfo.name}) untuk ${selectedStudent.studentName} berhasil disimpan!`);
+      if (onEvaluationSaved) onEvaluationSaved();
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err) {
       console.error('Error saving Badminton evaluation:', err);
@@ -2948,7 +2943,8 @@ function FootballAssessmentView({
   loadingHistory,
   filterStudentId,
   setFilterStudentId,
-  onDeleteEvaluation
+  onDeleteEvaluation,
+  onEvaluationSaved
 }) {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -3068,9 +3064,15 @@ function FootballAssessmentView({
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // Status indicator loading state per student
-  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
-  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+  // Memoized latest evaluation doc for current student in Football
+  const latestEvalDoc = useMemo(() => {
+    if (!selectedStudent?.id || !history || history.length === 0) return null;
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    if (studentHistory.length === 0) return null;
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    return studentHistory[0];
+  }, [selectedStudent?.id, history]);
+
   const [showMobileRadar, setShowMobileRadar] = useState(true);
 
   const sportName = selectedClass?.sport || activeAcademy?.sport || 'SepakBola / Minisoccer';
@@ -3114,44 +3116,32 @@ function FootballAssessmentView({
   // LOGIKA TRANSISI & RESET STATE SETIAP KALI SISWA / KELAS BERUBAH
   useEffect(() => {
     if (!selectedStudent?.id) {
-      setLatestEvalDoc(null);
       setScores({});
-      setFetchingStudentHistory(false);
       return;
     }
 
-    setFetchingStudentHistory(true);
-    setScores({});
     setCoachNote('');
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Cari dokumen evaluasi terbaru untuk siswa terpilih dari history
-    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
-    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
-
-    if (latest) {
-      setLatestEvalDoc(latest);
-      setScores(latest.scores || {});
+    if (latestEvalDoc) {
+      setScores(latestEvalDoc.scores || {});
 
       // Restore position/secondaryPosition/spec/style
-      const posCode = latest.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
+      const posCode = latestEvalDoc.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
       setSelectedPosition(posCode);
 
-      const secPosCode = latest.secondaryPosition || selectedStudent.secondaryPosition || 'NONE';
+      const secPosCode = latestEvalDoc.secondaryPosition || selectedStudent.secondaryPosition || 'NONE';
       setSecondaryPosition(secPosCode);
 
       const posConfig = getPositionConfig(posCode);
-      const specVal = latest.specialization || selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher');
+      const specVal = latestEvalDoc.specialization || selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher');
       setSelectedSpecialization(specVal);
 
-      const styleVal = latest.styleCode || selectedStudent.styleCode || 'STY07';
+      const styleVal = latestEvalDoc.styleCode || selectedStudent.styleCode || 'STY07';
       setSelectedStyleCode(styleVal);
     } else {
       // Siswa Baru: Inisialisasi dari 0
-      setLatestEvalDoc(null);
       setScores({});
 
       const posCode = selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
@@ -3164,9 +3154,7 @@ function FootballAssessmentView({
       setSelectedSpecialization(selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher'));
       setSelectedStyleCode(selectedStudent.styleCode || 'STY07');
     }
-
-    setFetchingStudentHistory(false);
-  }, [selectedStudent?.id, selectedClass?.id, history, activeTier]);
+  }, [selectedStudent?.id, latestEvalDoc?.id]);
 
   const handlePositionChange = (newCode) => {
     setSelectedPosition(newCode);
@@ -3429,6 +3417,7 @@ function FootballAssessmentView({
 
       setSuccessMsg(`Assessment (${tierConfig.shortLabel}) untuk ${selectedStudent.studentName} berhasil disimpan!`);
       setCoachNote('');
+      if (onEvaluationSaved) onEvaluationSaved();
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err) {
       console.error('Failed to save assessment:', err);
@@ -4691,7 +4680,8 @@ function Standard4PillarView({
   loadingHistory,
   filterStudentId,
   setFilterStudentId,
-  onDeleteEvaluation
+  onDeleteEvaluation,
+  onEvaluationSaved
 }) {
   const [selectedStudentId, setSelectedStudentId] = useState('');
 
@@ -4721,35 +4711,31 @@ function Standard4PillarView({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeModalCategoryKey, setActiveModalCategoryKey] = useState('fisik');
 
-  const [fetchingStudentHistory, setFetchingStudentHistory] = useState(false);
-  const [latestEvalDoc, setLatestEvalDoc] = useState(null);
+  // Memoized latest evaluation doc for current student in Standard4PillarView
+  const latestEvalDoc = useMemo(() => {
+    if (!selectedStudent?.id || !history || history.length === 0) return null;
+    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
+    if (studentHistory.length === 0) return null;
+    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+    return studentHistory[0];
+  }, [selectedStudent?.id, history]);
 
   useEffect(() => {
     if (!selectedStudent?.id) {
-      setLatestEvalDoc(null);
       setScores({});
       return;
     }
 
-    setFetchingStudentHistory(true);
-    setScores({});
     setCoachNote('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
-    const studentHistory = history.filter((h) => h.studentId === selectedStudent.id);
-    studentHistory.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-    const latest = studentHistory.length > 0 ? studentHistory[0] : null;
-
-    if (latest) {
-      setLatestEvalDoc(latest);
-      setScores(latest.scores || {});
+    if (latestEvalDoc) {
+      setScores(latestEvalDoc.scores || {});
     } else {
-      setLatestEvalDoc(null);
       setScores({});
     }
-
-    setFetchingStudentHistory(false);
-  }, [selectedStudent?.id, history]);
+  }, [selectedStudent?.id, latestEvalDoc?.id]);
 
   const pillarScores = useMemo(() => {
     const computeAvg = (kpiList) => {
@@ -4884,6 +4870,7 @@ function Standard4PillarView({
       });
       setSuccessMsg(`Rapor ${selectedStudent.studentName} berhasil disimpan!`);
       setCoachNote('');
+      if (onEvaluationSaved) onEvaluationSaved();
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
       console.error(err);

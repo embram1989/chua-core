@@ -1821,35 +1821,37 @@ export default function AcademyPage({ userProfile }) {
                   );
                 })()}
 
-                {/* MEMANGGIL KONTEN UTAMA SECARA LANGSUNG BERDASARKAN FILTER GLOBAL KELAS */}
+                {/* MEMANGGIL KONTEN UTAMA DENGAN DISPLAY TOGGLE (KEEP-ALIVE CACHE) */}
                 {(() => {
                   const currentClass = filteredClasses.find((c) => c.id === selectedClassId);
                   if (!currentClass) return null;
 
-                  if (attendanceSubTab === 'presensi') {
-                    return (
-                      <AttendanceSection
-                        selectedClass={currentClass}
-                        students={filteredStudents}
-                        tenantId={tenantId}
-                      />
-                    );
-                  } else if (attendanceSubTab === 'evaluasi') {
-                    return (
-                      <EvaluationSection
-                        selectedClass={currentClass}
-                        students={filteredStudents}
-                        tenantId={tenantId}
-                        activeAcademy={activeAcademy}
-                      />
-                    );
-                  } else {
-                    return (
-                      <GrowthTrackerSection
-                        students={filteredStudents.filter((s) => s.classId === currentClass.id)}
-                      />
-                    );
-                  }
+                  return (
+                    <div>
+                      <div className={attendanceSubTab === 'presensi' ? 'block' : 'hidden'}>
+                        <AttendanceSection
+                          selectedClass={currentClass}
+                          students={filteredStudents}
+                          tenantId={tenantId}
+                        />
+                      </div>
+
+                      <div className={attendanceSubTab === 'evaluasi' ? 'block' : 'hidden'}>
+                        <EvaluationSection
+                          selectedClass={currentClass}
+                          students={filteredStudents}
+                          tenantId={tenantId}
+                          activeAcademy={activeAcademy}
+                        />
+                      </div>
+
+                      <div className={attendanceSubTab === 'perkembangan' || (attendanceSubTab !== 'presensi' && attendanceSubTab !== 'evaluasi') ? 'block' : 'hidden'}>
+                        <GrowthTrackerSection
+                          students={filteredStudents.filter((s) => s.classId === currentClass.id)}
+                        />
+                      </div>
+                    </div>
+                  );
                 })()}
               </div>
             )}
