@@ -877,7 +877,7 @@ function FutsalAssessmentView({
           </div>
 
           <div className="self-start sm:self-center">
-            {fetchingStudentHistory ? (
+            {loadingHistory ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
                 <span>Memuat riwayat...</span>
@@ -2087,7 +2087,7 @@ function BadmintonAssessmentView({
           </div>
 
           <div className="self-start sm:self-center">
-            {fetchingStudentHistory ? (
+            {loadingHistory ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
                 <span>Memuat riwayat...</span>
@@ -3478,7 +3478,7 @@ function FootballAssessmentView({
           </div>
 
           <div className="self-start sm:self-center">
-            {fetchingStudentHistory ? (
+            {loadingHistory ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
                 <span>Memuat riwayat...</span>
@@ -4899,7 +4899,7 @@ function Standard4PillarView({
           </div>
 
           <div>
-            {fetchingStudentHistory ? (
+            {loadingHistory ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
                 <span>Memuat riwayat...</span>
