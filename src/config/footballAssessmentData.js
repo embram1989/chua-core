@@ -12,21 +12,21 @@ export const TIER_CONFIGS = {
   },
   2: {
     tier: 2,
-    label: 'U-10 & U-12 (Usia 10–13 Thn) — Fase Pengembangan Skill / Skill Phase',
+    label: 'U-10 & U-12 (Usia 10–12 Thn) — Fase Pengembangan Skill / Skill Phase',
     shortLabel: 'Fase 2 — Skill Phase (U-10 & U-12)',
     badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
     desc: 'Fokus 4 core skills (passing, dribbling, 1v1, finishing), format 7v7, dan small-sided games.'
   },
   3: {
     tier: 3,
-    label: 'U-14 & U-16 (Usia 14–17 Thn) — Fase Taktik / Tactical Phase',
+    label: 'U-14 & U-16 (Usia 13–16 Thn) — Fase Taktik / Tactical Phase',
     shortLabel: 'Fase 3 — Tactical Phase (U-14 & U-16)',
     badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
     desc: 'Fokus 11v11, zonal pressing, formasi 4-3-3 Filanesia PSSI, transisi bermain, dan koordinasi unit tim.'
   },
   4: {
     tier: 4,
-    label: 'U-18 / Senior (Usia 18+ Thn) — Fase Penampilan / Performance Phase',
+    label: 'U-18 / Senior (Usia 17+ Thn) — Fase Penampilan / Performance Phase',
     shortLabel: 'Fase 4 — Performance Phase (U-18 / Senior)',
     badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
     desc: 'Fokus kematangan kompetitif, performa tinggi, efektivitas taktis, dan jenjang profesional.'
@@ -44,10 +44,10 @@ export function detectTierFromAge(ageInput) {
   }
 
   if (parsed <= 0) return 1;
-  if (parsed <= 9) return 1; // Fase 1: Joy Phase (Usia 6-9 Thn)
-  if (parsed <= 13) return 2; // Fase 2: Skill Phase (Usia 10-13 Thn)
-  if (parsed <= 17) return 3; // Fase 3: Tactical Phase (Usia 14-17 Thn)
-  return 4; // Fase 4: Performance Phase (Usia 18+ Thn)
+  if (parsed <= 9) return 1;  // Fase 1: Joy Phase (Usia 6-9 Thn)
+  if (parsed <= 12) return 2; // Fase 2: Skill Phase (Usia 10-12 Thn)
+  if (parsed <= 16) return 3; // Fase 3: Tactical Phase (Usia 13-16 Thn)
+  return 4;                   // Fase 4: Performance Phase (Usia 17+ Thn)
 }
 
 export const FOOTBALL_POSITIONS = [
@@ -431,3 +431,20 @@ export function getPositionConfig(code) {
 export function getStyleConfig(code) {
   return FOOTBALL_PLAYING_STYLES.find((s) => s.code === code) || FOOTBALL_PLAYING_STYLES[0];
 }
+
+export const SECONDARY_FOOTBALL_POSITIONS = [
+  { code: 'NONE', label: 'Tidak Ada / Spesialis Murni' },
+  { code: 'GK', label: 'GK — Penjaga Gawang (Kiper)' },
+  { code: 'CB', label: 'CB — Bek Tengah (CB)' },
+  { code: 'LB', label: 'LB — Left Back (Bek Kiri)' },
+  { code: 'RB', label: 'RB — Right Back (Bek Kanan)' },
+  { code: 'LWB/RWB', label: 'LWB/RWB — Wingback (LWB/RWB)' },
+  { code: 'DMF', label: 'DMF — Defensive Midfielder (Gelandang Bertahan)' },
+  { code: 'CMF', label: 'CMF — Central Midfielder (Gelandang Tengah)' },
+  { code: 'AMF', label: 'AMF — Attacking Midfielder (Gelandang Serang)' },
+  { code: 'LMF/RMF', label: 'LMF/RMF — Wide Midfielder (Gelandang Sayap)' },
+  { code: 'LW', label: 'LW — Left Winger (Sayap Kiri)' },
+  { code: 'RW', label: 'RW — Right Winger (Sayap Kanan)' },
+  { code: 'SS', label: 'SS — Second Striker (Penyerang Kedua)' },
+  { code: 'CF/ST', label: 'CF/ST — Center Forward / Striker' }
+];

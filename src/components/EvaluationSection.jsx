@@ -29,6 +29,7 @@ import {
   Loader2,
   Target,
   Layers,
+  Info,
   Zap,
   Dumbbell,
   Activity,
@@ -77,7 +78,8 @@ import {
   getAvailablePositionsForTier,
   isFootballOrMinisoccer,
   getPositionConfig,
-  getStyleConfig
+  getStyleConfig,
+  SECONDARY_FOOTBALL_POSITIONS
 } from '../config/footballAssessmentData';
 
 import {
@@ -2976,15 +2978,15 @@ function FootballAssessmentView({
       else if (selectedClass?.minAge || selectedClass?.maxAge) {
         const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
         if (midAge <= 9) setOverrideTier('FILANESIA_F1');
-        else if (midAge <= 13) setOverrideTier('FILANESIA_F2');
-        else if (midAge <= 17) setOverrideTier('FILANESIA_F3');
+        else if (midAge <= 12) setOverrideTier('FILANESIA_F2');
+        else if (midAge <= 16) setOverrideTier('FILANESIA_F3');
         else setOverrideTier('FILANESIA_F4');
       }
     } else if (selectedClass?.minAge || selectedClass?.maxAge) {
       const midAge = Math.round(((selectedClass.minAge || 6) + (selectedClass.maxAge || 12)) / 2);
       if (midAge <= 9) setOverrideTier('FILANESIA_F1');
-      else if (midAge <= 13) setOverrideTier('FILANESIA_F2');
-      else if (midAge <= 17) setOverrideTier('FILANESIA_F3');
+      else if (midAge <= 12) setOverrideTier('FILANESIA_F2');
+      else if (midAge <= 16) setOverrideTier('FILANESIA_F3');
       else setOverrideTier('FILANESIA_F4');
     }
   }, [selectedClass?.id, selectedClass?.tierCode, selectedClass?.minAge, selectedClass?.maxAge, selectedClass?.className, selectedClass?.name]);
@@ -3012,8 +3014,8 @@ function FootballAssessmentView({
 
   const detectedTierCode = useMemo(() => {
     if (studentAge <= 9) return 'Fase 1 (Joy Phase)';
-    if (studentAge <= 13) return 'Fase 2 (Skill Phase)';
-    if (studentAge <= 17) return 'Fase 3 (Tactical Phase)';
+    if (studentAge <= 12) return 'Fase 2 (Skill Phase)';
+    if (studentAge <= 16) return 'Fase 3 (Tactical Phase)';
     return 'Fase 4 (Performance Phase)';
   }, [studentAge]);
 
@@ -3035,19 +3037,20 @@ function FootballAssessmentView({
       return { ...base, label: 'U-8 & U-10 (Usia 6–9 Thn) — Fase Kegembiraan / Joy Phase', shortLabel: 'Fase 1 — Joy Phase' };
     }
     if (['FILANESIA_F2', 'F2', 'U12', 'U-12'].includes(overrideTier)) {
-      return { ...base, label: 'U-10 & U-12 (Usia 10–13 Thn) — Fase Pengembangan Skill / Skill Phase', shortLabel: 'Fase 2 — Skill Phase' };
+      return { ...base, label: 'U-10 & U-12 (Usia 10–12 Thn) — Fase Pengembangan Skill / Skill Phase', shortLabel: 'Fase 2 — Skill Phase' };
     }
     if (['FILANESIA_F3', 'F3', 'U14', 'U-14', 'U16', 'U-16'].includes(overrideTier)) {
-      return { ...base, label: 'U-14 & U-16 (Usia 14–17 Thn) — Fase Taktik / Tactical Phase', shortLabel: 'Fase 3 — Tactical Phase' };
+      return { ...base, label: 'U-14 & U-16 (Usia 13–16 Thn) — Fase Taktik / Tactical Phase', shortLabel: 'Fase 3 — Tactical Phase' };
     }
     if (['FILANESIA_F4', 'F4', 'U18', 'U-18'].includes(overrideTier)) {
-      return { ...base, label: 'U-18 / Senior (Usia 18+ Thn) — Fase Penampilan / Performance Phase', shortLabel: 'Fase 4 — Performance Phase' };
+      return { ...base, label: 'U-18 / Senior (Usia 17+ Thn) — Fase Penampilan / Performance Phase', shortLabel: 'Fase 4 — Performance Phase' };
     }
     return base;
   }, [activeTier, overrideTier]);
 
-  // Position, Specialization, StyleCode
+  // Position, Secondary Position, Specialization, StyleCode
   const [selectedPosition, setSelectedPosition] = useState('ST');
+  const [secondaryPosition, setSecondaryPosition] = useState('NONE');
   const [selectedSpecialization, setSelectedSpecialization] = useState('Poacher');
   const [selectedStyleCode, setSelectedStyleCode] = useState('STY07');
 
@@ -3133,9 +3136,12 @@ function FootballAssessmentView({
       setLatestEvalDoc(latest);
       setScores(latest.scores || {});
 
-      // Restore position/spec/style
+      // Restore position/secondaryPosition/spec/style
       const posCode = latest.playerRole || selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
       setSelectedPosition(posCode);
+
+      const secPosCode = latest.secondaryPosition || selectedStudent.secondaryPosition || 'NONE';
+      setSecondaryPosition(secPosCode);
 
       const posConfig = getPositionConfig(posCode);
       const specVal = latest.specialization || selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher');
@@ -3150,6 +3156,9 @@ function FootballAssessmentView({
 
       const posCode = selectedStudent.playerRole || selectedStudent.position || (activeTier === 1 ? 'OUTFIELD_SSB' : activeTier === 2 ? 'CM' : 'ST');
       setSelectedPosition(posCode);
+
+      const secPosCode = selectedStudent.secondaryPosition || 'NONE';
+      setSecondaryPosition(secPosCode);
 
       const posConfig = getPositionConfig(posCode);
       setSelectedSpecialization(selectedStudent.specialization || (posConfig.specializations ? posConfig.specializations[0] : 'Poacher'));
@@ -3322,8 +3331,10 @@ function FootballAssessmentView({
       if (overall < 60) summaryText = 'membutuhkan pembinaan intensif dan disiplin latihan tambahan.';
       else if (overall < 80) summaryText = 'cukup baik dengan progres positif yang konsisten.';
 
-      draft = `[Rapor Taktis ${tierConfig.shortLabel} - ${selectedPosition}]\n` +
-        `Atlet ${selectedStudent.studentName} dievaluasi pada posisi ${selectedPosition} dengan spesialisasi "${selectedSpecialization}" dan profil gaya bermain ${styleObj.code} — ${styleObj.name} (${styleObj.desc}).\n\n` +
+      const secText = secondaryPosition && secondaryPosition !== 'NONE' ? ` (Posisi Sekunder: ${secondaryPosition})` : '';
+
+      draft = `[Rapor Taktis ${tierConfig.shortLabel} - ${selectedPosition}${secText}]\n` +
+        `Atlet ${selectedStudent.studentName} dievaluasi pada posisi utama ${selectedPosition}${secondaryPosition && secondaryPosition !== 'NONE' ? ` serta posisi sekunder ${secondaryPosition}` : ''} dengan spesialisasi "${selectedSpecialization}" dan profil gaya bermain ${styleObj.code} — ${styleObj.name} (${styleObj.desc}).\n\n` +
         `Keunggulan utama ditunjukkan pada ${topPillar.name} (Skor: ${topPillar.score}/100). Aspek yang perlu ditingkatkan adalah ${bottomPillar.name} (Skor: ${bottomPillar.score}/100).\n\n` +
         `Secara keseluruhan, performa atlet dinilai ${summaryText} (Skor Total: ${overall}/100).`;
     }
@@ -3375,6 +3386,7 @@ function FootballAssessmentView({
         activeTier: activeTier,
         tierLabel: tierConfig.label,
         playerRole: selectedPosition,
+        secondaryPosition: activeTier >= 3 ? secondaryPosition : 'NONE',
         specialization: activeTier >= 3 ? selectedSpecialization : 'Eksplorasi/Dasar',
         styleCode: activeTier >= 3 ? selectedStyleCode : 'N/A',
         styleLabel: activeTier >= 3 ? styleObj.name : 'N/A',
@@ -3405,6 +3417,7 @@ function FootballAssessmentView({
         await updateDoc(doc(db, 'students', selectedStudent.id), {
           playerRole: selectedPosition,
           position: selectedPosition,
+          secondaryPosition: activeTier >= 3 ? secondaryPosition : 'NONE',
           curriculumTier: activeTier,
           specialization: activeTier >= 3 ? selectedSpecialization : 'Dasar',
           styleCode: activeTier >= 3 ? selectedStyleCode : 'N/A',
@@ -3533,9 +3546,10 @@ function FootballAssessmentView({
                     {students.map((st) => {
                       const isEvaluatedToday = evaluatedStudentIdsToday.has(st.id);
                       const pos = st.playerRole || st.position || 'ST';
+                      const secPos = st.secondaryPosition && st.secondaryPosition !== 'NONE' ? ` / ${st.secondaryPosition}` : '';
                       return (
                         <option key={st.id} value={st.id}>
-                          {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}
+                          {isEvaluatedToday ? '✓ [Terisi] ' : ''}{st.studentName} — Posisi: {pos}{secPos}
                         </option>
                       );
                     })}
@@ -3573,9 +3587,9 @@ function FootballAssessmentView({
                   >
                     <option value="AUTO">Otomatis: {detectedTierCode} ({studentAge} Thn)</option>
                     <option value="FILANESIA_F1">Fase 1: U-8 &amp; U-10 (Usia 6–9 Thn) • Fase Kegembiraan (Joy Phase)</option>
-                    <option value="FILANESIA_F2">Fase 2: U-10 &amp; U-12 (Usia 10–13 Thn) • Fase Skill Phase</option>
-                    <option value="FILANESIA_F3">Fase 3: U-14 &amp; U-16 (Usia 14–17 Thn) • Fase Taktik 4-3-3</option>
-                    <option value="FILANESIA_F4">Fase 4: U-18 / Senior (Usia 18+ Thn) • Fase Penampilan (Performance)</option>
+                    <option value="FILANESIA_F2">Fase 2: U-10 &amp; U-12 (Usia 10–12 Thn) • Fase Skill Phase</option>
+                    <option value="FILANESIA_F3">Fase 3: U-14 &amp; U-16 (Usia 13–16 Thn) • Fase Taktik 4-3-3</option>
+                    <option value="FILANESIA_F4">Fase 4: U-18 / Senior (Usia 17+ Thn) • Fase Penampilan (Performance)</option>
                   </select>
                 </div>
               </div>
@@ -3692,7 +3706,7 @@ function FootballAssessmentView({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
-                      Posisi / Peran Bermain
+                      1. Posisi / Peran Bermain (Utama)
                     </label>
                     <select
                       value={selectedPosition}
@@ -3705,7 +3719,37 @@ function FootballAssessmentView({
                         </option>
                       ))}
                     </select>
+
+                    {activeTier < 3 && (
+                      <div className="mt-2 p-2.5 bg-blue-50/80 border border-blue-200/80 rounded-xl text-[11px] text-blue-900 font-medium flex items-center gap-2">
+                        <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span>Fokus pengembangan skill individu pada posisi utama ({tierConfig.shortLabel}).</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* POSISI KEDUA / ALTERNATIF (SECONDARY POSITION) - HANYA DITAMPILKAN FASE 3 KE ATAS */}
+                  {activeTier >= 3 && (
+                    <div>
+                      <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                        <span>2. Posisi Kedua / Alternatif (Secondary Position)</span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 lowercase">
+                          fleksibilitas taktis
+                        </span>
+                      </label>
+                      <select
+                        value={secondaryPosition}
+                        onChange={(e) => setSecondaryPosition(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 cursor-pointer"
+                      >
+                        {SECONDARY_FOOTBALL_POSITIONS.map((sp) => (
+                          <option key={sp.code} value={sp.code}>
+                            {sp.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   {activeTier >= 3 && (
                     <div>
